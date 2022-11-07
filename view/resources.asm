@@ -12,6 +12,18 @@
 !addr GRAPHICS_PALETTES = PALETTE + $20
 !addr TILES_PALETTE     = PALETTE + $60
 
+;RAM Memory layout
+;              $0810: game code
+;              $9766: ZSound - NOT ADDED
+;              $A000: RAM banks
+
+;RAM banks
+FIRST_BANK              = 1
+ZSM_TITLE_BANK          = 1     ;NOTE: if tune more than 8 KB it needs several banks
+ZSM_MENU_BANK           = 2
+ZSM_NAMEENTRY_BANK      = 3
+SAVEDGAME_BANK          = 4
+
 ;Graphic resources to load
 .tilesname      !text "TILES.BIN",0
 .playername     !text "PLAYER.BIN",0
@@ -75,7 +87,7 @@ LoadLevel:
         lda .leveldecimal
         and #%00001111          ;mask out low digit of current level
         clc
-        adc #$30                ;conver to ascii
+        adc #$30                ;convert to ascii
         sta .levelnumber+1
 
         +LoadResource .levelname, L0_MAP_ADDR, LOAD_TO_VRAM_BANK0

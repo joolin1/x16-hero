@@ -1,6 +1,13 @@
 ;*** Commander X16 constants ***********************************************************************
 
-;*** RAM **************************************************
+TRUE     = 1
+FALSE    = 0
+
+;*** BANKED RAM AND ROM ***************
+!addr BANK_ADDR  = $A000
+
+!addr RAM_BANK   = $00
+!addr ROM_BANK   = $01
 
 ;*** Zeropage *************************
 !addr ZP0   = $02
@@ -109,7 +116,7 @@ S_COLON     = $3A
 ;*** VRAM *************************************************
 
 ;Characters, base $0F800
-!addr CHAR_ADDR         = $F800
+!addr CHAR_ADDR         = $1F000
 
 ;PSG, base $1F9C0
 PSG_ADDR                = $F9C0

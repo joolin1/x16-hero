@@ -48,7 +48,7 @@ InitScreenAndSprites:
 
         ;layer 1 - text layer
         lda L1_MAPBASE
-        sta .original_textlayer_address
+        sta .original_l1_mapbase
         lda #0                          ;WARNING hard coded address, should be L1_MAP_ADDR>>9
         sta L1_MAPBASE                  ;relocate text layer
         lda #NEW_CHAR_ADDR>>9           ;set tile (char address) to new location and tile size to 8x8
@@ -116,8 +116,8 @@ RestoreScreenAndSprites:        ;Restore screen and sprites when user ends game
 
         lda #%01100000
         sta L1_CONFIG           ;enable layer 1 in 16 color text mode 
-        lda .original_textlayer_address
-        sta L1_MAPBASE
+        lda .original_l1_mapbase
+        sta L1_MAPBASE  
         lda #CHAR_ADDR>>9       ;set tile (char address) to new location and tile size to 8x8
         sta L1_TILEBASE
 
@@ -163,7 +163,7 @@ DisableLayer1:
         sta DC_VIDEO
         rts
 
-.original_textlayer_address     !byte 0
+.original_l1_mapbase    !byte 0
 
 _originalpalette:
         !word $0000, $0fff, $0800, $0afe, $0c4c, $00c5, $000a, $0ee7, $0d85, $0640, $0f77, $0333, $0777, $0af6, $008f, $0bbb    ;original colors, used for restoring colors when quitting game
