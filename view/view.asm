@@ -27,6 +27,7 @@ UpdateView:    ;Called at vertical blank to update level, text and sprites.
 
         jsr UpdatePlayerSprite 
         jsr UpdateCreatureSprites
+        jsr UpdateLight
 
         ;change background color during an explosion
         lda _explosivemode
@@ -41,12 +42,4 @@ UpdateView:    ;Called at vertical blank to update level, text and sprites.
         sta VERA_DATA0
         lda _backgroundcolor_hi
         sta VERA_DATA0
-
-        ;if dark light up after a certain amount of time
-+       lda _darkmode
-        beq +
-        +Countdown16bit _darktimecount_lo
-        bne +
-        +CopyPalettesToVRAM _graphicspalettes, 1, 3
-        stz _darkmode
 +       rts

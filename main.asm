@@ -177,8 +177,8 @@ _lifecount              !byte 0
         bne ++
         jsr TurnOffLight                ;collision between player and a lamp has occurred, turn off light and set dark time counter
         stz .sprcoltrigger
-++      jsr CreaturesTick               ;calculate all sprite data - which are visible, their position etc
-        jsr PlayerTick                  ;move hero and take actions depending on new position
+++      jsr PlayerTick                  ;move hero and take actions depending on new position
+        jsr CreaturesTick               ;calculate all sprite data - which are visible, their position in relation to player etc
         lda _levelcompleted
         beq +
         lda #ST_LEVELFINISHED
@@ -209,6 +209,7 @@ _lifecount              !byte 0
 .RestartLevel:
         jsr RestartLevel
         ;jsr RestartCreatures
+        jsr CreaturesTick
         jsr UpdateView
         jsr ShowPlayer
         lda #ST_RUNNING

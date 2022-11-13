@@ -13,6 +13,20 @@ LASER_COLLISION_MASK    = %00100000    ;laser should collide with creatures but 
 DISTANCE_LIMIT = 20
 DEAD_DELAY = 120
 
+DARK_TIME = 300
+
+UpdateLight:            ;if dark light up after a certain amount of time
+        lda _darkmode
+        beq +
+        +Countdown16bit _darktimecount_lo
+        beq TurnOnLight
++       rts
+
+TurnOnLight: 
+        +CopyPalettesToVRAM _graphicspalettes, 1, 3
+        stz _darkmode
+        rts
+
 TurnOffLight:
         lda #<GRAPHICS_PALETTES
         sta VERA_ADDR_L
@@ -24,24 +38,22 @@ TurnOffLight:
         ldy #0           
 -       lda _graphicspalettes,y
         sta ZP0         ;temp save .A
-        lsr             ;.A/8
-        lsr
+        lsr             ;make color darker by dividing color value by four
         lsr
         and #$f0        ;keep high nybble 
         sta ZP1         ;temp save high nybble
         lda ZP0         ;restore original value
         and #$0f        ;keep low nybble
-        lsr             ;.A/8
-        lsr
+        lsr             ;make color darker by dividing color value by four
         lsr
         ora ZP1         ;combine high and low nybble
         sta VERA_DATA0     
         iny
         cpy #96         ;3 palettes * 16 colors * 2 bytes             
         bne -
-        lda #<1200
+        lda #<DARK_TIME
         sta _darktimecount_lo
-        lda #>1200
+        lda #>DARK_TIME
         sta _darktimecount_hi
         lda #1
         sta _darkmode

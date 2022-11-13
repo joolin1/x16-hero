@@ -12,6 +12,7 @@ JOY_UP                  = 8
 JOY_DOWN                = 4
 JOY_LEFT                = 2
 JOY_RIGHT               = 1
+JOY_NO_DIRECTION        = 15
 
 ;what controllers are used (= what _joy0 and joy1 will correspond to) depends on how many game controllers are present
 .joy0mapping:   !byte 0 ;can be keyboard or game controller 1

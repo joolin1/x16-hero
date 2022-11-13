@@ -6,6 +6,7 @@ MIN_FLYINGSPEED = 1
 MAX_FLYINGSPEED = 2
 FLYINGTIME = 45
 FLYINGSPEED_DELAY = 45
+TAKEOFF_DELAY = 2
 
 MIN_FALLINGSPEED = 1
 MAX_FALLINGSPEED = 16
@@ -14,13 +15,14 @@ GRAVITY = 1
 SLIPPING = 6 ;how many pixels player slips to the left or right when walking over an edge
 
 ;definition of collision box (for example: add Q1_X and Q1_Y to player's position to get top right corner of box)
-COLLBOX_Q1_X =  7
+COLLBOX_Q1_X =  5;7
+COLLBOX_Q2_X = -6;-8
+COLLBOX_Q3_X = -6;-8
+COLLBOX_Q4_X =  5;7
+
 COLLBOX_Q1_Y = -13
-COLLBOX_Q2_X = -8
 COLLBOX_Q2_Y = -13
-COLLBOX_Q3_X = -8
 COLLBOX_Q3_Y =  9
-COLLBOX_Q4_X =  7
 COLLBOX_Q4_Y =  9
 
 TILE_GROUND_LEVEL = 6   ;adjustment of where to place player vertically when landing
@@ -46,9 +48,9 @@ _ismoving       !byte 0         ;boolean, whether player is moving or standing s
 _ismovingleft   !byte 0         ;boolean, whether player is pointing left or right
 
 ;OBSOLETE
-.finishflag     !byte 0         ;flag for finished level
+; .finishflag     !byte 0         ;flag for finished level
 _isrecord       !byte 0
-_collisionflag  !byte 0
+; _collisionflag  !byte 0
 
 _xpos_lo        !byte 0         ;current position in game world 
 _xpos_hi        !byte 0
@@ -78,7 +80,7 @@ _levelwidth             !word 0
 
 PrintDebugInformation:             ;DEBUG     
         +SetPrintParams 2,0,$01
-        lda _flyingspeed
+        lda _joy0
         jsr VPrintNumber
 
         +SetPrintParams 7,0,$01
@@ -93,6 +95,7 @@ InitLevel:
         jsr .SetLevelProperties
 RestartLevel:
         jsr .SetPlayerProperties
+        jsr TurnOnLight
         rts
 
 .SetLevelProperties:
@@ -170,7 +173,7 @@ PlayerTick:                     ;advance one frame
         lda _currenttilebelow
         sta _lasttilebelow
         jsr UpdateExplosive
-        ;jsr PrintDebugInformation
+        jsr PrintDebugInformation
         rts
 
 SetCollisionBox:
@@ -263,6 +266,10 @@ SetCollisionBox:
         rts
 
 +       lda _joy0
+        and #JOY_LEFT+JOY_RIGHT
+        beq .SetNotMoving       ;Pressing both left and right will be ignored
+
++       lda _joy0
         bit #JOY_LEFT           ;LEFT?
         bne +
         jsr .MoveLeft
@@ -271,13 +278,13 @@ SetCollisionBox:
 
 +       lda _joy0        
         bit #JOY_RIGHT          ;RIGHT?
-        bne +
+        bne .SetNotMoving
         jsr .MoveRight
         jsr .IncreaseFlyingSpeed
         rts
 
-        ;player is not moving
-+       lda #MIN_FLYINGSPEED
+.SetNotMoving:
+        lda #MIN_FLYINGSPEED
         sta _flyingspeed
         stz _ismoving
         rts
@@ -330,7 +337,6 @@ SetCollisionBox:
 +       +Sub16 _ypos_lo, _flyingspeed
         rts
 
-TAKEOFF_DELAY = 20
 .takeoffdelay   !byte 0
 
 .MoveDown:
@@ -449,7 +455,7 @@ CheckIfLevelComplete:
 +       rts
 
 CheckLandingAndFalling:
-        +Copy16 _ypos_lo, ZP4
+        +Copy16 _ypos_lo, ZP4   ;TODO - Check collision box instead!!!!!
         +Copy16 _xpos_lo, ZP6
         +Add16I ZP4, 16 - 4     ;tile height - padding                 
         jsr CheckTileStatus
