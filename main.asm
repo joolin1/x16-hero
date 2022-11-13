@@ -207,7 +207,7 @@ _lifecount              !byte 0
         rts
 
 .RestartLevel:
-        jsr RestartLevel
+        ;jsr RestartLevel
         ;jsr RestartCreatures
         jsr CreaturesTick
         jsr UpdateView

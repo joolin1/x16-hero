@@ -12,13 +12,12 @@ MIN_FALLINGSPEED = 1
 MAX_FALLINGSPEED = 16
 FALLINGSPEED_DELAY = 8
 GRAVITY = 1
-SLIPPING = 6 ;how many pixels player slips to the left or right when walking over an edge
 
 ;definition of collision box (for example: add Q1_X and Q1_Y to player's position to get top right corner of box)
-COLLBOX_Q1_X =  5;7
-COLLBOX_Q2_X = -6;-8
-COLLBOX_Q3_X = -6;-8
-COLLBOX_Q4_X =  5;7
+COLLBOX_Q1_X =  6;7
+COLLBOX_Q2_X = -7;-8
+COLLBOX_Q3_X = -7;-8
+COLLBOX_Q4_X =  6;7
 
 COLLBOX_Q1_Y = -13
 COLLBOX_Q2_Y = -13
@@ -455,7 +454,7 @@ CheckIfLevelComplete:
 +       rts
 
 CheckLandingAndFalling:
-        +Copy16 _ypos_lo, ZP4   ;TODO - Check collision box instead!!!!!
+        +Copy16 _ypos_lo, ZP4
         +Copy16 _xpos_lo, ZP6
         +Add16I ZP4, 16 - 4     ;tile height - padding                 
         jsr CheckTileStatus
@@ -464,9 +463,12 @@ CheckLandingAndFalling:
         ;handle if tile below is space
         cmp #TILECAT_SPACE
         bne ++
+        jsr KeepClearOfWalls
         lda _isflying
         bne +                   ;if space below and flying, do nothing
-        jsr StartFalling        ;if space below and walking, start falling
+        lda #1
+        sta _isfalling
+        ;jsr StartFalling        ;if space below and walking, start falling
 +       rts
 
         ;handle if tile below is a block
@@ -493,28 +495,29 @@ CheckLandingAndFalling:
         lda #MIN_FALLINGSPEED
         sta _fallingspeed
         stz _isfalling
-        lda #SLIPPING
-        sta _slipping
         stz _isflying
         stz _ismoving
         rts
 
-StartFalling:   ;set falling status and move player so he slips over the edge :)
-        lda #1 
-        sta _isfalling 
-        lda _slipping
+KeepClearOfWalls:                       ;when falling keep clear of walls to the left and right
+        ;check bottom left corner of collision box
++       +Copy16 _collboxq3_y, ZP4
+        +Copy16 _collboxq3_x, ZP6
+        +Add16 ZP4, 16-4          
+        jsr CheckTileStatus
+        cmp #TILECAT_BLOCK
         bne +
+        +Inc16 _xpos_lo                  ;if left bottom corner of collision box is blocked move player right
         rts
-+       lda _ismovingleft
+        ;check bottom right corner of collision box
++       +Copy16 _collboxq4_y, ZP4
+        +Copy16 _collboxq4_x, ZP6
+        +Add16 ZP4, 16-4
+        jsr CheckTileStatus
+        cmp #TILECAT_BLOCK              ;if right bottom corner of collision box is blocked move player left
         bne +
-        +Inc16 _xpos_lo
-        dec _slipping
-        rts
-+       +Dec16 _xpos_lo
-        dec _slipping
-        rts
-
-_slipping    !byte 0
+        +Dec16 _xpos_lo          
++       rts
 
 .IncreaseFlyingSpeed:
         lda _isflying
