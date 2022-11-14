@@ -36,7 +36,7 @@ SAVEDGAME_BANK          = 4
 
 _fileerrorflag  !byte   0   ;at least one i/o error has occurred if set
 
-!macro LoadResource .filename, .addr, .details {
+!macro LoadResource .filename, .addr, .ramtype, .header {
         lda #<.filename
         sta ZP0
         lda #>.filename
@@ -45,8 +45,10 @@ _fileerrorflag  !byte   0   ;at least one i/o error has occurred if set
         sta ZP2
         lda #>.addr
         sta ZP3
-        lda #.details
+        lda #.ramtype
         sta ZP4
+        lda #.header
+        sta ZP5
         jsr LoadFile                   ;call filehandler
         bcc +
         jsr PrintIOErrorMessage
@@ -57,10 +59,10 @@ _fileerrorflag  !byte   0   ;at least one i/o error has occurred if set
 
 LoadGraphics:
         stz _fileerrorflag
-        +LoadResource .tilesname    , TILES_ADDR            , LOAD_TO_VRAM_BANK0
-        +LoadResource .playername   , PLAYER_SPRITES_ADDR   , LOAD_TO_VRAM_BANK0
-        +LoadResource .creaturesname, CREATURE_SPRITES_ADDR , LOAD_TO_VRAM_BANK0
-        +LoadResource .fontname     , NEW_CHAR_ADDR         , LOAD_TO_VRAM_BANK0
+        +LoadResource .tilesname    , TILES_ADDR            , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
+        +LoadResource .playername   , PLAYER_SPRITES_ADDR   , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
+        +LoadResource .creaturesname, CREATURE_SPRITES_ADDR , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
+        +LoadResource .fontname     , NEW_CHAR_ADDR         , LOAD_TO_VRAM_BANK0, FILE_HAS_NO_HEADER
         
         lda _fileerrorflag
         beq +
@@ -90,7 +92,7 @@ LoadLevel:
         adc #$30                ;convert to ascii
         sta .levelnumber+1
 
-        +LoadResource .levelname, L0_MAP_ADDR, LOAD_TO_VRAM_BANK0
+        +LoadResource .levelname, L0_MAP_ADDR, LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
 
         lda _fileerrorflag
         beq +
