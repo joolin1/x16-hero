@@ -15,21 +15,19 @@
 
 ;Status for game
 ST_MENU           = 0   ;show start screen or menu
-ST_INITLEVEL      = 1   ;init level and player
-ST_RESUMEGAME     = 2   ;resume game 
-ST_RUNNING        = 3   ;normal gameplay
-ST_PAUSED         = 4   ;game paused
-ST_KILL           = 5   ;player has killed a creature
-ST_DEATH          = 6   ;player has been killed
-ST_RESTARTLEVEL   = 7   ;restart level if lives left
-ST_LEVELFINISHED  = 8   ;level finished
-ST_ENDGAME        = 9   ;no more lives, end game
-ST_GAMEOVER       = 10  ;wait for player to continue
-ST_GAMECOMPLETED  = 11  ;all levels are completed!
-ST_QUITGAME       = 12  ;quit game
-
-LIFE_COUNT        = 2   ;number of lives for player
-LEVEL_COUNT       = 2   ;number of levels in game
+ST_INITGAME       = 1   ;init new game
+ST_INITLEVEL      = 2   ;init level and player
+ST_RESUMEGAME     = 3   ;resume game 
+ST_RUNNING        = 4   ;normal gameplay
+ST_PAUSED         = 5   ;game paused
+ST_KILL           = 6   ;player has killed a creature
+ST_DEATH          = 7   ;player has been killed
+ST_RESTARTLEVEL   = 8   ;restart level if lives left
+ST_LEVELFINISHED  = 9   ;level finished
+ST_ENDGAME        = 10  ;no more lives, end game
+ST_GAMEOVER       = 11  ;wait for player to continue
+ST_GAMECOMPLETED  = 12  ;all levels are completed!
+ST_QUITGAME       = 13  ;quit game
 
 ;*** Main program **********************************************************************************
 
@@ -60,8 +58,7 @@ LEVEL_COUNT       = 2   ;number of levels in game
         rts
 
 _gamestatus             !byte 0       
-_noofplayers	        !byte 1
-_lifecount              !byte 0     
+_noofplayers	        !byte 1    
 .defaulthandler_lo 	!byte 0
 .defaulthandler_hi	!byte 0
 .vsynctrigger           !byte 0
@@ -90,7 +87,6 @@ _lifecount              !byte 0
         ldx .sprcoltrigger
         bne +
         and #%11110000                  ;keep only collision info
-        ;sta VERA_ISR
         sta .sprcoltrigger              ;save info about collision
         jmp (.defaulthandler_lo)
 +       bit #1                          ;vertical blank interrupt?
@@ -130,6 +126,9 @@ _lifecount              !byte 0
 +       cmp #ST_MENU                    ;show start screen and menu
         bne +
         jmp .ShowMenu
++       cmp #ST_INITGAME
+        bne +
+        jmp .InitGame
 +       cmp #ST_INITLEVEL               ;init level, prepare everything
         bne +
         jmp .InitLevel
@@ -165,8 +164,10 @@ _lifecount              !byte 0
         and #$f0
         cmp #$10
         bne +
+        jsr KillPlayer
         lda #ST_DEATH                   ;collision between player and a creature has occurred
         sta _gamestatus
+        stz .sprcoltrigger
         rts
 +       cmp #$20
         bne +
@@ -179,6 +180,7 @@ _lifecount              !byte 0
         stz .sprcoltrigger
 ++      jsr PlayerTick                  ;move hero and take actions depending on new position
         jsr CreaturesTick               ;calculate all sprite data - which are visible, their position in relation to player etc
+        jsr TimeTick
         lda _levelcompleted
         beq +
         lda #ST_LEVELFINISHED
@@ -189,18 +191,28 @@ _lifecount              !byte 0
         jsr DisableLayer0
         jsr EnableLayer1
         jsr MenuHandler
+        rts
 
+.InitGame:
         lda #LIFE_COUNT                 ;init game
-        sta _lifecount
+        sta _lives
         lda #1
         sta _level
+        sta _level_decimal
+        jsr InitTimer
+        jsr ClearTextLayer
+        jsr InitStatusBar
+        lda #ST_INITLEVEL
+        sta _gamestatus
         rts
 
 .InitLevel:
         jsr InitLevel
+        jsr InitPlayer
         jsr InitCreatures
         jsr UpdateView
         jsr ShowPlayer
+        jsr TurnOnLight
         jsr EnableLayer0
         lda #ST_RUNNING
         sta _gamestatus
@@ -264,13 +276,14 @@ _lifecount              !byte 0
         jsr KillPlayer          ;returns true when totally dead...
         bne +
         rts
-+       dec _lifecount
++       dec _lives
         bne +
         lda #ST_ENDGAME
         sta _gamestatus
         rts
 +       lda #ST_RESTARTLEVEL
         sta _gamestatus
+        stz .sprcoltrigger
         rts
 
 .LevelFinished:
@@ -284,6 +297,9 @@ _lifecount              !byte 0
         cmp #LEVEL_COUNT
         beq +
         inc _level
+        sed 
+        inc _level_decimal
+        cld
         lda #ST_INITLEVEL
         sta _gamestatus
         rts
@@ -313,7 +329,6 @@ LEVEL_FINISHED_DELAY    = 60
         rts
 +       jsr HidePlayer
         jsr HideCreatures
-        jsr DisableLayer0       ;temporary disable layer 0 while preparing main menu
         lda #ST_MENU
         sta _gamestatus
         stz .sprcoltrigger
@@ -349,6 +364,7 @@ LEVEL_FINISHED_DELAY    = 60
 !src "libs/textlib.asm"
 !src "libs/helperslib.asm"
 !src "libs/joysticklib.asm"
+!src "libs/timerlib.asm"
 !src "libs/debug.asm"
 
 ;*** View *****************************
@@ -364,6 +380,7 @@ LEVEL_FINISHED_DELAY    = 60
 !src "view/badgesprites.asm"
 
 ;*** Model *****************************
+!src "model/level.asm"
 !src "model/player.asm"
 !src "model/creatures.asm"
 !src "model/collision.asm"

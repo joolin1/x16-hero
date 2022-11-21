@@ -1,0 +1,66 @@
+;*** level.asm  ***********************************************************************************
+
+LEVEL_COUNT       = 2   ;number of levels in game
+
+_levelstarttable        !byte 14,12      ;start row and col for level 1
+                        !byte 14,12      ;level 2
+
+;table for size of levels (0 = 32 tiles, 1 = 64, 2 = 128 and 3 = 256)
+_levelsizetable         !byte 1,0       ;height and width in VERA tilemap notation 
+                        !byte 1,0
+
+
+_level                  !byte 0         ;current level (zero-indexed)
+_level_decimal          !byte 0         ;current level in decimal (SED/CLD)
+_levelcompleted         !byte 0         ;flag
+
+_levelconvtable         !word 32,64,128,256
+_levelheight            !word 0         ;height and width in tiles
+_levelwidth             !word 0
+.levelpow2width         !byte 0         ;level width where 2^_levelwidth = width in tiles (used when finding certain tile)
+
+InitLevel:
+        stz _levelcompleted
+        jsr LoadLevel
+        jsr .SetLevelProperties
+; RestartLevel:
+;         jsr .SetPlayerProperties
+;         jsr TurnOnLight
+        rts
+
+.SetLevelProperties:
+        ;get size of current level
+        lda _level
+        dec
+        asl
+        tay                     
+        lda _levelsizetable,y   ;get rows
+        sta ZP0
+        lda _levelsizetable+1,y ;get cols
+        sta ZP1
+
+        ;set size of current level in tiles
+        lda ZP0
+        asl                     ;every entry takes 2 bytes
+        tay
+        lda _levelconvtable,y
+        sta _levelheight
+        lda _levelconvtable+1,y
+        sta _levelheight+1
+        ldy ZP1
+        asl
+        tay
+        lda _levelconvtable,y
+        sta _levelwidth
+        lda _levelconvtable+1
+        sta _levelwidth+1
+
+        ;set width of current level where 2^x = width of tilemap
+        lda ZP1
+        clc
+        adc #5                  ;convert from VERA notification
+        sta .levelpow2width 
+
+        ;finally set tilemap size (passed in ZP0 and ZP1)
+        jsr SetLayer0Size
+        rts

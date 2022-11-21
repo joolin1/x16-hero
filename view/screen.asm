@@ -78,7 +78,7 @@ SetLayer0Size:                          ;IN: ZP0 = number or rows, ZP1 = number 
         sta L0_CONFIG 
         rts
 
-ClearTextLayer:				;IN: .X, .Y = address of layer
+ClearTextLayer:				
 	lda #<L1_MAP_ADDR
         sta VERA_ADDR_L
         lda #>L1_MAP_ADDR
@@ -89,7 +89,7 @@ ClearTextLayer:				;IN: .X, .Y = address of layer
 	sta VERA_ADDR_H
 	lda #S_SPACE
 	ldy #$01			;bg = black (transparent), fg = white
---	ldx #40
+--	ldx #41                         ;clear one extra col in case layer is slightly scrolled
 -	sta VERA_DATA0			;print space						
 	sty VERA_DATA0			;set color
 	dex
@@ -97,6 +97,11 @@ ClearTextLayer:				;IN: .X, .Y = address of layer
 	stz VERA_ADDR_L
 	dec VERA_ADDR_M
 	bpl --
+        lda #0                          ;reset scroll offset
+        sta L1_HSCROLL_L
+        sta L1_VSCROLL_L
+        stz L1_HSCROLL_H
+        stz L1_VSCROLL_H
 	rts
 
 RestoreScreenAndSprites:        ;Restore screen and sprites when user ends game
@@ -127,6 +132,9 @@ RestoreScreenAndSprites:        ;Restore screen and sprites when user ends game
         lda #147
         jsr BSOUT               ;clear screen
 
+-       jsr GETIN               ;empty keyboard buffer
+        cmp #0
+        bne -
         rts
 
 EnableLayers:

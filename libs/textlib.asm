@@ -449,7 +449,7 @@ VPrintSeconds:                  ;IN: .A = seconds
         
 .secondtime     !scr ":00",0
 
-VPrintTime:                     ;IN: ZP0 = minutes, ZP1 = seconds, ZP2 = jiffies
+VPrintTime:                     ;IN: ZP0 = minutes, ZP1 = seconds, (ZP2 = jiffies)
         lda _col
         asl
         sta VERA_ADDR_L         ;set start column      
@@ -469,12 +469,12 @@ VPrintTime:                     ;IN: ZP0 = minutes, ZP1 = seconds, ZP2 = jiffies
         lda ZP1
         jsr .VPrintSeconds
 
-        lda #S_COLON
-        sta VERA_DATA0
-        stx VERA_DATA0
+        ;lda #S_COLON           ;no jiffies in this game : )
+        ;sta VERA_DATA0
+        ;stx VERA_DATA0
 
-        lda ZP2
-        jsr .VPrintJiffies
+        ; lda ZP2               
+        ; jsr .VPrintJiffies
         inc _row
         rts
 

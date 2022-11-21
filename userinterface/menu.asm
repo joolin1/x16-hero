@@ -213,104 +213,6 @@ MenuHandler:
 	sta _noofplayers
 	rts
 
-; +	cmp #TRACK_1
-; 	bne +
-; 	lda #1
-; 	sta .track1
-; 	lda #$0b
-; 	sta .track2
-; 	sta .track3
-; 	sta .track4
-; 	sta .track5
-; 	lda #1
-; 	sta _track
-; 	rts
-
-; +	cmp #TRACK_2
-; 	bne +
-; 	lda #1
-; 	sta .track2
-; 	lda #$0b
-; 	sta .track1
-; 	sta .track3
-; 	sta .track4
-; 	sta .track5
-; 	lda #2
-; 	sta _track
-; 	rts
-
-; +	cmp #TRACK_3
-; 	bne +
-; 	lda #1
-; 	sta .track3
-; 	lda #$0b
-; 	sta .track1
-; 	sta .track2
-; 	sta .track4
-; 	sta .track5
-; 	lda #3
-; 	sta _track
-; 	rts
-
-; +	cmp #TRACK_4
-; 	bne +
-; 	lda #1
-; 	sta .track4
-; 	lda #$0b
-; 	sta .track1
-; 	sta .track2
-; 	sta .track3
-; 	sta .track5
-; 	lda #4
-; 	sta _track
-; 	rts
-
-; +	cmp #TRACK_5
-; 	bne +
-; 	lda #1
-; 	sta .track5
-; 	lda #$0b
-; 	sta .track1
-; 	sta .track2
-; 	sta .track3
-; 	sta .track4
-; 	lda #5
-; 	sta _track
-;     rts
-
-; + 	cmp #LOW_SPEED
-; 	bne +
-; 	lda #1
-; 	sta .lowspeed
-; 	lda #$0b
-; 	sta .normalspeed
-; 	sta .highspeed
-; 	lda #LOW_MAX_SPEED
-; 	sta _max_speed
-; 	rts
-
-; + 	cmp #NORMAL_SPEED
-; 	bne +
-; 	lda #1
-; 	sta .normalspeed
-; 	lda #$0b
-; 	sta .lowspeed
-; 	sta .highspeed
-; 	lda #NORMAL_MAX_SPEED
-; 	sta _max_speed
-; 	rts
-
-; + 	cmp #HIGH_SPEED
-; 	bne +
-; 	lda #1
-; 	sta .highspeed
-; 	lda #$0b
-; 	sta .lowspeed
-; 	sta .normalspeed
-; 	lda #HIGH_MAX_SPEED
-; 	sta _max_speed
-; 	rts
-
 +	cmp #RESET_BEST
 	bne +
 	jsr .HandleResetLeaderboard
@@ -321,14 +223,10 @@ MenuHandler:
 +	rts
 
 .CloseMainMenu:
-	ldx #<L1_MAP_ADDR
-	ldy #>L1_MAP_ADDR
-	jsr ClearTextLayer
-	jsr DisableLayer0		;temporary disable layer 0 while preparing racing track
 	lda #M_SHOW_MAIN_MENU
 	sta .menumode			;prepare for the next time the menu handler will be called, then we skip start screen and go directly to the main menu
-	lda #ST_INITLEVEL
-	sta _gamestatus         ;update game status to start race, the menu handler will no longer be called
+	lda #ST_INITGAME
+	sta _gamestatus         ;update game status to start game, the menu handler will no longer be called
 	rts
 
 .HandleResetLeaderboard:

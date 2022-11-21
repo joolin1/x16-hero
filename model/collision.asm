@@ -60,13 +60,13 @@ TurnOffLight:
         rts
 
 KillPlayer:
-        lda #SCREENWIDTH/2                    ;for now don't kill creature that player might have collided with, lever restarts when player dies
+        lda #SCREENWIDTH/2
         sta .refxpos
         stz .refxpos+1
         lda #SCREENHEIGHT/2
         sta .refypos
         stz .refypos+1
-        jsr .MarkCreatureAsDead
+        jsr .MarkCreatureAsDead                 ;kill creature as well
         jsr ShowDeadPlayer
         +CheckTimer .deaddelay, DEAD_DELAY      ;returns .A = true if timer ready      
         rts

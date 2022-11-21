@@ -1,23 +1,46 @@
 ;*** player.asm ************************************************************************************
 
+LIFE_COUNT        = 2   ;number of lives for player
+
 WALKINGSPEED = 1 
 
 MIN_FLYINGSPEED = 1
 MAX_FLYINGSPEED = 2
 FLYINGTIME = 45
 FLYINGSPEED_DELAY = 45
-TAKEOFF_DELAY = 2
+TAKEOFF_DELAY = 10
 
 MIN_FALLINGSPEED = 1
 MAX_FALLINGSPEED = 16
 FALLINGSPEED_DELAY = 8
 GRAVITY = 1
 
+;player properties
+_flyingspeed    !word 0         ;16 bit value for easier math
+_flyingtime     !byte 0         ;how long player is flying without boosting
+_fallingspeed   !word 0         ;16 bit value for easier math
+_isfalling      !byte 0         ;boolean, whether player is falling or not
+_istakingoff    !byte 0         ;boolean, whether player is taking off (= not yet flying)
+_isflying       !byte 0         ;boolean, whether player is flying or walking
+_ismoving       !byte 0         ;boolean, whether player is moving or standing still
+_ismovingleft   !byte 0         ;boolean, whether player is pointing left or right
+
+_lives          !byte 0
+_isrecord       !byte 0
+
+_xpos_lo        !byte 0         ;current position in game world 
+_xpos_hi        !byte 0
+_ypos_lo        !byte 0
+_ypos_hi        !byte 0
+
+_currenttilebelow       !byte 0
+_lasttilebelow          !byte 0
+
 ;definition of collision box (for example: add Q1_X and Q1_Y to player's position to get top right corner of box)
-COLLBOX_Q1_X =  6;7
-COLLBOX_Q2_X = -7;-8
-COLLBOX_Q3_X = -7;-8
-COLLBOX_Q4_X =  6;7
+COLLBOX_Q1_X =  6
+COLLBOX_Q2_X = -7
+COLLBOX_Q3_X = -7
+COLLBOX_Q4_X =  6
 
 COLLBOX_Q1_Y = -13
 COLLBOX_Q2_Y = -13
@@ -36,105 +59,7 @@ _collboxq3_y    !word 0
 _collboxq4_x    !word 0
 _collboxq4_y    !word 0
 
-;player properties
-_flyingspeed    !word 0         ;16 bit value for easier math
-_flyingtime     !byte 0         ;how long player is flying without boosting
-_fallingspeed   !word 0         ;16 bit value for easier math
-_isfalling      !byte 0         ;boolean, whether player is falling or not
-_istakingoff    !byte 0         ;boolean, whether player is taking off (= not yet flying)
-_isflying       !byte 0         ;boolean, whether player is flying or walking
-_ismoving       !byte 0         ;boolean, whether player is moving or standing still
-_ismovingleft   !byte 0         ;boolean, whether player is pointing left or right
-
-;OBSOLETE
-; .finishflag     !byte 0         ;flag for finished level
-_isrecord       !byte 0
-; _collisionflag  !byte 0
-
-_xpos_lo        !byte 0         ;current position in game world 
-_xpos_hi        !byte 0
-_ypos_lo        !byte 0
-_ypos_hi        !byte 0
-; _tilexpos       !byte 0
-; _tileypos       !byte 0
-_currenttilebelow       !byte 0
-_lasttilebelow          !byte 0
-
-_lives          !byte 0
-
-;level properties
-_levelcompleted         !byte 0
-_level                  !byte 0
-_levelstarttable        !byte 14,12      ;start row and col for level 1
-                        !byte 14,12      ;level 2
-
-;table for size of levels (0 = 32 tiles, 1 = 64, 2 = 128 and 3 = 256)
-_levelsizetable         !byte 1,0       ;height and width in VERA tilemap notation 
-                        !byte 1,0
-
-_levelconvtable         !word 32,64,128,256
-_levelheight            !word 0         ;height and width in tiles
-_levelwidth             !word 0
-.levelpow2width         !byte 0         ;level width where 2^_levelwidth = width in tiles (used when finding certain tile)
-
-PrintDebugInformation:             ;DEBUG     
-        +SetPrintParams 2,0,$01
-        lda _joy0
-        jsr VPrintNumber
-
-        +SetPrintParams 7,0,$01
-        +VPrintHex16Number _xpos_lo
-        +SetPrintParams 8,0,$01
-        +VPrintHex16Number _ypos_lo         
-        rts
-
-InitLevel:
-        stz _levelcompleted
-        jsr LoadLevel
-        jsr .SetLevelProperties
-RestartLevel:
-        jsr .SetPlayerProperties
-        jsr TurnOnLight
-        rts
-
-.SetLevelProperties:
-        ;get size of current level
-        lda _level
-        dec
-        asl
-        tay                     
-        lda _levelsizetable,y   ;get rows
-        sta ZP0
-        lda _levelsizetable+1,y ;get cols
-        sta ZP1
-
-        ;set size of current level in tiles
-        lda ZP0
-        asl                     ;every entry takes 2 bytes
-        tay
-        lda _levelconvtable,y
-        sta _levelheight
-        lda _levelconvtable+1,y
-        sta _levelheight+1
-        ldy ZP1
-        asl
-        tay
-        lda _levelconvtable,y
-        sta _levelwidth
-        lda _levelconvtable+1
-        sta _levelwidth+1
-
-        ;set width of current level where 2^x = width of tilemap
-        lda ZP1
-        clc
-        adc #5                  ;convert from VERA notification
-        sta .levelpow2width 
-
-        ;finally set tilemap size (passed in ZP0 and ZP1)
-        jsr SetLayer0Size
-        rts
-
-.SetPlayerProperties:
+InitPlayer:
         ;set start position
         lda _level
         dec
@@ -165,17 +90,16 @@ RestartLevel:
         rts           
 
 PlayerTick:                     ;advance one frame
-        jsr SetCollisionBox
+        jsr .SetCollisionBox
         jsr .UpdatePlayerPosition
         jsr CheckIfLevelComplete
         jsr CheckLandingAndFalling
         lda _currenttilebelow
         sta _lasttilebelow
         jsr UpdateExplosive
-        jsr PrintDebugInformation
         rts
 
-SetCollisionBox:
+.SetCollisionBox:
         lda #<COLLBOX_Q1_X
         sta _collboxq1_x
         lda #>COLLBOX_Q1_X

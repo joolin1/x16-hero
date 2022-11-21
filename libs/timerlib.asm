@@ -1,9 +1,9 @@
 ;*** timer.asm **************************************************************************************
  
-.TimeReset:
-        stz .minutes
-        stz .seconds
-        stz .jiffies
+InitTimer:
+        stz _minutes
+        stz _seconds
+        stz _jiffies
         rts
 
 .TimeAddSeconds:                ;IN: .A = number of seconds to add
@@ -16,29 +16,29 @@
         bne -
         rts
 
-.TimeTick:
-        inc .jiffies            ;interrupt is triggered once every 1/60 second. That is why we add exactly this.
-        lda .jiffies
+TimeTick:
+        inc _jiffies            ;interrupt is triggered once every 1/60 second. That is why we add exactly this.
+        lda _jiffies
         cmp #60
         beq +
         rts
-+       stz .jiffies
++       stz _jiffies
 
 .TimeAddSecond:
-        inc .seconds
-        lda .seconds
+        inc _seconds
+        lda _seconds
         cmp #60
         beq +
         rts
-+       stz .seconds
++       stz _seconds
 
 .TimeAddMinute:
-        inc .minutes
-        lda .minutes
+        inc _minutes
+        lda _minutes
         cmp #60
         beq +
         rts
-+       stz .minutes            ;59:59:59 is max time
++       stz _minutes            ;59:59:59 is max time
         rts
 
 .TimeSubSeconds:                ;.A = number of seconds to subtract
@@ -52,18 +52,18 @@
         rts
 
 .TimeSubSecond:
-        dec .seconds
+        dec _seconds
         bmi +
         rts
 +       lda #59
-        sta .seconds
-        dec .minutes
+        sta _seconds
+        dec _minutes
         bmi +
         rts
 +       lda #59
-        sta .minutes
+        sta _minutes
         rts
 
-.minutes    !byte 0             ;timer data
-.seconds    !byte 0
-.jiffies    !byte 0
+_minutes    !byte 0             ;timer data
+_seconds    !byte 0
+_jiffies    !byte 0
