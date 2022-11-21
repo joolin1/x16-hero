@@ -1,63 +1,52 @@
-;*** Menu.asm - Start screen, menu, annoncements *******************************
+;*** Menu.asm - Start screen, menu, credits ********************************************************
 
 ;Menu status
-M_SHOW_START_SCREEN 	= 0
-M_UPDATE_START_SCREEN	= 1
-M_SHOW_MAIN_MENU 		= 2
-M_HANDLE_INPUT 			= 3
+M_INIT_START_SCREEN   	= 0
+M_SHOW_START_SCREEN     = 1
+M_SHOW_MENU_SCREEN  	= 2
+M_SHOW_CREDIT_SCREEN	= 3
+M_HANDLE_INPUT 			= 4
 
 ;Menu item mapping
-START_RACE		= 0
-ONE_PLAYER 		= 1
-TWO_PLAYERS 	= 2
-TRACK_1			= 3
-TRACK_2			= 4
-TRACK_3			= 5
-TRACK_4			= 6
-TRACK_5			= 7
-LOW_SPEED   	= 8
-NORMAL_SPEED 	= 9
-HIGH_SPEED	 	= 10
-RESET_BEST  	= 11
-QUIT_GAME		= 12
+START_GAME		= 0
+SET_START_LEVEL = 1
+RESET_BEST  	= 2
+QUIT_GAME		= 3
 
-MENU_ITEMS_COUNT = 13
-
-;Special characters used in menu
-END_LINE_DIV	= 34 	;"
-BLOCK			= 35	;#
-MIDDLE_LINE_DIV	= 37 	;%
-FIRST_LINE_DIV 	= 38	;&
+MENU_ITEMS_COUNT = 4
 
 ;Colors
 MENU_WHITE = $01
-MENU_BLACK = $0b
+MENU_BLACK = $0c
+
+INACTIVITY_DELAY = 7
 
 ;*** Public methods ********************************************************************************
 
 MenuHandler:
 	lda .menumode
 
-	;show start screen
-	cmp #M_SHOW_START_SCREEN
+	;show start image
+	cmp #M_INIT_START_SCREEN	;load and display start screen
 	bne +
 	jsr .ShowStartScreen
-	inc .menumode					;go to next mode - update start screen (change bg colors)
+	lda #M_SHOW_START_SCREEN
+	sta .menumode
 	rts
 
-	;update start screen
-+	cmp #M_UPDATE_START_SCREEN
-	bne ++
++	cmp #M_SHOW_START_SCREEN	;just wait for player to press something
+	bne +
 	lda _joy0
-	cmp #$ff
+	cmp #JOY_NOTHING_PRESSED
 	beq +
-	inc .menumode           		;if anything at all is pressed, go to next mode - show menu
-+   rts
+	lda #M_SHOW_MENU_SCREEN
+	sta .menumode
+	rts
 
 	;show menu
-++  cmp #M_SHOW_MAIN_MENU
++   cmp #M_SHOW_MENU_SCREEN
 	bne +
-	jsr .ShowMainMenu
+	jsr .ShowMenuScreen
 	lda #M_HANDLE_INPUT				;next go to input menu mode
 	sta .menumode
 	lda #1
@@ -66,19 +55,40 @@ MenuHandler:
 	stz .inactivitytimer_hi
 	rts
 
+    ;show credit screen
++   cmp #M_SHOW_CREDIT_SCREEN
+	bne ++
+	jsr .ShowCreditScreen
+	lda .inactivitytimer_hi
+	cmp #INACTIVITY_DELAY
+	bne +
+	lda #M_SHOW_MENU_SCREEN
+	sta .menumode
+	rts
++	lda _joy0
+	cmp #JOY_NOTHING_PRESSED
+	beq +
+	lda #M_SHOW_MENU_SCREEN
+	sta .menumode
+	rts
++	+Inc16 .inactivitytimer_lo
+	rts
+
 	;handle user input
 ++	cmp #M_HANDLE_INPUT
 	beq +
 	rts
 
 +   lda .inactivitytimer_hi
-	cmp #7
+	cmp #INACTIVITY_DELAY
 	beq +
 	jsr .HandleUserInput
 	rts
 
-+	lda #M_SHOW_START_SCREEN
++	lda #M_SHOW_CREDIT_SCREEN
 	sta .menumode
+	stz .inactivitytimer_lo
+	stz .inactivitytimer_hi
 	rts
 
 .menumode				!byte 0
@@ -113,9 +123,6 @@ MenuHandler:
 	bne +
 	lda .quitconfirmationflag
 	bne +
-	lda _gamestatus
-	cmp #ST_INITLEVEL
-	beq +
 	jsr .UpdateMainMenu
 +	rts
 
@@ -188,29 +195,14 @@ MenuHandler:
 
 	;take action depending on current menu item
 +	lda .handrow
-	cmp #START_RACE
+	cmp #START_GAME
 	bne +
 	jsr .CloseMainMenu
 	rts
 
-+	cmp #ONE_PLAYER
++   cmp #SET_START_LEVEL
 	bne +
-	lda #1
-	sta .oneplayer
-	lda #$0b
-	sta .twoplayers
-	lda #1
-	sta _noofplayers
-	rts
-
-+	cmp #TWO_PLAYERS
-	bne +
-	lda #1
-	sta .twoplayers
-	lda #$0b
-	sta .oneplayer
-	lda #2
-	sta _noofplayers
+	jsr .HandleSetStartLevel
 	rts
 
 +	cmp #RESET_BEST
@@ -223,10 +215,13 @@ MenuHandler:
 +	rts
 
 .CloseMainMenu:
-	lda #M_SHOW_MAIN_MENU
+	lda #M_INIT_START_SCREEN
 	sta .menumode			;prepare for the next time the menu handler will be called, then we skip start screen and go directly to the main menu
 	lda #ST_INITGAME
 	sta _gamestatus         ;update game status to start game, the menu handler will no longer be called
+	rts
+
+.HandleSetStartLevel:
 	rts
 
 .HandleResetLeaderboard:
@@ -344,29 +339,17 @@ NO_POSITION  = 27
 ;*** Draw start screen and menu ********************************************************************
 
 .ShowStartScreen:
-	jsr ClearTextLayer
-	+SetPrintParams 3,0,$01
-	lda #<.startscreentext
-	sta ZP0
-	lda #>.startscreentext
-	sta ZP1
-	lda #STARTSCREEN_ROW_COUNT
--	pha
-	jsr VPrintString
-	inc _row
-	pla
-	dec
-	bne -
+	jsr ShowStartImage	;show image
 	rts
 
-.ShowMainMenu:						;print complete menu including setting layers, clear layers and print all text
+.ShowMenuScreen:						;print complete menu including setting layers, clear layers and print all text
+	jsr DisableLayer0
 	jsr ClearTextLayer
-	lda #<.menubgblocks			;set block table pointer as in parameter
-	sta .blocktable_lo
-	lda #>.menubgblocks
-	sta .blocktable_hi
+	jsr EnableLayer1
 	stz .handrow					;put selection hand on first row
 	jsr PrintLeaderboard
+	jsr .UpdateMainMenu
+	rts
 
 .UpdateMainMenu:
 	;print menu items
@@ -390,14 +373,27 @@ NO_POSITION  = 27
 	jsr .PrintHand
 	rts
 
-;*** Methods on layer 0 ********************************************************
-
-.blocktable_lo	!byte 0
-.blocktable_hi	!byte 0
+.ShowCreditScreen:
+	jsr DisableLayer0
+	jsr ClearTextLayer
+	jsr EnableLayer1
+	+SetPrintParams 3,0,$01
+	lda #<.creditscreentext
+	sta ZP0
+	lda #>.creditscreentext
+	sta ZP1
+	lda #CREDITSCREEN_ROW_COUNT
+-	pha
+	jsr VPrintString
+	inc _row
+	pla
+	dec
+	bne -
+	rts
 
 ;*** Start screen and menu data ************************************************
 
-.startscreentext:
+.creditscreentext:
 !scr "              h.e.r.o. 2021",0
 !scr 0
 !scr "     a tribute to the original game",0
@@ -411,29 +407,15 @@ NO_POSITION  = 27
 !scr 0
 !scr "              version 0.1",0
 
-STARTSCREEN_ROW_COUNT = 12
-
-.menubgblocks
-!byte 2,3,6,4,2,2,10,0				;table for how many rows each block is, zero terminated
+CREDITSCREEN_ROW_COUNT = 12
 
 .menutext
 !scr 0
-!scr "start the race",0
+!scr "start the game",0
 !scr 0
-!scr "one player",0
-!scr "two players",0
+!scr "set start level     ",0
 !scr 0
-!scr 0	;(track names)
-!scr 0
-!scr 0
-!scr 0
-!scr 0
-!scr 0
-!scr "low speed",0
-!scr "normal speed",0
-!scr "high speed",0
-!scr 0
-!scr "reset leaderboard   ",0	;add extra spaces to overwrite confirmation question if user says no
+!scr "reset high scores   ",0	;add extra spaces to overwrite confirmation question if user says no
 !scr 0
 !scr "quit game           ",0	;add extra spaces to overwrite confirmation question if user says no
 !scr 0
@@ -443,28 +425,17 @@ STARTSCREEN_ROW_COUNT = 12
 .handtext		!scr "<=>",0 ;char 60-62 = characters that form a hand
 .clearhandtext	!scr "   ",0
 
-.menuitems 		!byte 1,3,4,6,7,8,9,10,12,13,14,16,18	;which menu rows that represent menu items
+.menuitems 		!byte 1,3,5,7		;which menu rows that represent menu items
 
 .menurows	 						;menu rows table that holds information about both color and selection.
-				!byte $b			; 1 = white color = selected (when relevant)
-.startrace		!byte 1  			;$b = nontransparent black = not selected
-				!byte $b
-.oneplayer		!byte 1
-.twoplayers		!byte $b
-				!byte $b
-.track1			!byte 1
-.track2			!byte $b
-.track3			!byte $b
-.track4			!byte $b
-.track5			!byte $b
-				!byte $b
-.lowspeed		!byte $b
-.normalspeed	!byte 1
-.highspeed		!byte $b
-				!byte $b
-.resetbest		!byte 1
-				!byte $b
-.quitgame		!byte 1
-				!byte $b
+				!byte MENU_BLACK
+.startrace		!byte MENU_WHITE
+				!byte MENU_BLACK
+.setlevel		!byte MENU_WHITE
+				!byte MENU_BLACK
+.resetbest		!byte MENU_WHITE
+				!byte MENU_BLACK
+quitgame		!byte MENU_WHITE
+				!byte MENU_BLACK
 
-MENU_ROW_COUNT = 20
+MENU_ROW_COUNT = 9

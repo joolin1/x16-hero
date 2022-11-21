@@ -11,7 +11,6 @@ _levelsizetable         !byte 1,0       ;height and width in VERA tilemap notati
 
 
 _level                  !byte 0         ;current level (zero-indexed)
-_level_decimal          !byte 0         ;current level in decimal (SED/CLD)
 _levelcompleted         !byte 0         ;flag
 
 _levelconvtable         !word 32,64,128,256

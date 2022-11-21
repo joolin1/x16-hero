@@ -8,7 +8,7 @@
 !addr CREATURE_SPRITES_ADDR  = $7800              ;         6 Kb | Room for 48 16x16 sprites (16 rows x 8 bytes/row) = 128 bytes/sprite)
 !addr NEW_CHAR_ADDR          = $9000              ;         2 Kb | Charset is relocated here
 !addr L0_MAP_ADDR            = $A000              ;        64 Kb | Layer 0 - game graphics layer. Max 256 tiles high x 128 tiles wide x 2 bytes for each tile = 64 Kb
-
+!addr IMAGE_ADDR             = $A000              ;        37 Kb | Layer 0 - title image 320x240 shares memory with tiles
 !addr GRAPHICS_PALETTES = PALETTE + $20
 !addr TILES_PALETTE     = PALETTE + $60
 
@@ -16,6 +16,9 @@
 ;              $0810: game code
 ;              $9766: ZSound - NOT ADDED
 ;              $A000: RAM banks
+
+;VRAM banks
+IMAGE_BANK              = 1
 
 ;RAM banks
 FIRST_BANK              = 1
@@ -25,6 +28,7 @@ ZSM_NAMEENTRY_BANK      = 3
 SAVEDGAME_BANK          = 4
 
 ;Graphic resources to load
+.imagename      !text "IMAGE.BIN",0
 .tilesname      !text "TILES.BIN",0
 .playername     !text "PLAYER.BIN",0
 .creaturesname  !text "CREATURES.BIN",0
@@ -63,12 +67,16 @@ LoadGraphics:
         +LoadResource .playername   , PLAYER_SPRITES_ADDR   , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
         +LoadResource .creaturesname, CREATURE_SPRITES_ADDR , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
         +LoadResource .fontname     , NEW_CHAR_ADDR         , LOAD_TO_VRAM_BANK0, FILE_HAS_NO_HEADER
-        
+
         lda _fileerrorflag
         beq +
         sec                             ;set carry to flag error
         rts
 +       clc                             ;clear carry to flag everything is ok
+        rts
+
+LoadStartImage:
+        +LoadResource .imagename, IMAGE_ADDR, LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
         rts
 
 LoadLevel:

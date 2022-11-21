@@ -28,7 +28,7 @@ UpdateView:    ;Called at vertical blank to update level, text and sprites.
         jsr UpdatePlayerSprite 
         jsr UpdateCreatureSprites
         jsr UpdateLight
-        jsr UpdateStatusBar
+        jsr UpdateStatusTime
 
         ;change background color during an explosion
         lda _explosivemode
@@ -45,7 +45,7 @@ UpdateView:    ;Called at vertical blank to update level, text and sprites.
         sta VERA_DATA0
 +       rts
 
-InitStatusBar:
+UpdateStatusBar:
         lda #4                ;set scroll offset to print status bar with four pixels margin
         sta L1_HSCROLL_L
         lda #3
@@ -53,30 +53,40 @@ InitStatusBar:
         stz L1_HSCROLL_H
         stz L1_VSCROLL_H
 
-        +SetPrintParams 29,0,$01 ;print on first row, white on transparent bg
+        ;print text
+        +SetPrintParams 29,0,$01
         lda #<.statusbar
         sta ZP0
         lda #>.statusbar
         sta ZP1
         jsr VPrintString
-rts
 
-UpdateStatusBar:
+        ;print current level
         +SetPrintParams 29,7
-        lda _level_decimal
+        +ConvertBinToDec _level, .level_decimal
+        lda .level_decimal
         jsr VPrintDecimalNumber
+
+        ;print time
+        jsr UpdateStatusTime:
+
+        ;print number of lives left
+        +SetPrintParams 29,38
+        lda _lives              
+        jsr VPrintDecimalNumber ;number of lives will never be > 9, therefore we can treat it as a decimal number
+        rts
+
+UpdateStatusTime:
         +SetPrintParams 29,17
         lda _minutes
         sta ZP0
         lda _seconds
         sta ZP1
         jsr VPrintTime
-        +SetPrintParams 29,38
-        lda _lives              
-        jsr VPrintDecimalNumber ;number of lives will never be > 9, therefore we can treat it as a decimal number
         rts
 
 .statusbar      !scr " level                          lives   ",0
+.level_decimal  !word 0
 
 PrintDebugInformation:             ;DEBUG     
         +SetPrintParams 2,0,$01

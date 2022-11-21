@@ -39,13 +39,6 @@ InitScreenAndSprites:
         sta DC_HSCALE           ;set horizontal and vertical scale to 2:1
         sta DC_VSCALE
 
-        ;layer 0 - graphics layer
-        lda #L0_MAP_ADDR>>9             ;set map base address
-        sta L0_MAPBASE
-        lda #TILES_ADDR>>9              ;set tile address and tile size to 16x16
-        ora #%00000011
-        sta L0_TILEBASE
-
         ;layer 1 - text layer
         lda L1_MAPBASE
         sta .original_l1_mapbase
@@ -54,7 +47,34 @@ InitScreenAndSprites:
         lda #NEW_CHAR_ADDR>>9           ;set tile (char address) to new location and tile size to 8x8
         sta L1_TILEBASE
 
-        +CopyPalettesToVRAM _palettes, 0, 4
+        ;(layer 0 is not set here, it will switch between bitmap and tile mode)
+
+        +CopyPalettesToVRAM _palettes, 0, 5
+        rts
+
+ShowStartImage:
+        jsr LoadStartImage
+        jsr SetLayer0ToBitmapMode
+        jsr EnableLayer0
+        jsr DisableLayer1
+        rts
+
+SetLayer0ToBitmapMode:
+        lda #%00000110                  ;Bitmap mode, 4 bpp = 16 colors
+        sta L0_CONFIG
+        lda #IMAGE_ADDR>>9              ;set bitmap address and width 320 pixels
+        and #%11111100
+        sta L0_TILEBASE 
+        lda #4                          ;set palette index                
+        sta L0_HSCROLL_H
+        rts
+
+SetLayer0ToTileMode:
+        lda #L0_MAP_ADDR>>9             ;set map base address
+        sta L0_MAPBASE
+        lda #TILES_ADDR>>9              ;set tile address and tile size to 16x16
+        ora #%00000011
+        sta L0_TILEBASE
         rts
 
 SetLayer0Size:                          ;IN: ZP0 = number or rows, ZP1 = number of cols (0 = 32 tiles, 1 = 64, 2 = 128, 3 = 256)
@@ -78,7 +98,7 @@ SetLayer0Size:                          ;IN: ZP0 = number or rows, ZP1 = number 
         sta L0_CONFIG 
         rts
 
-ClearTextLayer:				
+ClearTextLayer:			
 	lda #<L1_MAP_ADDR
         sta VERA_ADDR_L
         lda #>L1_MAP_ADDR
@@ -177,7 +197,7 @@ _originalpalette:
         !word $0000, $0fff, $0800, $0afe, $0c4c, $00c5, $000a, $0ee7, $0d85, $0640, $0f77, $0333, $0777, $0af6, $008f, $0bbb    ;original colors, used for restoring colors when quitting game
 
 _palettes:                                       
-        !word $0000, $0fff, $0800, $0afe, $0c4c, $0080, $005f, $0ee7, $0d85, $0640, $0f77, $0000, $0777, $0af6, $008f, $0bbb    ;user interface (C64 palette but 6 = lighter blue and 11 = black instead of dark grey)
+        !word $0000, $0fff, $0800, $0afe, $0c4c, $0080, $005f, $0ee7, $0d85, $0640, $0f77, $0333, $0777, $0af6, $008f, $0bbb    ;user interface (C64 palette but 6 = lighter blue and 11 = black instead of dark grey)
 _graphicspalettes:
 _playerpalette:
         !src "playerpalette.asm"
@@ -185,4 +205,6 @@ _creaturespalette:
         !src "creaturespalette.asm"
 _tilespalette:
         !src "tilespalette.asm"
+_imagepalette:
+        !src "imagepalette.asm"
 

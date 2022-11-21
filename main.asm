@@ -188,8 +188,6 @@ _noofplayers	        !byte 1
 +       rts
 
 .ShowMenu:
-        jsr DisableLayer0
-        jsr EnableLayer1
         jsr MenuHandler
         rts
 
@@ -198,10 +196,10 @@ _noofplayers	        !byte 1
         sta _lives
         lda #1
         sta _level
-        sta _level_decimal
         jsr InitTimer
         jsr ClearTextLayer
-        jsr InitStatusBar
+        jsr SetLayer0ToTileMode
+        jsr EnableLayer1
         lda #ST_INITLEVEL
         sta _gamestatus
         rts
@@ -210,6 +208,7 @@ _noofplayers	        !byte 1
         jsr InitLevel
         jsr InitPlayer
         jsr InitCreatures
+        jsr UpdateStatusBar
         jsr UpdateView
         jsr ShowPlayer
         jsr TurnOnLight
@@ -222,6 +221,7 @@ _noofplayers	        !byte 1
         ;jsr RestartLevel
         ;jsr RestartCreatures
         jsr CreaturesTick
+        jsr UpdateStatusBar
         jsr UpdateView
         jsr ShowPlayer
         lda #ST_RUNNING
@@ -297,9 +297,6 @@ _noofplayers	        !byte 1
         cmp #LEVEL_COUNT
         beq +
         inc _level
-        sed 
-        inc _level_decimal
-        cld
         lda #ST_INITLEVEL
         sta _gamestatus
         rts
