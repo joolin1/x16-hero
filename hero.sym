@@ -32,7 +32,7 @@
 	SPR6_MODE_ADDR_H	= $fc31	; unused
 	COLLBOX_Q2_Y	= $fffffff3
 	SPR9_ADDR_L	= $fc48	; unused
-	LoadLeaderboard	= $3e6f	; ?
+	LoadLeaderboard	= $3f61	; ?
 	PLAYING_YSKIDDING1	= $2
 	SPR8_ADDR_L	= $fc40	; unused
 	KPrintStringArrayElement	= $1236	; ?
@@ -78,8 +78,9 @@
 	FLYINGSPEED_DELAY	= $2d
 	SAW	= $40
 	CREATURE_ANIMATION_COUNT	= $4
+	ARROW_POSITIONS	= $1a	; ?
 	_explosiveframedelay	= $28eb
-	SetLeaderboardRecord	= $3e3a	; ?
+	SetLeaderboardRecord	= $3f2c	; ?
 	TILECAT_OBSTACLE	= $9	; unused
 	RemoveWall	= $2a72	; ?
 	SETLFS	= $ffba
@@ -90,7 +91,7 @@
 	MOVEMENT_COUNT	= $40
 	_levelsizetable	= $2cfe
 	VERA_ADDR_L	= $9f20
-	UpdatePauseMenu	= $3fea	; ?
+	UpdatePauseMenu	= $40dc	; ?
 	_spriteypositiontable	= $2667
 	GetJoys	= $15e4	; ?
 	EXPLOSIVE_BURN	= $2
@@ -169,7 +170,7 @@
 	M_SHOW_START_SCREEN	= $1
 	joystick_get	= $ff56
 	_lives	= $2d61	; ?
-	SaveLeaderboard	= $3e90	; ?
+	SaveLeaderboard	= $3f82	; ?
 	VPrintDecimalNumber	= $12f9
 	SPR_I	= $28	; unused
 	SCNKEY	= $ff9f	; unused
@@ -216,19 +217,19 @@
 	LASER_COLLISION_MASK	= $20	; ?
 	PLAYER_COLLISION_MASK	= $50	; ?
 	LASER0_MODE_ADDR_H	= $fc11	; unused
-	quitgame	= $3d86	; unused
+	quitgame	= $3e78	; unused
 	PALETTE	= $fa00
 	LEVEL_COUNT	= $2	; ?
 	_palettes	= $1a30	; ?
 	SPR_Y	= $70	; unused
 	PSG_V4_FREQ_H	= $f9d1	; unused
 	ST_INITGAME	= $1
-	PrintBoard	= $40d4	; ?
+	PrintBoard	= $41c6	; ?
 	SPR3_MODE_ADDR_H	= $fc19	; unused
 	EndJoyPlayback	= $166e	; unused
 	EXPLOSIVE_XOFFSET	= $4
 	SPR11_XPOS_L	= $fc5a	; unused
-	ShowPauseMenu	= $3fde	; ?
+	ShowPauseMenu	= $40d0	; ?
 	EXPLOSIVES_ATTR_1	= $fc27	; unused
 	SPR13_XPOS_H	= $fc6b	; unused
 	SPR15_YPOS_L	= $fc7c	; unused
@@ -281,7 +282,7 @@
 	SPR12_YPOS_H	= $fc65	; unused
 	SPR14_XPOS_L	= $fc72	; unused
 	SPR16_XPOS_H	= $fc83	; unused
-	SetLeaderboardName	= $3df2	; ?
+	SetLeaderboardName	= $3ee4	; ?
 	PSG_ADDR	= $f9c0
 	GetCurrentSpeed	= $33bd	; ?
 	RIGHT_BORDER	= $1f
@@ -299,7 +300,7 @@
 	TILES_PALETTE	= $fa60	; ?
 	SPR9_ATTR_1	= $fc4f	; unused
 	SPR10_YPOS_H	= $fc55	; unused
-	_gamestatus	= $83e	; ?
+	_gamestatus	= $843	; ?
 	M_SHOW_CREDIT_SCREEN	= $3
 	SET_START_LEVEL	= $1
 	SPR12_YPOS_L	= $fc64	; unused
@@ -341,13 +342,14 @@
 	EXPLOSIVE_SAFE_DISTANCE	= $20
 	SPR2_ATTR_1	= $fc17	; unused
 	LASER_YPOS	= $71	; ?
+	MENU_COL	= $a
 	SPR2_ATTR_0	= $fc16	; unused
 	SPR15_MODE_ADDR_H	= $fc79	; unused
 	SPR3_ATTR_1	= $fc1f
 	SPR18_YPOS_L	= $fc94	; unused
 	BADGE_SIZE	= $100	; unused
 	SPR3_ATTR_0	= $fc1e
-	IsNewLeaderboardRecord	= $3e4e	; ?
+	IsNewLeaderboardRecord	= $3f40	; ?
 	MAX_STRING_INPUT	= $14
 	SPR0_ATTR_1	= $fc07	; unused
 	_imagepalette	= $1ab0	; unused
@@ -362,7 +364,7 @@
 	HideBadges	= $2cf9	; unused
 	A_RETURN	= $d
 	ST_RESTARTLEVEL	= $8
-	_boardinputflag	= $417f	; ?
+	_boardinputflag	= $4271	; ?
 	FireLaser	= $2c27
 	_joy_playback	= $158b
 	_explosiveframe	= $28e9
@@ -383,7 +385,7 @@
 	PlaceExplosive	= $291d	; ?
 	TOP_RIGHT_BORDER	= $1d
 	ZP4	= $6
-	PrintLeaderboard	= $3d88	; ?
+	PrintLeaderboard	= $3e7a	; ?
 	ZP5	= $7
 	GetRandomNumber	= $a7f	; unused
 	ZP2	= $4
@@ -467,7 +469,7 @@
 	SPR4_XPOS_H	= $fc23	; unused
 	EnableLayer1	= $19f4	; ?
 	VPrintSeconds	= $137b	; unused
-	GetLeaderboardRecord	= $3e26
+	GetLeaderboardRecord	= $3f18
 	MAX_FLYINGSPEED	= $2
 	SPR6_XPOS_L	= $fc32	; unused
 	SPR2_YPOS_L	= $fc14	; unused
@@ -512,7 +514,7 @@
 	SPR8_YPOS_L	= $fc44	; unused
 	SPR13_ATTR_1	= $fc6f	; unused
 	EXPLOSIVES_XPOS_H	= $fc23	; unused
-	ResetLeaderboard	= $3eac	; ?
+	ResetLeaderboard	= $3f9e	; ?
 	FALSE	= $0	; unused
 	SPR13_ATTR_0	= $fc6e	; unused
 	NOISE	= $c0
@@ -679,7 +681,7 @@
 	IRQ_HANDLER_H	= $315
 	SPI_DATA	= $9f3e	; unused
 	LEFT_PAN	= $80
-	_noofplayers	= $83f	; unused
+	_noofplayers	= $844	; unused
 	CREATURE_YPOS_H	= $fc2d	; unused
 	_joy1	= $1589
 	ShowStartImage	= $190c
@@ -714,6 +716,7 @@
 	IsTimeLess	= $ab1	; ?
 	MenuHandler	= $394a	; ?
 	_stubthreadtime	= $28ea
+	LEVEL_ROW	= $3	; ?
 	_levelconvtable	= $2d04
 	ZPA	= $c	; unused
 	SPR9_MODE_ADDR_H	= $fc49	; unused

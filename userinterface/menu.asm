@@ -14,6 +14,7 @@ RESET_BEST  	= 2
 QUIT_GAME		= 3
 
 MENU_ITEMS_COUNT = 4
+MENU_COL = 10	;which column menu should be printed at
 
 ;Colors
 MENU_WHITE = $01
@@ -119,6 +120,8 @@ MenuHandler:
 	jsr .HandleUpDown
 	jsr .HandleLeftRight
 	jsr .HandleButton
+	lda .levelconfirmationflag
+	bne +
 	lda .resetconfirmationflag
 	bne +
 	lda .quitconfirmationflag
@@ -133,12 +136,14 @@ MenuHandler:
 	jsr .DecreaseHandrow
 	stz .resetconfirmationflag	;cancel possibel confirmation questions if user moves away from question
 	stz .quitconfirmationflag
+	stz .levelconfirmationflag
 	rts
 +	bit #JOY_DOWN				;down?
 	bne +
 	jsr .IncreaseHandrow
 	stz .resetconfirmationflag	;cancel possibel confirmation questions if user moves away from question
 	stz .quitconfirmationflag
+	stz .levelconfirmationflag
 +	rts
 
 .IncreaseHandrow:
@@ -162,11 +167,37 @@ MenuHandler:
 
 .HandleLeftRight:				;left right toggles true/false for confirmation questions.
 	lda .resetconfirmationflag
-	bne +
+	bne .HandleConfirmationLeftRight
 	lda .quitconfirmationflag
-	bne +
+	bne .HandleConfirmationLeftRight
+	lda .levelconfirmationflag
+	bne .HandleSetValueLeftRight
 	rts
-+   lda _joy0
+
+.HandleSetValueLeftRight:
+	lda _joy0
+	bit #JOY_LEFT
+	bne ++
+	dec _level
+	bne +
+	inc _level
++	jsr .PrintCurrentLevel
+	rts
+++	lda _joy0
+	bit #JOY_RIGHT
+	beq +
+	rts
++	inc _level
+	lda _level
+	cmp #LEVEL_COUNT
+	bcc +
+	lda #LEVEL_COUNT
+	sta _level
++	jsr .PrintCurrentLevel		
+ 	rts
+
+.HandleConfirmationLeftRight:
+    lda _joy0
  	bit #JOY_LEFT				;left?
 	bne +
 	lda .answer					
@@ -215,14 +246,28 @@ MenuHandler:
 +	rts
 
 .CloseMainMenu:
-	lda #M_INIT_START_SCREEN
+	lda #M_SHOW_MENU_SCREEN
 	sta .menumode			;prepare for the next time the menu handler will be called, then we skip start screen and go directly to the main menu
 	lda #ST_INITGAME
 	sta _gamestatus         ;update game status to start game, the menu handler will no longer be called
 	rts
 
 .HandleSetStartLevel:
+	lda .levelconfirmationflag
+	bne +
+	jsr .PrintSetStartLevel
+	lda #1
+	sta .levelconfirmationflag
 	rts
++	stz .levelconfirmationflag
+	lda .answer
+	beq +
+	sta _level
++	lda #M_HANDLE_INPUT
+	sta .menumode
+	rts
+
+.levelconfirmationflag !byte 0	;flag that start level is waiting to be set
 
 .HandleResetLeaderboard:
 	lda .resetconfirmationflag
@@ -267,12 +312,40 @@ MenuHandler:
 
 .quitconfirmationflag	!byte 0		;flag that confirmation question is waiting for an answer
 
-.PrintConfirmationQuestion:		;IN: .A = row to print question
+.PrintSetStartLevel:
+	+SetPrintParams LEVEL_ROW, MENU_COL, MENU_BLACK
+	lda #<.setleveltext
+	sta ZP0
+	lda #>.setleveltext
+	sta ZP1
+	jsr VPrintString
+	+SetPrintParams LEVEL_ROW, ARROW_POSITIONS, MENU_WHITE
+	lda #<.levelsetters
+	sta ZP0
+	lda #>.levelsetters
+	sta ZP1
+	jsr VPrintString
+	jsr .PrintCurrentLevel
+	rts
+
+.PrintCurrentLevel:
+	+SetPrintParams LEVEL_ROW, ARROW_POSITIONS+1, MENU_WHITE
+	+ConvertBinToDec _level, .level_decimal
+	lda .level_decimal
+	jsr VPrintDecimalNumber
+	rts
+
+LEVEL_ROW = 3
+ARROW_POSITIONS = 26
+.levelsetters	!scr "<  >",0
+.level_decimal  !word 0
+
+.PrintConfirmationQuestion:
 	stz .answer					;default answer is "no"
 	ldy .handrow
 	lda .menuitems,y
 	sta _row
-	lda #10
+	lda #MENU_COL
 	sta _col
 	lda #MENU_BLACK
 	sta _color
@@ -325,7 +398,7 @@ NO_POSITION  = 27
 	sta ZP0
 	lda #>.handtext
 	sta ZP1
-+	lda #4				;print hand from col 4 to 6
++	lda #6				;print hand from col 6 to 8
 	sta _col
 	ldy .handrow
 	lda .menuitems,y
@@ -351,14 +424,14 @@ NO_POSITION  = 27
 	jsr .UpdateMainMenu
 	rts
 
-.UpdateMainMenu:
+.UpdateMainMenu:			;print menu items
 	;print menu items
 	lda #<.menutext
 	sta ZP0
 	lda #>.menutext
 	sta ZP1
 	stz _row
-	lda #10
+	lda #MENU_COL
 	sta _col
 	ldx #0
 -	phx
@@ -369,7 +442,7 @@ NO_POSITION  = 27
 	inx
 	cpx #MENU_ROW_COUNT
 	bne -
-	
+	jsr .PrintCurrentLevel
 	jsr .PrintHand
 	rts
 
@@ -413,7 +486,7 @@ CREDITSCREEN_ROW_COUNT = 12
 !scr 0
 !scr "start the game",0
 !scr 0
-!scr "set start level     ",0
+!scr "set start level (  )",0
 !scr 0
 !scr "reset high scores   ",0	;add extra spaces to overwrite confirmation question if user says no
 !scr 0
@@ -421,8 +494,9 @@ CREDITSCREEN_ROW_COUNT = 12
 !scr 0
 
 .confirmation_question	!scr "are you sure? (y/n)?",0
+.setleveltext			!scr "set start level     ",0
 
-.handtext		!scr "<=>",0 ;char 60-62 = characters that form a hand
+.handtext		!scr "  >",0
 .clearhandtext	!scr "   ",0
 
 .menuitems 		!byte 1,3,5,7		;which menu rows that represent menu items

@@ -197,7 +197,7 @@ _originalpalette:
         !word $0000, $0fff, $0800, $0afe, $0c4c, $00c5, $000a, $0ee7, $0d85, $0640, $0f77, $0333, $0777, $0af6, $008f, $0bbb    ;original colors, used for restoring colors when quitting game
 
 _palettes:                                       
-        !word $0000, $0fff, $0800, $0afe, $0c4c, $0080, $005f, $0ee7, $0d85, $0640, $0f77, $0333, $0777, $0af6, $008f, $0bbb    ;user interface (C64 palette but 6 = lighter blue and 11 = black instead of dark grey)
+        !word $0000, $0fff, $0800, $0afe, $0c4c, $0080, $005f, $0ee7, $0d85, $0640, $0f77, $0000, $0777, $0af6, $008f, $0bbb    ;user interface (C64 palette but 6 = lighter blue and 11 = black instead of dark grey)
 _graphicspalettes:
 _playerpalette:
         !src "playerpalette.asm"

@@ -39,6 +39,8 @@ ST_QUITGAME       = 13  ;quit game
         rts                             ;exit if some resource failed to load
 +       lda #ST_MENU
         sta _gamestatus
+        lda #1
+        sta _level
         jsr InitScreenAndSprites
         jsr InitJoysticks               ;check which type of joysticks (game controllers) are being used 
         jsr .SetupIrqHandler
@@ -194,8 +196,6 @@ _noofplayers	        !byte 1
 .InitGame:
         lda #LIFE_COUNT                 ;init game
         sta _lives
-        lda #1
-        sta _level
         jsr InitTimer
         jsr ClearTextLayer
         jsr SetLayer0ToTileMode
