@@ -9,7 +9,7 @@ _levelstarttable        !byte 14,12      ;start row and col for level 1
 _levelsizetable         !byte 1,0       ;height and width in VERA tilemap notation 
                         !byte 1,0
 
-
+_startlevel             !byte 1         ;which level game starts on, default is 1
 _level                  !byte 0         ;current level (zero-indexed)
 _levelcompleted         !byte 0         ;flag
 
@@ -25,6 +25,14 @@ InitLevel:
 ; RestartLevel:
 ;         jsr .SetPlayerProperties
 ;         jsr TurnOnLight
+        rts
+
+GetSavedMinersCount:            ;OUT: .A = number of saved miners (example: game ends on level 5 (not completed), start level is 1 -> 5 - 1 + 0 = 4)
+        lda _level              
+        sec
+        sbc _startlevel
+        clc
+        adc _levelcompleted
         rts
 
 .SetLevelProperties:

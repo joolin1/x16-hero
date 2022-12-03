@@ -14,20 +14,20 @@
 ;*** Game globals **********************************************************************************
 
 ;Status for game
-ST_MENU           = 0   ;show start screen or menu
-ST_INITGAME       = 1   ;init new game
-ST_INITLEVEL      = 2   ;init level and player
-ST_RESUMEGAME     = 3   ;resume game 
-ST_RUNNING        = 4   ;normal gameplay
-ST_PAUSED         = 5   ;game paused
-ST_KILL           = 6   ;player has killed a creature
-ST_DEATH          = 7   ;player has been killed
-ST_RESTARTLEVEL   = 8   ;restart level if lives left
-ST_LEVELFINISHED  = 9   ;level finished
-ST_ENDGAME        = 10  ;no more lives, end game
-ST_GAMEOVER       = 11  ;wait for player to continue
-ST_GAMECOMPLETED  = 12  ;all levels are completed!
-ST_QUITGAME       = 13  ;quit game
+ST_MENU            = 0   ;show start screen or menu
+ST_INITGAME        = 1   ;init new game
+ST_INITLEVEL       = 2   ;init level and player
+ST_RESUMEGAME      = 3   ;resume game 
+ST_RUNNING         = 4   ;normal gameplay
+ST_PAUSED          = 5   ;game paused
+ST_KILL            = 6   ;player has killed a creature
+ST_DEATH           = 7   ;player has been killed
+ST_RESTARTLEVEL    = 8   ;restart level if lives left
+ST_LEVELCOMPLETED  = 9   ;level/game completed
+ST_LEVELCOMPLETED2 = 10  ;level/game completed step 2
+ST_GAMEOVER        = 11  ;game over, no lives left
+ST_GAMEOVER2       = 12  ;game over step 2
+ST_QUITGAME        = 13  ;quit game
 
 ;*** Main program **********************************************************************************
 
@@ -39,8 +39,6 @@ ST_QUITGAME       = 13  ;quit game
         rts                             ;exit if some resource failed to load
 +       lda #ST_MENU
         sta _gamestatus
-        lda #1
-        sta _level
         jsr InitScreenAndSprites
         jsr InitJoysticks               ;check which type of joysticks (game controllers) are being used 
         jsr .SetupIrqHandler
@@ -143,18 +141,18 @@ _noofplayers	        !byte 1
 +       cmp #ST_RESTARTLEVEL
         bne +
         jmp .RestartLevel
-+       cmp #ST_LEVELFINISHED
++       cmp #ST_LEVELCOMPLETED
         bne +
-        jmp .LevelFinished
-+       cmp #ST_ENDGAME
+        jmp .LevelCompleted
++       cmp #ST_LEVELCOMPLETED2
         bne +
-        jmp .EndGame
-+       cmp #ST_GAMEOVER                ;wait for input from player
+        jmp .LevelCompleted2
++       cmp #ST_GAMEOVER
         bne +
         jmp .GameOver
-+       cmp #ST_GAMECOMPLETED
++       cmp #ST_GAMEOVER2               ;wait for input from player
         bne +
-        jmp .GameCompleted
+        jmp .GameOver2
 +       rts
 
 .LevelTick:
@@ -185,7 +183,7 @@ _noofplayers	        !byte 1
         jsr TimeTick
         lda _levelcompleted
         beq +
-        lda #ST_LEVELFINISHED
+        lda #ST_LEVELCOMPLETED
         sta _gamestatus
 +       rts
 
@@ -196,8 +194,9 @@ _noofplayers	        !byte 1
 .InitGame:
         lda #LIFE_COUNT                 ;init game
         sta _lives
+        lda _startlevel
+        sta _level
         jsr InitTimer
-        jsr ClearTextLayer
         jsr SetLayer0ToTileMode
         jsr EnableLayer1
         lda #ST_INITLEVEL
@@ -205,6 +204,7 @@ _noofplayers	        !byte 1
         rts
 
 .InitLevel:
+        jsr ClearTextLayer
         jsr InitLevel
         jsr InitPlayer
         jsr InitCreatures
@@ -278,7 +278,7 @@ _noofplayers	        !byte 1
         rts
 +       dec _lives
         bne +
-        lda #ST_ENDGAME
+        lda #ST_GAMEOVER
         sta _gamestatus
         rts
 +       lda #ST_RESTARTLEVEL
@@ -286,69 +286,86 @@ _noofplayers	        !byte 1
         stz .sprcoltrigger
         rts
 
-.LevelFinished:
-        inc .levelfinisheddelay
-        lda .levelfinisheddelay
-        cmp #LEVEL_FINISHED_DELAY
-        beq +
-        rts
-+       stz .levelfinisheddelay
+!macro CheckTimer2 .counter, .limit {        ;IN: address of counter, limit as immediate value. OUT: .A = true if counter has reached its goal otherwise false 
+        inc .counter
+        lda .counter
+        cmp #.limit
+        bne +
+        stz .counter
+        lda #1
+        bra ++
++       lda #0
+++
+}
+
+.LevelCompleted:                         ;level and maybe game completed step 1
         lda _level
         cmp #LEVEL_COUNT
-        beq +
-        inc _level
-        lda #ST_INITLEVEL
-        sta _gamestatus
-        rts
-+       lda #ST_GAMECOMPLETED
-        sta _gamestatus
-        rts
-
-LEVEL_FINISHED_DELAY    = 60
-.levelfinisheddelay     !byte 0
-
-.EndGame:            
-        ;jsr CheckForRecord
-        jsr PrintBoard
+        bne +
+        ;game completed
         jsr PlayFinishedSound
-        lda #ST_GAMEOVER
+        jsr PrintGameCompletedBoard
+        bra ++
+        ;level completed
++       jsr PlayFinishedSound
+        jsr PrintLevelCompletedBoard        
+++      lda #ST_LEVELCOMPLETED2
         sta _gamestatus
         rts
 
-.GameOver:
-        lda _boardinputflag     ;check if we should wait for player to enter name because of new record
-        beq +
-        jsr .WaitForPlayerName
-        rts
-+       lda _joy0
-        and #JOY_BUTTON_A
-        beq +
-        rts
-+       jsr HidePlayer
-        jsr HideCreatures
-        lda #ST_MENU
-        sta _gamestatus
-        stz .sprcoltrigger
+.LevelCompleted2:                       ;level and maybe game completed step 2
+        +CheckTimer2 .levelcompleteddelay, LEVEL_COMPLETED_DELAY
+        bne +
         rts
 
-.WaitForPlayerName:
-        jsr InputString         ;receive input and blink cursor
-        bcs +                   
++       lda _level
+        cmp #LEVEL_COUNT
+        bne +
+        ;game completed
+        jsr .RestartGame
         rts
-+       stz _boardinputflag
-        lda _level
-        jsr SetLeaderboardName
-        jsr SaveLeaderboard
+        ;level completed
++       inc _level
+        lda #ST_INITLEVEL
+        sta _gamestatus                 ;short delay before going to next level
+        rts
+
+LEVEL_COMPLETED_DELAY    = 180
+.levelcompleteddelay     !byte 0
+
+.GameOver:                              ;game over step 1
+        jsr PlayFinishedSound
+        jsr PrintGameOverBoard
+        lda #ST_GAMEOVER2
+        sta _gamestatus
+        rts
+
+.GameOver2:                             ;game over step 2
+        +CheckTimer2 .gameoverdelay, GAME_OVER_DELAY
+        beq +
+        jsr .RestartGame                ;short delay before going to menu
++       rts
+
+GAME_OVER_DELAY = 180
+.gameoverdelay  !byte 0
+
+.RestartGame:                           ;help function
         jsr HidePlayer
         jsr HideCreatures
-        lda #ST_MENU
-        sta _gamestatus
         stz .sprcoltrigger
-        rts
-
-.GameCompleted:
-        !byte $db
-        ;TODO...
+        jsr GetSavedMinersCount
+        sta ZP0
+        lda _minutes
+        sta ZP1
+        lda _seconds
+        sta ZP2
+        jsr GetHighScoreRank
+        cmp #LB_ENTRIES_COUNT
+        bcs +
+        lda #M_ENTER_NEW_HIGH_SCORE     ;player has a new high score!
+        sta _menumode
++       lda #ST_MENU
+        sta _gamestatus
         rts
 
 ;*** Other source files ****************************************************************************

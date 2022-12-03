@@ -1,38 +1,45 @@
 ;*** Menu.asm - Start screen, menu, credits ********************************************************
 
 ;Menu status
-M_INIT_START_SCREEN   	= 0
-M_SHOW_START_SCREEN     = 1
-M_SHOW_MENU_SCREEN  	= 2
-M_SHOW_CREDIT_SCREEN	= 3
-M_HANDLE_INPUT 			= 4
+M_INIT_START_SCREEN   	 = 0
+M_SHOW_START_SCREEN      = 1
+M_SHOW_MENU_SCREEN  	 = 2
+M_SHOW_HIGHSCORE_SCREEN  = 3
+M_ENTER_NEW_HIGH_SCORE   = 4
+M_ENTER_NEW_HIGH_SCORE_2 = 5
+M_SHOW_CREDIT_SCREEN	 = 6
+M_HANDLE_INPUT 			 = 7
 
-;Menu item mapping
-START_GAME		= 0
-SET_START_LEVEL = 1
-RESET_BEST  	= 2
-QUIT_GAME		= 3
-
-MENU_ITEMS_COUNT = 4
-MENU_COL = 10	;which column menu should be printed at
-
-;Colors
-MENU_WHITE = $01
-MENU_BLACK = $0c
-
-INACTIVITY_DELAY = 7
+INACTIVITY_DELAY = 1
 
 ;*** Public methods ********************************************************************************
 
 MenuHandler:
-	lda .menumode
+	lda _menumode
+
+	;setup for input of name
+	cmp #M_ENTER_NEW_HIGH_SCORE
+	bne +
+	jsr InitHighScoreInput
+    lda #M_ENTER_NEW_HIGH_SCORE_2
+    sta _menumode
+	rts
+
++	cmp #M_ENTER_NEW_HIGH_SCORE_2
+	bne ++
+	jsr HighScoreInput
+	bcs +
+	rts
++   lda #M_SHOW_HIGHSCORE_SCREEN
+	sta _menumode
+	rts
 
 	;show start image
-	cmp #M_INIT_START_SCREEN	;load and display start screen
+++  cmp #M_INIT_START_SCREEN	;load and display start screen
 	bne +
 	jsr .ShowStartScreen
 	lda #M_SHOW_START_SCREEN
-	sta .menumode
+	sta _menumode
 	rts
 
 +	cmp #M_SHOW_START_SCREEN	;just wait for player to press something
@@ -41,7 +48,7 @@ MenuHandler:
 	cmp #JOY_NOTHING_PRESSED
 	beq +
 	lda #M_SHOW_MENU_SCREEN
-	sta .menumode
+	sta _menumode
 	rts
 
 	;show menu
@@ -49,28 +56,48 @@ MenuHandler:
 	bne +
 	jsr .ShowMenuScreen
 	lda #M_HANDLE_INPUT				;next go to input menu mode
-	sta .menumode
+	sta _menumode
 	lda #1
 	sta .inputwait					;wait for controller to be released before accepting input again
 	stz .inactivitytimer_lo			;reset timer that takes user back to start screen after 30 secs inactivity
 	stz .inactivitytimer_hi
 	rts
 
-    ;show credit screen
-+   cmp #M_SHOW_CREDIT_SCREEN
+    ;show highscore screen
++   cmp #M_SHOW_HIGHSCORE_SCREEN
 	bne ++
-	jsr .ShowCreditScreen
 	lda .inactivitytimer_hi
 	cmp #INACTIVITY_DELAY
 	bne +
-	lda #M_SHOW_MENU_SCREEN
-	sta .menumode
+	lda #M_SHOW_CREDIT_SCREEN		;show credit screen after a certain delay
+	sta _menumode
+	jsr .ShowCreditScreen
+    stz .inactivitytimer_lo
+	stz .inactivitytimer_hi
 	rts
 +	lda _joy0
 	cmp #JOY_NOTHING_PRESSED
 	beq +
 	lda #M_SHOW_MENU_SCREEN
-	sta .menumode
+	sta _menumode					;show menu if user presses anything
+	rts
++	+Inc16 .inactivitytimer_lo
+	rts
+
+    ;show credit screen
+++  cmp #M_SHOW_CREDIT_SCREEN
+	bne ++
+	lda .inactivitytimer_hi
+	cmp #INACTIVITY_DELAY
+	bne +
+	lda #M_SHOW_MENU_SCREEN			;show menu screen after a certain delay
+	sta _menumode
+	rts
++	lda _joy0
+	cmp #JOY_NOTHING_PRESSED
+	beq +
+	lda #M_SHOW_MENU_SCREEN			;show menu directly if user presses anything
+	sta _menumode
 	rts
 +	+Inc16 .inactivitytimer_lo
 	rts
@@ -82,17 +109,19 @@ MenuHandler:
 
 +   lda .inactivitytimer_hi
 	cmp #INACTIVITY_DELAY
+
 	beq +
 	jsr .HandleUserInput
 	rts
 
-+	lda #M_SHOW_CREDIT_SCREEN
-	sta .menumode
++	lda #M_SHOW_HIGHSCORE_SCREEN
+	sta _menumode
+	jsr .ShowHighScoreScreen
 	stz .inactivitytimer_lo
 	stz .inactivitytimer_hi
 	rts
 
-.menumode				!byte 0
+_menumode				!byte 0
 .inactivitytimer_lo		!byte 0		;timer to measure user inactivity
 .inactivitytimer_hi		!byte 0
 
@@ -178,22 +207,22 @@ MenuHandler:
 	lda _joy0
 	bit #JOY_LEFT
 	bne ++
-	dec _level
+	dec _startlevel
 	bne +
-	inc _level
-+	jsr .PrintCurrentLevel
+	inc _startlevel
++	jsr .PrintCurrentStartLevel
 	rts
 ++	lda _joy0
 	bit #JOY_RIGHT
 	beq +
 	rts
-+	inc _level
-	lda _level
++	inc _startlevel
+	lda _startlevel
 	cmp #LEVEL_COUNT
 	bcc +
 	lda #LEVEL_COUNT
-	sta _level
-+	jsr .PrintCurrentLevel		
+	sta _startlevel
++	jsr .PrintCurrentStartLevel		
  	rts
 
 .HandleConfirmationLeftRight:
@@ -247,7 +276,7 @@ MenuHandler:
 
 .CloseMainMenu:
 	lda #M_SHOW_MENU_SCREEN
-	sta .menumode			;prepare for the next time the menu handler will be called, then we skip start screen and go directly to the main menu
+	sta _menumode			;prepare for the next time the menu handler will be called, then we skip start screen and go directly to the main menu
 	lda #ST_INITGAME
 	sta _gamestatus         ;update game status to start game, the menu handler will no longer be called
 	rts
@@ -262,9 +291,9 @@ MenuHandler:
 +	stz .levelconfirmationflag
 	lda .answer
 	beq +
-	sta _level
+	sta _startlevel
 +	lda #M_HANDLE_INPUT
-	sta .menumode
+	sta _menumode
 	rts
 
 .levelconfirmationflag !byte 0	;flag that start level is waiting to be set
@@ -280,13 +309,12 @@ MenuHandler:
 	lda .answer
 	beq +
 	jsr ResetLeaderboard
-	jsr PrintLeaderboard
-	lda #M_HANDLE_INPUT
-	sta .menumode
 	jsr SaveLeaderboard
+	lda #M_HANDLE_INPUT
+	sta _menumode
 	rts
 +	lda #M_HANDLE_INPUT
-	sta .menumode
+	sta _menumode
 	rts
 
 .resetconfirmationflag	!byte 0		;flag that confirmation question is waiting for an answer
@@ -302,12 +330,12 @@ MenuHandler:
 	lda .answer
 	beq +
 	lda #M_SHOW_START_SCREEN
-	sta .menumode					;set menu mode to start screen in case user starts game again
+	sta _menumode					;set menu mode to start screen in case user starts game again
 	lda #ST_QUITGAME
 	sta _gamestatus					;set game status to break main loop, clean up and exit
 	rts
 +	lda #M_HANDLE_INPUT
-	sta .menumode
+	sta _menumode
 	rts
 
 .quitconfirmationflag	!byte 0		;flag that confirmation question is waiting for an answer
@@ -325,20 +353,17 @@ MenuHandler:
 	lda #>.levelsetters
 	sta ZP1
 	jsr VPrintString
-	jsr .PrintCurrentLevel
+	jsr .PrintCurrentStartLevel
 	rts
 
-.PrintCurrentLevel:
+.PrintCurrentStartLevel:
 	+SetPrintParams LEVEL_ROW, ARROW_POSITIONS+1, MENU_WHITE
-	+ConvertBinToDec _level, .level_decimal
-	lda .level_decimal
+	+ConvertBinToDec _startlevel, .startlevel_decimal
+	lda .startlevel_decimal
 	jsr VPrintDecimalNumber
 	rts
 
-LEVEL_ROW = 3
-ARROW_POSITIONS = 26
-.levelsetters	!scr "<  >",0
-.level_decimal  !word 0
+.startlevel_decimal  !word 0
 
 .PrintConfirmationQuestion:
 	stz .answer					;default answer is "no"
@@ -420,7 +445,6 @@ NO_POSITION  = 27
 	jsr ClearTextLayer
 	jsr EnableLayer1
 	stz .handrow					;put selection hand on first row
-	jsr PrintLeaderboard
 	jsr .UpdateMainMenu
 	rts
 
@@ -442,23 +466,33 @@ NO_POSITION  = 27
 	inx
 	cpx #MENU_ROW_COUNT
 	bne -
-	jsr .PrintCurrentLevel
+	jsr .PrintCurrentStartLevel
 	jsr .PrintHand
+	rts
+
+.ShowHighScoreScreen:
+	jsr DisableLayer0
+	jsr ClearTextLayer
+	jsr EnableLayer1
+	jsr PrintLeaderboard
 	rts
 
 .ShowCreditScreen:
 	jsr DisableLayer0
 	jsr ClearTextLayer
 	jsr EnableLayer1
-	+SetPrintParams 3,0,$01
+	+SetPrintParams CREDITSCREEN_START_ROW,0,MENU_TITLE_COLOR
 	lda #<.creditscreentext
 	sta ZP0
 	lda #>.creditscreentext
 	sta ZP1
-	lda #CREDITSCREEN_ROW_COUNT
+	jsr VPrintString	;Print two title rows
+	jsr VPrintString
+	lda #MENU_WHITE
+	sta _color
+	lda #CREDITSCREEN_ROW_COUNT-2
 -	pha
 	jsr VPrintString
-	inc _row
 	pla
 	dec
 	bne -
@@ -467,22 +501,40 @@ NO_POSITION  = 27
 ;*** Start screen and menu data ************************************************
 
 .creditscreentext:
-!scr "              h.e.r.o. 2021",0
+!scr "              "
+!byte 64,65,32,66,67,32,68,69,32,70,71,32,0	;upper half of large letters h, e, r and o with a space after each letter
+!scr "              "
+!byte 72,73,80,74,75,80,76,77,80,78,79,80,0	;lower half of large letters h, e, r and o with an enlarged "." after each letter
 !scr 0
 !scr "     a tribute to the original game",0
+!scr 0
 !scr "       for atari and commodore 64",0
+!scr 0
 !scr "             by john rizen",0
 !scr 0
+!scr 0
 !scr "             copyright 2021",0
+!scr 0
 !scr "          by johan k;rlin and",0
+!scr 0
 !scr "        clergy games productions",0
+!scr 0
 !scr "          all rights reserved",0
 !scr 0
 !scr "              version 0.1",0
 
-CREDITSCREEN_ROW_COUNT = 12
+CREDITSCREEN_ROW_COUNT = 19
+CREDITSCREEN_START_ROW = 5
 
 .menutext
+!scr 0
+!scr 0
+!scr 0
+!scr 0
+!scr 0
+!scr 0
+!byte 32,32,32,32,64,65,32,66,67,32,68,69,32,70,71,32,0	;upper half of large letters h, e, r and o with a space after each letter
+!byte 32,32,32,32,72,73,80,74,75,80,76,77,80,78,79,80,0	;lower half of large letters h, e, r and o with an enlarged "." after each letter
 !scr 0
 !scr "start the game",0
 !scr 0
@@ -493,15 +545,30 @@ CREDITSCREEN_ROW_COUNT = 12
 !scr "quit game           ",0	;add extra spaces to overwrite confirmation question if user says no
 !scr 0
 
+MENU_COL = 10	;which column menu should be printed at
+
 .confirmation_question	!scr "are you sure? (y/n)?",0
 .setleveltext			!scr "set start level     ",0
 
 .handtext		!scr "  >",0
 .clearhandtext	!scr "   ",0
 
-.menuitems 		!byte 1,3,5,7		;which menu rows that represent menu items
+LEVEL_ROW = 11
+ARROW_POSITIONS = 26
+.levelsetters	!scr "<  >",0
+
+.menuitems 		!byte 9,11,13,15	;which menu rows that represent menu items
+MENU_ITEMS_COUNT = 4
 
 .menurows	 						;menu rows table that holds information about both color and selection.
+				!byte MENU_BLACK
+				!byte MENU_BLACK
+				!byte MENU_BLACK
+				!byte MENU_BLACK
+				!byte MENU_BLACK
+				!byte MENU_BLACK
+				!byte MENU_TITLE_COLOR
+				!byte MENU_TITLE_COLOR
 				!byte MENU_BLACK
 .startrace		!byte MENU_WHITE
 				!byte MENU_BLACK
@@ -512,4 +579,15 @@ CREDITSCREEN_ROW_COUNT = 12
 quitgame		!byte MENU_WHITE
 				!byte MENU_BLACK
 
-MENU_ROW_COUNT = 9
+MENU_ROW_COUNT = 17
+
+;Menu item mapping
+START_GAME		= 0
+SET_START_LEVEL = 1
+RESET_BEST  	= 2
+QUIT_GAME		= 3
+
+;Colors
+MENU_WHITE = $01
+MENU_BLACK = $0c
+MENU_TITLE_COLOR = $07

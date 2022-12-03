@@ -1,10 +1,8 @@
 ;*** board.asm - board displayed when race is finished *********************************************
 
-BOARD_COLORS            = $c1     ;bg color = grey, fg color = white 
-BOARD_YELLOW            = $c7     ;bg color = grey, fg color = yellow
-BOARD_BLUE              = $c6     ;bg color = grey, fg color = blue  
-BOARD_SELECTED          = $c1     ;bg color = grey, fg color = white           
-BOARD_UNSELECTED        = $cb     ;bg color = grey, fg color = black
+BOARD_COLORS            = $91     ;bg color = grey, fg color = white 
+BOARD_SELECTED          = $91     ;bg color = grey, fg color = white           
+BOARD_UNSELECTED        = $9b     ;bg color = grey, fg color = black
 
 ;Special characters used for board shadow effect
 BOTTOM_RIGHT_BORDER = 27
@@ -88,24 +86,12 @@ BOTTOM_BORDER       = 36
         jsr VPrintString
 }
 
-!macro PrintCarTime .row, .col, .time {
-        +SetPrintParams .row, .col, BOARD_COLORS
-        +SetParams .time, .time+1, .time+2
-        jsr VPrintTime    
-}
-
-!macro PrintAddedTime .row, .col, .seconds {
-        +SetPrintParams .row, .col, BOARD_COLORS
-        lda .seconds
-        jsr VPrintSeconds
-}
-
 !macro InitBoardInput .row, .col {
         lda #.row
         sta _row
         lda #.col
         sta _col
-        lda #LEADERBOARD_NAME_LENGTH
+        lda #LB_NAME_LENGTH
         jsr InitInputString
         lda #1
         sta _boardinputflag
@@ -197,52 +183,30 @@ UpdatePauseMenu:
         bne -        
         rts
 
-;*** Finish board **********************************************************************************
+;*** Boards ***************************************************************************************
 
-PrintBoard:
-        lda _isrecord
-        beq +
-        rts
-+       +PrintBoard 25, 11, 9, 7, .sboard               ;print extended board
-        lda #BOARD_YELLOW
-        sta _color
-        +PrintBoardString 16, 7, .sboardrecord          ;print record message
-        jsr.PrintOnePlayerData
-        +InitBoardInput 18, 20
-        lda #BOARD_COLORS
-        sta _color
+PrintLevelCompletedBoard:
+        +PrintBoard 24, 4, 9, 8, .board_levelcompleted
         rts
 
-.PrintOnePlayerData:
-        ; lda #BOARD_COLORS
-        ; sta _color
-        ; ;+PrintAddedTime 13,24,_ycarcollisioncount       ;print added time due to crashes
-        ; ;+PrintCarTime 14, 21, _ycartime                 ;print finish time
-        ; lda _ycarcollisioncount
-        ; clc
-        ; adc _ycarpenaltycount
-        ; ;pha
-        ; ;jsr YCar_TimeSubSeconds
-        ; ;+PrintCarTime 12, 21, _ycartime                 ;print race time
-        ; ;pla
-        ; ;jsr YCar_TimeAddSeconds
+PrintGameCompletedBoard:
+        +PrintBoard 24, 4, 9, 8, .board_gamecompleted
         rts
 
-;*** board data ************************************************************************************
+PrintGameOverBoard:
+        +PrintBoard 23, 3, 9, 8, .board_gameover
+        rts
 
-_boardinputflag         !byte 0 ;flag set when waiting for player to enter new name for record
+.board_levelcompleted   !scr "                        ",0
+                        !scr "    level completed     ",0 
+                        !scr "  you saved the miner!  ",0
+                        !scr "                        ",0
 
-.sboard                 !scr "                         ",0
-                        !scr "                         ",0
-                        !scr "                         ",0
-                        !scr "   race time             ",0
-                        !scr "     crashes    +        ",0
-                        !scr "  total time             ",0
-                        !scr "                         ",0
-                        !scr "   press b to continue   ",0
-                        !scr "                         ",0          ;one player, no record: print no further than this
+.board_gamecompleted    !scr "                        ",0
+                        !scr "  all miners are saved  ",0 
+                        !scr "  you are a true hero!  ",0
+                        !scr "                        ",0
 
-                        !scr " enter name:             ",0
-                        !scr "                         ",0          ;one player, new record: print to the end and replace "start to continue"-text with "new record"-text
-
-.sboardrecord           !scr " new record - well done! ",0
+.board_gameover         !scr "                       ",0
+                        !scr "       game over       ",0
+                        !scr "                       ",0

@@ -1,81 +1,172 @@
 ;*** leaderboard.asm *******************************************************************************
 
-LEADERBOARD_COLORS = $c1
-LEADERBOARD_ROW = 21
-LEADERBOARD_COL = 1
-LEADERBOARD_TIME_COL = LEADERBOARD_COL + 18
-LEADERBOARD_NAME_COL = LEADERBOARD_COL + 27
-LEADERBOARD_NAME_LENGTH = 11
-LEADERBOARD_NUMBER_OF_TRACKS = 5
-
 ;*** Public ****************************************************************************************
 
 PrintLeaderboard:
 
         ;print headings
-        +SetPrintParams LEADERBOARD_ROW, LEADERBOARD_COL, LEADERBOARD_COLORS
-        lda #<.heading
+        +SetPrintParams LB_ROW, 0
+        lda #<.scoretable
         sta ZP0
-        lda #>.heading
+        lda #>.scoretable
         sta ZP1
-        jsr VPrintString
-
-        ;print name of tracks
-;         inc _row
-;         lda #<_tracknames
-;         sta ZP0
-;         lda #>_tracknames
-;         sta ZP1
-;         lda #LEADERBOARD_NUMBER_OF_TRACKS
-; -       pha
-;         jsr VPrintString
-;         pla
-;         dec
-;         bne -
-
-	;print record times
-        +SetPrintParams LEADERBOARD_ROW+2, LEADERBOARD_TIME_COL, LEADERBOARD_COLORS
-        ldy #0
--	lda .leaderboard_records,y
-	sta ZP0
-	lda .leaderboard_records+1,y
-	sta ZP1
-	lda .leaderboard_records+2,y
-	sta ZP2
-	phy
-	jsr VPrintNullableTime
-	ply
-	iny
-	iny
-	iny
-	cpy #LEADERBOARD_NUMBER_OF_TRACKS*3	;3 values for each track
-	bne -
-
-	;print names of record holders
-        +SetPrintParams LEADERBOARD_ROW+2, LEADERBOARD_NAME_COL, LEADERBOARD_COLORS
         lda #0
--	ldx #<.leaderboard_names
-	stx ZP0
-	ldx #>.leaderboard_names
-	stx ZP1
-	pha
-	jsr VPrintStringInArray
-	pla
-	inc
-	cmp #LEADERBOARD_NUMBER_OF_TRACKS
-	bne -
+-       pha
+        tay
+        lda .leaderboard_colors,y
+        sta _color
+        jsr VPrintString
+        pla
+        inc
+        cmp #LB_HEADING_COUNT
+        bne -
+-       pha
+        tay
+        lda .leaderboard_colors,y
+        sta _color
+        jsr VPrintString
+        inc _row
+        pla
+        inc
+        cmp #LB_HEADING_COUNT+LB_ENTRIES_COUNT
+        bne -
+
+        ;print names
+        lda #LB_ROW+LB_HEADING_COUNT
+        sta _row
+        lda #<.leaderboard_names
+        sta ZP0
+        lda #>.leaderboard_names
+        sta ZP1
+        lda #0
+-       pha
+        tay
+        lda .leaderboard_table_colors,y
+        sta _color
+        lda #LB_NAME_COL
+        sta _col
+        jsr VPrintString
+        inc _row
+        pla
+        inc
+        cmp #LB_ENTRIES_COUNT
+        bne -
+
+        ;print number of saved miners (= coompleted levels)
+        lda #LB_ROW+LB_HEADING_COUNT
+        sta _row
+        lda #0
+-       pha
+        tay
+        lda .leaderboard_table_colors,y
+        sta _color
+        lda #LB_MINERS_COL
+        sta _col
+        lda .leaderboard_saved,y
+        jsr VPrintDecimalNumber
+        inc _row
+        inc _row
+        pla
+        inc
+        cmp #LB_ENTRIES_COUNT
+        bne -
+
+        ;print times
+        lda #LB_ROW+LB_HEADING_COUNT
+        sta _row
+        lda #0
+-       pha
+        tay      
+        lda .leaderboard_table_colors,y
+        sta _color
+        lda #LB_TIME_COL
+        sta _col
+        tya
+        asl                             ;take y*2 becauese each time take 2 bytes (minutes and seconds)
+        tay
+        lda .leaderboard_times,y
+        sta ZP0
+        lda .leaderboard_times+1,y
+        sta ZP1
+        jsr VPrintTime
+        inc _row
+        pla
+        inc
+        cmp #LB_ENTRIES_COUNT
+        bne -
+
+        ;print start level
+        lda #LB_ROW+LB_HEADING_COUNT
+        sta _row
+        lda #0
+-       pha
+        tay
+        lda .leaderboard_table_colors,y
+        sta _color
+        lda #LB_START_COL
+        sta _col
+        lda .leaderboard_start,y
+        jsr VPrintDecimalNumber
+        inc _row
+        inc _row
+        pla
+        inc
+        cmp #LB_ENTRIES_COUNT
+        bne -
         rts
 
-SetLeaderboardName:                             ;IN: .A = track number. ZP0, ZP1 = address of new name.
+GetHighScoreRank:                               ;IN. ZP0 = number of saved miners, ZP1-ZP2 = time. OUT: .A = rank (zero-indexed)
+        lda ZP0                                 ;move parameters to be able to call IsTimeLess
+        sta ZP6
+        lda ZP1
+        sta ZP3
+        lda ZP2
+        sta ZP4
+        stz ZP5
+        ldy #0
+
+-       lda .leaderboard_saved,y
+        cmp ZP6
+        beq ++                                  ;if same number of saved miners than compare times 
+        bcc +                                   ;if less number of saved miners then what player just achieved - this is the rank!  
+        iny
+        cpy #LB_ENTRIES_COUNT
+        bne -
+        lda #LB_ENTRIES_COUNT                   ;return last place in high score table + 1 = not a new high score (rank is zero-indexed)
+        rts
++       tya                                     ;return rank in high score table (1-10)
+        rts
+++      tya                                     ;if same number of saved miners, compare times instead
+        asl
+        tay
+        lda .leaderboard_times,y                ;high score table time in ZP0-ZP2
+        sta ZP0
+        lda .leaderboard_times+1,Y
+        sta ZP1
+        stz ZP2
+        tya
+        lsr
+        tay
+        phy
+        jsr IsTimeLess
+        bcc +                                   ;if player time is less - this is the rank!
+        ply
+        iny
+        cpy #LB_ENTRIES_COUNT
+        bne -
++       ply
+        tya
+        rts
+
+SetNewHighScoreName:            ;IN: .A = rank. ZP0-ZP1 = address of new name
         ldx ZP0
         stx .newname
         ldx ZP1
-        stx .newname + 1                        ;store new name temporarily
+        stx .newname +1
         ldx #<.leaderboard_names
         stx ZP0
         ldx #>.leaderboard_names
         stx ZP1
-        dec                                     ;decrease .A because array is zero-indexed
         jsr GetStringInArray                    ;get current name
         lda ZP0
         sta ZP2
@@ -85,7 +176,7 @@ SetLeaderboardName:                             ;IN: .A = track number. ZP0, ZP1
         sta ZP0
         lda .newname + 1
         sta ZP1                                 ;ZP1, ZP2 = new name
-        lda #LEADERBOARD_NAME_LENGTH
+        lda #LB_NAME_LENGTH
         sta ZP4
         stz ZP5                                 ;ZP4, ZP5 = string length
         jsr CopyMem                             ;update name
@@ -93,46 +184,125 @@ SetLeaderboardName:                             ;IN: .A = track number. ZP0, ZP1
 
 .newname        !byte 0,0
 
-GetLeaderboardRecord:                           ;IN: .A = track number. OUT: ZP0 = minutes, ZP1 = seconds, ZP2 = jiffies
-        jsr .GetTimeIndex
+SetNewHighScore:                               ;IN: .A = rank. ZP0-ZP1 = address of new name, ZP2 = saved miners, ZP3-ZP4 = time, ZP5 = start level
+
+        ;store parameters
+        sta .newrank
+        ; lda ZP0
+        ; sta .newname
+        ; lda ZP1
+        ; sta .newname+1
+        lda ZP2
+        sta .newminers
+        lda ZP3
+        sta .newtime
+        lda ZP4
+        sta .newtime+1
+        lda ZP5
+        sta .newstart  
+
+        ;make room for new record
+        lda .newrank
+        jsr .MakeRoomInHighScoreTable
+
+        ; ;set new name
+        ; lda #<.leaderboard_names
+        ; sta ZP0
+        ; lda #>.leaderboard_names
+        ; sta ZP1
+        ; lda .newrank
+        ; jsr GetStringInArray                    ;get current name
+        ; lda ZP0
+        ; sta ZP2
+        ; lda ZP1
+        ; sta ZP3                                 ;ZP2, ZP3 = current name
+        ; lda .newname
+        ; sta ZP0
+        ; lda .newname + 1
+        ; sta ZP1                                 ;ZP1, ZP2 = new name
+        ; lda #LB_NAME_LENGTH
+        ; sta ZP4
+        ; stz ZP5                                 ;ZP4, ZP5 = string length
+        ; jsr CopyMem                             ;update name
+        
+        ;set saved miners
+        +ConvertBinToDec .newminers, .newminers_dec
+        lda .newminers_dec
+        ldy .newrank
+        sta .leaderboard_saved,y
+
+        ;set start level 
+        +ConvertBinToDec .newstart, .newstart_dec
+        lda .newstart_dec
+        ldy .newrank
+        sta .leaderboard_start,y
+        
+        ;set time
+        tya
+        asl
         tay
-        lda .leaderboard_records,y
+        lda .newtime
+        sta .leaderboard_times,y
+        lda .newtime+1
+        sta .leaderboard_times+1,y
+        rts
+
+.newrank        !byte 0
+.newminers      !byte 0
+.newminers_dec  !word 0
+.newtime        !byte 0,0
+.newstart       !byte 0
+.newstart_dec   !word 0
+
+InitHighScoreInput:
+        ;get rank
+        jsr GetSavedMinersCount ;OUT: .A = number of saved miners
         sta ZP0
-        lda .leaderboard_records+1,y
+        lda _minutes
         sta ZP1
-        lda .leaderboard_records+2,y
+        lda _seconds
         sta ZP2
+        jsr GetHighScoreRank    ;IN: ZP0 = number of saved miners, ZP1-ZP2 = time 
+        sta .newrank
+
+        ;set new high score (except name)
+        jsr GetSavedMinersCount
+        sta ZP2
+        lda _minutes
+        sta ZP3
+        lda _seconds
+        sta ZP4
+        lda _startlevel
+        sta ZP5
+        lda .newrank
+        jsr SetNewHighScore     ;IN: .A = rank. ZP2 = saved miners, ZP3-ZP4 = time, ZP5 = start level
+        jsr DisableLayer0
+        jsr ClearTextLayer
+        jsr PrintLeaderboard    ;print high score table with everything but name
+        
+        ;init input textbox
+        lda .newrank
+        asl                     ;take rank times 2 because of empty row between each entry in table when printed
+        clc
+        adc #LB_ROW+LB_HEADING_COUNT
+        sta _row
+        lda #LB_NAME_COL
+        sta _col
+        lda #LB_NAME_LENGTH
+        jsr InitInputString
         rts
 
-SetLeaderboardRecord:                           ;IN: .A = track number. ZP0 = minutes, ZP1 = seconds, ZP2 = jiffies
-        jsr .GetTimeIndex
-        tay
-        lda ZP0
-        sta .leaderboard_records,y
-        lda ZP1
-        sta .leaderboard_records+1,y
-        lda ZP2
-        sta .leaderboard_records+2,y        
+HighScoreInput:                 ;let player enter name. when finished update high score table and save to disk. OUT: carry set when finished
+        jsr InputString         ;receive input and blink cursor. OUT: carry set when finished. ZP0-ZP1 = inputstring
+        bcs +                   
+        rts
++       lda .newrank
+        jsr SetNewHighScoreName
+        jsr SaveLeaderboard
+        sec
         rts
 
-IsNewLeaderboardRecord:                         ;IN: .A = track number. ZP0-ZP2 = time. OUT: .C = clear if time < current record
-        ldx ZP0
-        stx ZP3
-        ldx ZP1
-        stx ZP4
-        ldx ZP2
-        stx ZP5                                 ;time to compare in ZP3-ZP5
-        jsr GetLeaderboardRecord                ;leaderboard time in ZP0-ZP2
-        lda ZP0
-        bne +
-        lda ZP1
-        bne +
-        lda ZP2
-        bne +
-        clc                                     ;answer is yes if leaderboard record is 00:00:00 which means that no record exists
-        rts
-+       jsr IsTimeLess                          ;carry flag will be clear if less 
-        rts
+.dummystring    !scr "dummy name",0
 
 LoadLeaderboard:
         lda #<.leaderboardname
@@ -149,6 +319,7 @@ LoadLeaderboard:
         sta ZP5
         jsr LoadFile            ;call filehandler
         bcc +
+        jsr ResetLeaderboard
         jsr SaveLeaderboard     ;if load fails, create a new file
 +       rts
 
@@ -186,26 +357,110 @@ ResetLeaderboard:               ;copy default leaderboard to leaderboard
 
 ;*** Private ***************************************************************************************
 
-.GetTimeIndex:                                  ;IN: .A = track number. OUT: .A = index for record in record array
+.MakeRoomInHighScoreTable:                      ;Copy rows downwards to make room for new record. IN: .A = rank (zero-indexed)
+        sta .makeroom_row
+        lda #LB_ENTRIES_COUNT-2                 ;begin with second last index and work upwards
+-       pha
+        jsr .CopyHighScoreTableRow
+        pla
         dec
-        tax
-        lda #0
--       cpx #0
-        beq +
-        clc
-        adc #3
-        dex
-        bra -
-+       rts
+        cmp .makeroom_row
+        bpl -
+        rts
 
-.leaderboardname        !raw "LEADERBOARD.BIN",0
+.makeroom_row   !byte 0
 
-.heading                !scr "%%%%%%%%%%%% leaderboard %%%%%%%%%%%%%",0
+.CopyHighScoreTableRow:                 ;Copy a row in the high score table down one step.
+        cmp #LB_ENTRIES_COUNT-1         ;IN: .A = source row (zero-indexed)
+        bcc +                           ;row must be lesser than the last 
+        rts                             
+        ;copy name
++       tay
+        phy
+        ldx #<.leaderboard_names
+        stx ZP0
+        ldx #>.leaderboard_names
+        stx ZP1
+        jsr GetStringInArray            ;address of name in source row now in ZP0, ZP1
+        lda ZP0                         
+        sta ZP2
+        lda ZP1
+        sta ZP3
+        +Add16I ZP2, LB_NAME_LENGTH+1   ;add name length +1 to get address of next name in ZP2, ZP3
+        lda #LB_NAME_LENGTH
+        sta ZP4                         ;number of bytes to copy in ZP4
+        stz ZP5
+        jsr CopyMem                     ;copy
+
+        ;copy saved miners and start level
+        ply
+        lda .leaderboard_saved,y
+        sta .leaderboard_saved+1,y
+        lda .leaderboard_start,y
+        sta .leaderboard_start+1,y
+
+        ;copy time
+        tya
+        asl
+        tay
+        lda .leaderboard_times,y
+        sta .leaderboard_times+2,y
+        lda .leaderboard_times+1,y
+        sta .leaderboard_times+3,y
+        rts
+
+.leaderboardname        !raw "HIGHSCORES.BIN",0
+
+LB_ROW = 2
+LB_NAME_LENGTH = 11
+LB_HEADING_COUNT = 5
+LB_ENTRIES_COUNT = 10
+
+LB_NAME_COL = 8
+LB_MINERS_COL = 22
+LB_TIME_COL = 27
+LB_START_COL = 34
+
+.scoretable             !scr "  %%%%%%%%%%% high scores %%%%%%%%%%%%",0
+                        !scr 0
+                        !scr "   rank name        saved  time  start",0
+                        !scr "                    miners       level",0
+                        !scr 0
+                        !scr "    1st",0
+                        !scr "    2nd",0
+                        !scr "    3rd",0
+                        !scr "    4th",0
+                        !scr "    5th",0
+                        !scr "    6th",0
+                        !scr "    7th",0
+                        !scr "    8th",0
+                        !scr "    9th",0
+                        !scr "   10th",0
+
+.leaderboard_colors             !byte 1,0,7,7,0                   ;headings
+.leaderboard_table_colors       !byte 10,8,7,13,3,4,10,8,7,13     ;table
 
 .leaderboard            ;data are read from file
-.leaderboard_names      !fill LEADERBOARD_NUMBER_OF_TRACKS*12,0 ;each name is max 11 chars long
-.leaderboard_records    !fill LEADERBOARD_NUMBER_OF_TRACKS*3 ,0 ;each time takes 3 bytes (minutes, seconds and jiffies)
+.leaderboard_names      !fill LB_ENTRIES_COUNT*(LB_NAME_LENGTH+1),0     ;each name is max 11 chars long (= 12 with 0 to terminate)
+.leaderboard_saved      !fill LB_ENTRIES_COUNT,0                         ;number of saved miners in decimal
+.leaderboard_times      !fill LB_ENTRIES_COUNT*2,0                       ;each time takes 2 bytes (minutes and seconds)
+.leaderboard_start      !fill LB_ENTRIES_COUNT,0                         ;start level in decimal
 .leaderboard_end
 
-.default_leaderboard    !for i,1,LEADERBOARD_NUMBER_OF_TRACKS { !scr "-----      ",0 }
-                        !fill LEADERBOARD_NUMBER_OF_TRACKS*3,0
+.default_leaderboard    ;!for i,1,LB_ENTRIES_COUNT { !scr "-----      ",0 }    ;names
+                        !scr "1---------1",0
+                        !scr "2---------2",0
+                        !scr "3---------3",0
+                        !scr "4---------4",0
+                        !scr "5---------5",0
+                        !scr "6---------6",0
+                        !scr "7---------7",0
+                        !scr "8---------8",0
+                        !scr "9---------9",0
+                        !scr "10-------10",0
+
+;                        !byte $10,9,8,7,5,5,4,3,2,1                           ;saved miners in decimal
+                        !byte 0,0,0,0,0,0,0,0,0,0
+                        !byte 20,0, 18,0, 16,0, 14,0, 12,0                    ;times
+                        !byte 10,0,  8,0,  6,0,  4,0,  2,0
+                        !byte 1,2,3,4,5,6,7,8,9,$10                           ;start levels in decimal

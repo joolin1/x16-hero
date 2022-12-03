@@ -26,7 +26,6 @@ _ismoving       !byte 0         ;boolean, whether player is moving or standing s
 _ismovingleft   !byte 0         ;boolean, whether player is pointing left or right
 
 _lives          !byte 0
-_isrecord       !byte 0
 
 _xpos_lo        !byte 0         ;current position in game world 
 _xpos_hi        !byte 0
@@ -478,13 +477,3 @@ GetCurrentSpeed:               ;OUT: .A = current speed
 +       rts
 
 .fallingspeeddelay     !byte 0
-
-CheckForRecord:
-        jsr IsNewLeaderboardRecord
-        bcc +
-        stz _isrecord
-        rts
-+       jsr SetLeaderboardRecord
-        lda #1
-        sta _isrecord
-        rts
