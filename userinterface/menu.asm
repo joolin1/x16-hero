@@ -30,7 +30,7 @@ MenuHandler:
 	jsr HighScoreInput
 	bcs +
 	rts
-+   lda #M_SHOW_HIGHSCORE_SCREEN
++   lda #M_SHOW_MENU_SCREEN
 	sta _menumode
 	rts
 
@@ -218,9 +218,9 @@ _menumode				!byte 0
 	rts
 +	inc _startlevel
 	lda _startlevel
-	cmp #LEVEL_COUNT
+	cmp _leaderboard_start_high
 	bcc +
-	lda #LEVEL_COUNT
+	lda _leaderboard_start_high
 	sta _startlevel
 +	jsr .PrintCurrentStartLevel		
  	rts
@@ -358,12 +358,9 @@ _menumode				!byte 0
 
 .PrintCurrentStartLevel:
 	+SetPrintParams LEVEL_ROW, ARROW_POSITIONS+1, MENU_WHITE
-	+ConvertBinToDec _startlevel, .startlevel_decimal
-	lda .startlevel_decimal
-	jsr VPrintDecimalNumber
+	lda _startlevel
+	jsr VPrintShortNumber
 	rts
-
-.startlevel_decimal  !word 0
 
 .PrintConfirmationQuestion:
 	stz .answer					;default answer is "no"
@@ -441,7 +438,6 @@ NO_POSITION  = 27
 	rts
 
 .ShowMenuScreen:						;print complete menu including setting layers, clear layers and print all text
-	jsr DisableLayer0
 	jsr ClearTextLayer
 	jsr EnableLayer1
 	stz .handrow					;put selection hand on first row
@@ -471,14 +467,12 @@ NO_POSITION  = 27
 	rts
 
 .ShowHighScoreScreen:
-	jsr DisableLayer0
 	jsr ClearTextLayer
 	jsr EnableLayer1
 	jsr PrintLeaderboard
 	rts
 
 .ShowCreditScreen:
-	jsr DisableLayer0
 	jsr ClearTextLayer
 	jsr EnableLayer1
 	+SetPrintParams CREDITSCREEN_START_ROW,0,MENU_TITLE_COLOR

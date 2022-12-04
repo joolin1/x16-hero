@@ -366,6 +366,15 @@ VPrintDecimalNumber:            ;Print 2 digit decimal number with leading zero 
         +VPrintDecimalDigit
         rts
 
+VPrintShortNumber:              ;print a number with two digits. IN .A = number to print (max 99!)
+        asl
+        tay
+        lda .digitstable,y
+        jsr VPrintChar
+        lda .digitstable+1,y
+        jsr VPrintChar
+        rts
+
 VPrintNumber:                   ;IN: .A = number to print
         ldx #$ff
         sec 

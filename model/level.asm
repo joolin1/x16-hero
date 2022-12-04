@@ -6,7 +6,8 @@ _levelstarttable        !byte 14,12      ;start row and col for level 1
                         !byte 14,12      ;level 2
 
 ;table for size of levels (0 = 32 tiles, 1 = 64, 2 = 128 and 3 = 256)
-_levelsizetable         !byte 1,0       ;height and width in VERA tilemap notation 
+_levelsizetable         !byte 0,1       ;level 0 is only used as background when displaying menu, high score table and credits
+                        !byte 1,0       ;height and width in VERA tilemap notation 
                         !byte 1,0
 
 _startlevel             !byte 1         ;which level game starts on, default is 1
@@ -38,7 +39,6 @@ GetSavedMinersCount:            ;OUT: .A = number of saved miners (example: game
 .SetLevelProperties:
         ;get size of current level
         lda _level
-        dec
         asl
         tay                     
         lda _levelsizetable,y   ;get rows

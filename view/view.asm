@@ -6,6 +6,18 @@ _darktimecount_hi       !byte 0
 _backgroundcolor_lo     !byte 0
 _backgroundcolor_hi     !byte 0
 
+UpdateDemoView:
+;         lda _menumode
+;         cmp #M_HANDLE_INPUT
+;         beq +
+;         cmp #M_SHOW_CREDIT_SCREEN
+;         beq +
+;         cmp #M_SHOW_HIGHSCORE_SCREEN
+;         beq +
+;         rts
+; +       jsr UpdateView
+        rts
+
 UpdateView:    ;Called at vertical blank to update level, text and sprites.
 
         ;subtract half screen width an height from player pos to get tilemap position for topleft corner of screen
@@ -63,9 +75,8 @@ UpdateStatusBar:
 
         ;print current level
         +SetPrintParams 29,7
-        +ConvertBinToDec _level, .level_decimal
-        lda .level_decimal
-        jsr VPrintDecimalNumber
+        lda _level
+        jsr VPrintShortNumber
 
         ;print time
         jsr UpdateStatusTime:
@@ -73,7 +84,7 @@ UpdateStatusBar:
         ;print number of lives left
         +SetPrintParams 29,38
         lda _lives              
-        jsr VPrintDecimalNumber ;number of lives will never be > 9, therefore we can treat it as a decimal number
+        jsr VPrintShortNumber
         rts
 
 UpdateStatusTime:
@@ -86,15 +97,14 @@ UpdateStatusTime:
         rts
 
 .statusbar      !scr " level                          lives   ",0
-.level_decimal  !word 0
 
-PrintDebugInformation:             ;DEBUG     
-        +SetPrintParams 2,0,$01
-        lda _joy0
-        jsr VPrintNumber
+; PrintDebugInformation:             ;DEBUG     
+;         +SetPrintParams 2,0,$01
+;         lda _joy0
+;         jsr VPrintNumber
 
-        +SetPrintParams 7,0,$01
-        +VPrintHex16Number _xpos_lo
-        +SetPrintParams 8,0,$01
-        +VPrintHex16Number _ypos_lo         
-        rts
+;         +SetPrintParams 7,0,$01
+;         +VPrintHex16Number _xpos_lo
+;         +SetPrintParams 8,0,$01
+;         +VPrintHex16Number _ypos_lo         
+;         rts

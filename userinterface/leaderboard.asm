@@ -63,7 +63,7 @@ PrintLeaderboard:
         lda #LB_MINERS_COL
         sta _col
         lda .leaderboard_saved,y
-        jsr VPrintDecimalNumber
+        jsr VPrintShortNumber
         inc _row
         inc _row
         pla
@@ -106,7 +106,7 @@ PrintLeaderboard:
         lda #LB_START_COL
         sta _col
         lda .leaderboard_start,y
-        jsr VPrintDecimalNumber
+        jsr VPrintShortNumber
         inc _row
         inc _row
         pla
@@ -188,10 +188,6 @@ SetNewHighScore:                               ;IN: .A = rank. ZP0-ZP1 = address
 
         ;store parameters
         sta .newrank
-        ; lda ZP0
-        ; sta .newname
-        ; lda ZP1
-        ; sta .newname+1
         lda ZP2
         sta .newminers
         lda ZP3
@@ -204,27 +200,7 @@ SetNewHighScore:                               ;IN: .A = rank. ZP0-ZP1 = address
         ;make room for new record
         lda .newrank
         jsr .MakeRoomInHighScoreTable
-
-        ; ;set new name
-        ; lda #<.leaderboard_names
-        ; sta ZP0
-        ; lda #>.leaderboard_names
-        ; sta ZP1
-        ; lda .newrank
-        ; jsr GetStringInArray                    ;get current name
-        ; lda ZP0
-        ; sta ZP2
-        ; lda ZP1
-        ; sta ZP3                                 ;ZP2, ZP3 = current name
-        ; lda .newname
-        ; sta ZP0
-        ; lda .newname + 1
-        ; sta ZP1                                 ;ZP1, ZP2 = new name
-        ; lda #LB_NAME_LENGTH
-        ; sta ZP4
-        ; stz ZP5                                 ;ZP4, ZP5 = string length
-        ; jsr CopyMem                             ;update name
-        
+       
         ;set saved miners
         +ConvertBinToDec .newminers, .newminers_dec
         lda .newminers_dec
@@ -298,11 +274,13 @@ HighScoreInput:                 ;let player enter name. when finished update hig
         rts
 +       lda .newrank
         jsr SetNewHighScoreName
-        jsr SaveLeaderboard
+        lda _level
+        cmp _leaderboard_start_high
+        bcc +
+        sta _leaderboard_start_high     ;set new highest allowed start level if player managed to exceed it
++       jsr SaveLeaderboard
         sec
         rts
-
-.dummystring    !scr "dummy name",0
 
 LoadLeaderboard:
         lda #<.leaderboardname
@@ -373,7 +351,8 @@ ResetLeaderboard:               ;copy default leaderboard to leaderboard
 .CopyHighScoreTableRow:                 ;Copy a row in the high score table down one step.
         cmp #LB_ENTRIES_COUNT-1         ;IN: .A = source row (zero-indexed)
         bcc +                           ;row must be lesser than the last 
-        rts                             
+        rts             
+
         ;copy name
 +       tay
         phy
@@ -442,25 +421,26 @@ LB_START_COL = 34
 
 .leaderboard            ;data are read from file
 .leaderboard_names      !fill LB_ENTRIES_COUNT*(LB_NAME_LENGTH+1),0     ;each name is max 11 chars long (= 12 with 0 to terminate)
-.leaderboard_saved      !fill LB_ENTRIES_COUNT,0                         ;number of saved miners in decimal
-.leaderboard_times      !fill LB_ENTRIES_COUNT*2,0                       ;each time takes 2 bytes (minutes and seconds)
-.leaderboard_start      !fill LB_ENTRIES_COUNT,0                         ;start level in decimal
+.leaderboard_saved      !fill LB_ENTRIES_COUNT,0                        ;number of saved miners
+.leaderboard_times      !fill LB_ENTRIES_COUNT*2,0                      ;each time takes 2 bytes (minutes and seconds)
+.leaderboard_start      !fill LB_ENTRIES_COUNT,0                        ;start levels
+_leaderboard_start_high !byte 0                                         ;highest allowed start level
 .leaderboard_end
 
-.default_leaderboard    ;!for i,1,LB_ENTRIES_COUNT { !scr "-----      ",0 }    ;names
-                        !scr "1---------1",0
-                        !scr "2---------2",0
-                        !scr "3---------3",0
-                        !scr "4---------4",0
-                        !scr "5---------5",0
-                        !scr "6---------6",0
-                        !scr "7---------7",0
-                        !scr "8---------8",0
-                        !scr "9---------9",0
-                        !scr "10-------10",0
+.default_leaderboard    !scr "roderrick  ",0                    ;names
+                        !scr "elvin      ",0
+                        !scr "guybrush   ",0
+                        !scr "sandy pantz",0
+                        !scr "z mckracken",0
+                        !scr "bruce lee  ",0
+                        !scr "armakuni   ",0
+                        !scr "rockford   ",0
+                        !scr "giana      ",0
+                        !scr "monty mole ",0
 
-;                        !byte $10,9,8,7,5,5,4,3,2,1                           ;saved miners in decimal
-                        !byte 0,0,0,0,0,0,0,0,0,0
-                        !byte 20,0, 18,0, 16,0, 14,0, 12,0                    ;times
+                        !byte 10,9,8,7,5,5,4,3,2,1              ;saved miners
+                        !byte 20,0, 18,0, 16,0, 14,0, 12,0      ;times
                         !byte 10,0,  8,0,  6,0,  4,0,  2,0
-                        !byte 1,2,3,4,5,6,7,8,9,$10                           ;start levels in decimal
+                        !byte 1,2,3,4,5,6,7,8,9,10              ;start levels
+
+                        !byte 1                                 ;highest allowed start level

@@ -97,6 +97,9 @@ _noofplayers	        !byte 1
         cmp #ST_RUNNING
         bne +
         jsr UpdateView
++       cmp #ST_MENU
+        bne +
+        jsr UpdateDemoView
 +       jmp (.defaulthandler_lo)     
 
 .QuitGame:                       
@@ -186,6 +189,20 @@ _noofplayers	        !byte 1
         lda #ST_LEVELCOMPLETED
         sta _gamestatus
 +       rts
+
+.InitMenuBackground:
+        jsr SetLayer0ToTileMode
+	stz _level
+	jsr InitLevel			;init level 0 which is simply used as a background
+	jsr InitCreatures
+	lda #160                        ;set camera position manually
+	sta _xpos_lo
+	stz _xpos_hi
+	lda #120
+	sta _ypos_lo
+	stz _ypos_hi
+        jsr EnableLayer1
+        rts
 
 .ShowMenu:
         jsr MenuHandler
