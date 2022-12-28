@@ -87,6 +87,9 @@ InitInputString:
         stz .inputpos
         jsr .InitTextBox
         jsr .InitString
+-       jsr GETIN
+        cmp #0
+        bne -
         rts
 
 .InitTextBox:

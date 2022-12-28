@@ -86,16 +86,16 @@ BOTTOM_BORDER       = 36
         jsr VPrintString
 }
 
-!macro InitBoardInput .row, .col {
-        lda #.row
-        sta _row
-        lda #.col
-        sta _col
-        lda #LB_NAME_LENGTH
-        jsr InitInputString
-        lda #1
-        sta _boardinputflag
-}
+; !macro InitBoardInput .row, .col {
+;         lda #.row
+;         sta _row
+;         lda #.col
+;         sta _col
+;         lda #LB_NAME_LENGTH
+;         jsr InitInputString
+;         lda #1
+;         sta _boardinputflag
+; }
 
 ;*** Pause menu ************************************************************************************
 
@@ -185,28 +185,38 @@ UpdatePauseMenu:
 
 ;*** Boards ***************************************************************************************
 
-PrintLevelCompletedBoard:
-        +PrintBoard 24, 4, 9, 8, .board_levelcompleted
+BOARD_TEXT_COLOR = $07
+
+PrintLevelFinished:
+        +SetPrintParams 12,7,BOARD_TEXT_COLOR
+        +SetParamsI <.board_levelfinished, >.board_levelfinished
+        jsr VPrintString
+        jsr VPrintString
         rts
 
-PrintGameCompletedBoard:
-        +PrintBoard 24, 4, 9, 8, .board_gamecompleted
+PrintGameOver:
+        +SetPrintParams 12,11,BOARD_TEXT_COLOR
+        +SetParamsI <.board_gameover, >.board_gameover
+        jsr VPrintString
+        jsr VPrintString
         rts
 
-PrintGameOverBoard:
-        +PrintBoard 23, 3, 9, 8, .board_gameover
+PrintGameCompleted:
+        +SetPrintParams 12,7,BOARD_TEXT_COLOR
+        +SetParamsI <.board_gamecompleted, >.board_gamecompleted
+        jsr VPrintString
+        jsr VPrintString
         rts
 
-.board_levelcompleted   !scr "                        ",0
-                        !scr "    level completed     ",0 
-                        !scr "  you saved the miner!  ",0
-                        !scr "                        ",0
+                        ;     L        E      V        E      L            F      I      N        I      S        H      E      D      !
+.board_levelfinished:   !byte 108,109, 80,81, 148,149, 80,81, 108,109, 32, 84,85, 96,97, 116,117, 96,97, 136,137, 92,93, 80,81, 76,77, 170, 0
+                        !byte 110,111, 82,83, 150,151, 82,83, 110,111, 32, 86,87, 98,99, 118,119, 98,99, 138,139, 94,95, 82,83, 78,79, 171, 0
 
-.board_gamecompleted    !scr "                        ",0
-                        !scr "  all miners are saved  ",0 
-                        !scr "  you are a true hero!  ",0
-                        !scr "                        ",0
+                        ;     G      A      M        E          O        V        E      R        !
+.board_gameover         !byte 88,89, 64,65, 112,113, 80,81, 32, 120,121, 148,149, 80,81, 132,133, 170, 0
+                        !byte 90,91, 66,67, 114,115, 82,83, 32, 122,123, 150,151, 82,83, 134,135, 171, 0
 
-.board_gameover         !scr "                       ",0
-                        !scr "       game over       ",0
-                        !scr "                       ",0
+                        ;     G      A      M        E          C      O        M        P        L        E      T        E      D      !       
+.board_gamecompleted    !byte 88,89, 64,65, 112,113, 80,81, 32, 72,73, 120,121, 112,113, 124,125, 108,109, 80,81, 140,141, 80,81, 76,77, 170, 0
+                        !byte 90,91, 66,67, 114,115, 82,83, 32, 74,75, 122,123, 114,115, 126,127, 110,111, 82,83, 142,143, 82,83, 78,79, 171, 0
+

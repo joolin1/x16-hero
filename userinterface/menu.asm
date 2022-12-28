@@ -1,14 +1,12 @@
 ;*** Menu.asm - Start screen, menu, credits ********************************************************
 
 ;Menu status
-M_INIT_START_SCREEN   	 = 0
-M_SHOW_START_SCREEN      = 1
-M_SHOW_MENU_SCREEN  	 = 2
-M_SHOW_HIGHSCORE_SCREEN  = 3
-M_ENTER_NEW_HIGH_SCORE   = 4
-M_ENTER_NEW_HIGH_SCORE_2 = 5
-M_SHOW_CREDIT_SCREEN	 = 6
-M_HANDLE_INPUT 			 = 7
+M_SHOW_MENU_SCREEN  	 = 0
+M_SHOW_HIGHSCORE_SCREEN  = 1
+M_ENTER_NEW_HIGH_SCORE   = 2
+M_ENTER_NEW_HIGH_SCORE_2 = 3
+M_SHOW_CREDIT_SCREEN	 = 4
+M_HANDLE_INPUT 			 = 5
 
 INACTIVITY_DELAY = 1
 
@@ -17,42 +15,8 @@ INACTIVITY_DELAY = 1
 MenuHandler:
 	lda _menumode
 
-	;setup for input of name
-	cmp #M_ENTER_NEW_HIGH_SCORE
-	bne +
-	jsr InitHighScoreInput
-    lda #M_ENTER_NEW_HIGH_SCORE_2
-    sta _menumode
-	rts
-
-+	cmp #M_ENTER_NEW_HIGH_SCORE_2
-	bne ++
-	jsr HighScoreInput
-	bcs +
-	rts
-+   lda #M_SHOW_MENU_SCREEN
-	sta _menumode
-	rts
-
-	;show start image
-++  cmp #M_INIT_START_SCREEN	;load and display start screen
-	bne +
-	jsr .ShowStartScreen
-	lda #M_SHOW_START_SCREEN
-	sta _menumode
-	rts
-
-+	cmp #M_SHOW_START_SCREEN	;just wait for player to press something
-	bne +
-	lda _joy0
-	cmp #JOY_NOTHING_PRESSED
-	beq +
-	lda #M_SHOW_MENU_SCREEN
-	sta _menumode
-	rts
-
 	;show menu
-+   cmp #M_SHOW_MENU_SCREEN
+    cmp #M_SHOW_MENU_SCREEN
 	bne +
 	jsr .ShowMenuScreen
 	lda #M_HANDLE_INPUT				;next go to input menu mode
@@ -75,7 +39,7 @@ MenuHandler:
     stz .inactivitytimer_lo
 	stz .inactivitytimer_hi
 	rts
-+	lda _joy0
++	+GetJoy0_NoRepeat .highscorewait
 	cmp #JOY_NOTHING_PRESSED
 	beq +
 	lda #M_SHOW_MENU_SCREEN
@@ -124,6 +88,7 @@ MenuHandler:
 _menumode				!byte 0
 .inactivitytimer_lo		!byte 0		;timer to measure user inactivity
 .inactivitytimer_hi		!byte 0
+.highscorewait			!byte 0 
 
 ;*** Private methods *******************************************************************************
 
@@ -268,6 +233,7 @@ _menumode				!byte 0
 +	cmp #RESET_BEST
 	bne +
 	jsr .HandleResetLeaderboard
+	rts
 
 +	cmp #QUIT_GAME
 	bne +
@@ -310,8 +276,14 @@ _menumode				!byte 0
 	beq +
 	jsr ResetLeaderboard
 	jsr SaveLeaderboard
-	lda #M_HANDLE_INPUT
+	jsr .ShowHighScoreScreen
+	lda #1
+	sta .resetconfirmationflag
+	sta .highscorewait	;wait for player to release everything to prevent immediate shift from high score table to menu 
+	lda #M_SHOW_HIGHSCORE_SCREEN
 	sta _menumode
+    stz .inactivitytimer_lo
+	stz .inactivitytimer_hi
 	rts
 +	lda #M_HANDLE_INPUT
 	sta _menumode
@@ -329,8 +301,6 @@ _menumode				!byte 0
 +	stz .quitconfirmationflag	
 	lda .answer
 	beq +
-	lda #M_SHOW_START_SCREEN
-	sta _menumode					;set menu mode to start screen in case user starts game again
 	lda #ST_QUITGAME
 	sta _gamestatus					;set game status to break main loop, clean up and exit
 	rts
@@ -431,15 +401,13 @@ NO_POSITION  = 27
 	jsr VPrintString
 	rts
 
-;*** Draw start screen and menu ********************************************************************
+;*** Print menu, high score, and credits ********************************************************************
 
-.ShowStartScreen:
-	jsr ShowStartImage	;show image
-	rts
-
-.ShowMenuScreen:						;print complete menu including setting layers, clear layers and print all text
+.ShowMenuScreen:					;print complete menu including setting layers, clear layers and print all text
+	lda #MENU_MAIN_POS              ;set camera position  to first demo background
+	sta _xpos_lo
+	stz _xpos_hi
 	jsr ClearTextLayer
-	jsr EnableLayer1
 	stz .handrow					;put selection hand on first row
 	jsr .UpdateMainMenu
 	rts
@@ -467,15 +435,21 @@ NO_POSITION  = 27
 	rts
 
 .ShowHighScoreScreen:
+	lda #<MENU_HIGH_POS		;set camera position to second demo background
+	sta _xpos_lo
+	lda #>MENU_HIGH_POS
+	sta _xpos_hi
 	jsr ClearTextLayer
-	jsr EnableLayer1
 	jsr PrintLeaderboard
 	rts
 
 .ShowCreditScreen:
+	lda #<MENU_CREDIT_POS		;set camera position to second demo background
+	sta _xpos_lo
+	lda #>MENU_CREDIT_POS
+	sta _xpos_hi
 	jsr ClearTextLayer
-	jsr EnableLayer1
-	+SetPrintParams CREDITSCREEN_START_ROW,0,MENU_TITLE_COLOR
+	+SetPrintParams CREDITSCREEN_START_ROW,0,MENU_CREDITS_COLOR
 	lda #<.creditscreentext
 	sta ZP0
 	lda #>.creditscreentext
@@ -496,9 +470,10 @@ NO_POSITION  = 27
 
 .creditscreentext:
 !scr "              "
-!byte 64,65,32,66,67,32,68,69,32,70,71,32,0	;upper half of large letters h, e, r and o with a space after each letter
+	; H      .    E      .    R        .    O        .
+!byte 92,93, 168, 80,81, 168, 132,133, 168, 120,121, 168, 0
 !scr "              "
-!byte 72,73,80,74,75,80,76,77,80,78,79,80,0	;lower half of large letters h, e, r and o with an enlarged "." after each letter
+!byte 94,95, 169, 82,83, 169, 134,135, 169, 122,123, 169, 0
 !scr 0
 !scr "     a tribute to the original game",0
 !scr 0
@@ -526,9 +501,10 @@ CREDITSCREEN_START_ROW = 5
 !scr 0
 !scr 0
 !scr 0
+;                  H      .    E      .    R        .    O        .
+!byte 32,32,32,32, 92,93, 168, 80,81, 168, 132,133, 168, 120,121, 168, 0
+!byte 32,32,32,32, 94,95, 169, 82,83, 169, 134,135, 169, 122,123, 169, 0
 !scr 0
-!byte 32,32,32,32,64,65,32,66,67,32,68,69,32,70,71,32,0	;upper half of large letters h, e, r and o with a space after each letter
-!byte 32,32,32,32,72,73,80,74,75,80,76,77,80,78,79,80,0	;lower half of large letters h, e, r and o with an enlarged "." after each letter
 !scr 0
 !scr "start the game",0
 !scr 0
@@ -560,9 +536,9 @@ MENU_ITEMS_COUNT = 4
 				!byte MENU_BLACK
 				!byte MENU_BLACK
 				!byte MENU_BLACK
+				!byte MENU_TITLE_COLOR
+				!byte MENU_TITLE_COLOR
 				!byte MENU_BLACK
-				!byte MENU_TITLE_COLOR
-				!byte MENU_TITLE_COLOR
 				!byte MENU_BLACK
 .startrace		!byte MENU_WHITE
 				!byte MENU_BLACK
@@ -585,3 +561,9 @@ QUIT_GAME		= 3
 MENU_WHITE = $01
 MENU_BLACK = $0c
 MENU_TITLE_COLOR = $07
+MENU_CREDITS_COLOR = $07
+
+;Level 0 (demo level) horizontal positions
+MENU_MAIN_POS = 160
+MENU_HIGH_POS = 480
+MENU_CREDIT_POS = 800

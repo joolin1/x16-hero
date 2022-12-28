@@ -117,11 +117,6 @@ ClearTextLayer:
 	stz VERA_ADDR_L
 	dec VERA_ADDR_M
 	bpl --
-        lda #0                          ;reset scroll offset
-        sta L1_HSCROLL_L
-        sta L1_VSCROLL_L
-        stz L1_HSCROLL_H
-        stz L1_VSCROLL_H
 	rts
 
 RestoreScreenAndSprites:        ;Restore screen and sprites when user ends game

@@ -390,20 +390,18 @@ ResetLeaderboard:               ;copy default leaderboard to leaderboard
 
 .leaderboardname        !raw "HIGHSCORES.BIN",0
 
-LB_ROW = 2
+LB_ROW = 4
 LB_NAME_LENGTH = 11
-LB_HEADING_COUNT = 5
+LB_HEADING_COUNT = 3
 LB_ENTRIES_COUNT = 10
 
 LB_NAME_COL = 8
 LB_MINERS_COL = 22
 LB_TIME_COL = 27
 LB_START_COL = 34
-
-.scoretable             !scr "  %%%%%%%%%%% high scores %%%%%%%%%%%%",0
-                        !scr 0
-                        !scr "   rank name        saved  time  start",0
-                        !scr "                    miners       level",0
+;
+.scoretable             !scr "                    saved        start",0
+                        !scr "   rank name        miners time  level",0
                         !scr 0
                         !scr "    1st",0
                         !scr "    2nd",0
@@ -416,8 +414,8 @@ LB_START_COL = 34
                         !scr "    9th",0
                         !scr "   10th",0
 
-.leaderboard_colors             !byte 1,0,7,7,0                   ;headings
-.leaderboard_table_colors       !byte 10,8,7,13,3,4,10,8,7,13     ;table
+.leaderboard_colors             !byte 7,7,0                       ;headings
+.leaderboard_table_colors       !byte 2,7,14,5,15,8,4,9,13,10      ;table
 
 .leaderboard            ;data are read from file
 .leaderboard_names      !fill LB_ENTRIES_COUNT*(LB_NAME_LENGTH+1),0     ;each name is max 11 chars long (= 12 with 0 to terminate)
@@ -428,7 +426,7 @@ _leaderboard_start_high !byte 0                                         ;highest
 .leaderboard_end
 
 .default_leaderboard    !scr "roderrick  ",0                    ;names
-                        !scr "elvin      ",0
+                        !scr "elvin a    ",0
                         !scr "guybrush   ",0
                         !scr "sandy pantz",0
                         !scr "z mckracken",0

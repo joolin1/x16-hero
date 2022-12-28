@@ -54,7 +54,7 @@ GetSavedMinersCount:            ;OUT: .A = number of saved miners (example: game
         sta _levelheight
         lda _levelconvtable+1,y
         sta _levelheight+1
-        ldy ZP1
+        lda ZP1
         asl
         tay
         lda _levelconvtable,y

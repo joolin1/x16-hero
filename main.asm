@@ -5,6 +5,18 @@
 !sl "hero.sym"
 !src "includes/x16.asm"
 
+!macro CheckTimer2 .counter, .limit {        ;IN: address of counter, limit as immediate value. OUT: .A = true if counter has reached its goal otherwise false 
+        inc .counter
+        lda .counter
+        cmp #.limit
+        bne +
+        stz .counter
+        lda #1
+        bra ++
++       lda #0
+++
+}
+
 ;*** Basic program ("10 SYS 2064") *****************************************************************
 
 *=$0801
@@ -14,20 +26,24 @@
 ;*** Game globals **********************************************************************************
 
 ;Status for game
-ST_MENU            = 0   ;show start screen or menu
-ST_INITGAME        = 1   ;init new game
-ST_INITLEVEL       = 2   ;init level and player
-ST_RESUMEGAME      = 3   ;resume game 
-ST_RUNNING         = 4   ;normal gameplay
-ST_PAUSED          = 5   ;game paused
-ST_KILL            = 6   ;player has killed a creature
-ST_DEATH           = 7   ;player has been killed
-ST_RESTARTLEVEL    = 8   ;restart level if lives left
-ST_LEVELCOMPLETED  = 9   ;level/game completed
-ST_LEVELCOMPLETED2 = 10  ;level/game completed step 2
-ST_GAMEOVER        = 11  ;game over, no lives left
-ST_GAMEOVER2       = 12  ;game over step 2
-ST_QUITGAME        = 13  ;quit game
+ST_INITSTARTSCREEN = 0   ;set up start screen
+ST_SHOWSTARTSCREEN = 1   ;display start screen
+ST_INITMENU        = 2   ;set up menu background
+ST_SHOWMENU        = 3   ;show menu, high scores or credits
+ST_INITGAME        = 4   ;init new game
+ST_INITLEVEL       = 5   ;init level and player
+ST_RESUMEGAME      = 6   ;resume game 
+ST_RUNNING         = 7   ;normal gameplay
+ST_PAUSED          = 8   ;game paused
+ST_KILL            = 9   ;player has killed a creature
+ST_DEATH           = 10  ;player has been killed
+ST_RESTARTLEVEL    = 11  ;restart level if lives left
+ST_LEVELCOMPLETED  = 12  ;level/game completed
+ST_LEVELCOMPLETED2 = 13  ;level/game completed step 2
+ST_GAMEOVER        = 14  ;game over, no lives left
+ST_GAMEOVER2       = 15  ;game over step 2
+ST_ENTERHIGHSCORE  = 16  ;let player enter name for new high score
+ST_QUITGAME        = 17  ;quit game
 
 ;*** Main program **********************************************************************************
 
@@ -37,7 +53,7 @@ ST_QUITGAME        = 13  ;quit game
         jsr LoadGraphics                ;load tiles and sprites from disk to VRAM
         bcc +
         rts                             ;exit if some resource failed to load
-+       lda #ST_MENU
++       lda #ST_INITSTARTSCREEN
         sta _gamestatus
         jsr InitScreenAndSprites
         jsr InitJoysticks               ;check which type of joysticks (game controllers) are being used 
@@ -96,10 +112,10 @@ _noofplayers	        !byte 1
         lda _gamestatus
         cmp #ST_RUNNING
         bne +
-        jsr UpdateView
-+       cmp #ST_MENU
+        jsr UpdateView                  ;update screen when game is running
++       cmp #ST_SHOWMENU
         bne +
-        jsr UpdateDemoView
+        jsr UpdateView                  ;update demo background (level 0) when menu is displayed
 +       jmp (.defaulthandler_lo)     
 
 .QuitGame:                       
@@ -126,7 +142,16 @@ _noofplayers	        !byte 1
         cmp #ST_RUNNING                 ;gameplay is running
         bne +
         jmp .LevelTick
-+       cmp #ST_MENU                    ;show start screen and menu
++       cmp #ST_INITSTARTSCREEN
+        bne +
+        jmp .InitStartScreen
++       cmp #ST_SHOWSTARTSCREEN
+        bne +
+        jmp .ShowStartScreen
++       cmp #ST_INITMENU
+        bne +
+        jmp .InitMenu
++       cmp #ST_SHOWMENU                    ;show start screen and menu
         bne +
         jmp .ShowMenu
 +       cmp #ST_INITGAME
@@ -156,6 +181,9 @@ _noofplayers	        !byte 1
 +       cmp #ST_GAMEOVER2               ;wait for input from player
         bne +
         jmp .GameOver2
++       cmp #ST_ENTERHIGHSCORE
+        bne +
+        jmp .EnterHighScore
 +       rts
 
 .LevelTick:
@@ -190,23 +218,52 @@ _noofplayers	        !byte 1
         sta _gamestatus
 +       rts
 
-.InitMenuBackground:
+.InitStartScreen:                       ;init start screen
+	jsr ShowStartImage
+	lda #ST_SHOWSTARTSCREEN
+	sta _gamestatus
+	rts
+
+.ShowStartScreen:                       ;start screen is displayed, wait for player to press something
+	lda _joy0
+	cmp #JOY_NOTHING_PRESSED
+	beq +
+	lda #ST_INITMENU
+	sta _gamestatus
++	rts
+
+.InitMenu:
+        jsr DisableLayer0
         jsr SetLayer0ToTileMode
-	stz _level
-	jsr InitLevel			;init level 0 which is simply used as a background
-	jsr InitCreatures
-	lda #160                        ;set camera position manually
+	lda #0
+        sta _level
+        ;stz _level
+	jsr InitLevel			;init level 0 which is a demo level used as a background for the menu
+	lda #MENU_MAIN_POS              ;set camera position manually
 	sta _xpos_lo
 	stz _xpos_hi
 	lda #120
 	sta _ypos_lo
 	stz _ypos_hi
+	jsr InitCreatures
+        jsr HidePlayer
+        jsr EnableLayer0
+        jsr ClearTextLayer
         jsr EnableLayer1
+        lda #ST_SHOWMENU
+        sta _gamestatus
+        lda #M_SHOW_MENU_SCREEN
+        sta _menumode
         rts
 
-.ShowMenu:
-        jsr MenuHandler
-        rts
+.ShowMenu:      
+        jsr MenuHandler                 ;all routines for the menu is in menu.asm
+        +CheckTimer2 .creaturedelay, 2  ;slow down creature movement
+        beq +
+        jsr CreaturesTick
++       rts
+
+.creaturedelay  !byte 0
 
 .InitGame:
         lda #LIFE_COUNT                 ;init game
@@ -214,8 +271,6 @@ _noofplayers	        !byte 1
         lda _startlevel
         sta _level
         jsr InitTimer
-        jsr SetLayer0ToTileMode
-        jsr EnableLayer1
         lda #ST_INITLEVEL
         sta _gamestatus
         rts
@@ -278,7 +333,7 @@ _noofplayers	        !byte 1
         beq +
         jsr HidePlayer
         jsr HideCreatures
-        lda #ST_MENU
+        lda #ST_INITMENU
         sta _gamestatus         ;quit game
         rts
 +       jsr ClearTextLayer
@@ -303,32 +358,27 @@ _noofplayers	        !byte 1
         stz .sprcoltrigger
         rts
 
-!macro CheckTimer2 .counter, .limit {        ;IN: address of counter, limit as immediate value. OUT: .A = true if counter has reached its goal otherwise false 
-        inc .counter
-        lda .counter
-        cmp #.limit
-        bne +
-        stz .counter
-        lda #1
-        bra ++
-+       lda #0
-++
-}
-
 .LevelCompleted:                         ;level and maybe game completed step 1
+        lda _minutes
+        sta _lastlevel_minutes
+        lda _seconds
+        sta _lastlevel_seconds          ;save game time at this moment, if player fails to complete next level this time is used for the high score table
         lda _level
         cmp #LEVEL_COUNT
         bne +
         ;game completed
         jsr PlayFinishedSound
-        jsr PrintGameCompletedBoard
+        jsr PrintGameCompleted
         bra ++
         ;level completed
 +       jsr PlayFinishedSound
-        jsr PrintLevelCompletedBoard        
+        jsr PrintLevelFinished
 ++      lda #ST_LEVELCOMPLETED2
         sta _gamestatus
         rts
+
+_lastlevel_minutes      !byte 0
+_lastlevel_seconds      !byte 0
 
 .LevelCompleted2:                       ;level and maybe game completed step 2
         +CheckTimer2 .levelcompleteddelay, LEVEL_COMPLETED_DELAY
@@ -352,7 +402,7 @@ LEVEL_COMPLETED_DELAY    = 180
 
 .GameOver:                              ;game over step 1
         jsr PlayFinishedSound
-        jsr PrintGameOverBoard
+        jsr PrintGameOver
         lda #ST_GAMEOVER2
         sta _gamestatus
         rts
@@ -372,18 +422,30 @@ GAME_OVER_DELAY = 180
         stz .sprcoltrigger
         jsr GetSavedMinersCount
         sta ZP0
-        lda _minutes
+        lda _lastlevel_minutes
+        sta _minutes                    ;set back time to when last level was completed
         sta ZP1
+        lda _lastlevel_seconds
         lda _seconds
         sta ZP2
         jsr GetHighScoreRank
         cmp #LB_ENTRIES_COUNT
         bcs +
-        lda #M_ENTER_NEW_HIGH_SCORE     ;player has a new high score!
-        sta _menumode
-+       lda #ST_MENU
+        jsr InitHighScoreInput
+        lda #ST_ENTERHIGHSCORE       ;player has a new high score!
         sta _gamestatus
         rts
++       lda #ST_INITMENU             ;go directly to menu if no high score
+        sta _gamestatus
+        rts
+
+.EnterHighScore:
+	jsr HighScoreInput
+	bcs +
+	rts
++       lda #ST_INITMENU
+	sta _gamestatus
+	rts
 
 ;*** Other source files ****************************************************************************
 
@@ -407,8 +469,6 @@ GAME_OVER_DELAY = 180
 !src "view/playersprites.asm"
 !src "view/creaturesprites.asm"
 !src "view/miscsprites.asm"
-!src "view/textsprites.asm"
-!src "view/badgesprites.asm"
 
 ;*** Model *****************************
 !src "model/level.asm"

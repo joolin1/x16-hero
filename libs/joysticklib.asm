@@ -28,6 +28,20 @@ _joy_playback   !byte 0 ;boolean - turn on or off whether recorded data or actua
 .record_addr_hi !byte 0
 .savedgamename  !text "SAVEDGAME.BIN",0 
 
+!macro GetJoy0_NoRepeat .inputwait {            ;if flag .inputwait is set, wait for player to release everything before accepting input
+        lda .inputwait
+        beq ++
+        lda _joy0
+        cmp #JOY_NOTHING_PRESSED
+        bne +
+        stz .inputwait
++       lda #JOY_NOTHING_PRESSED
+        bra +++
+++      lda _joy0
++++
+}
+
+
 ;*** Public functions **********************************************************
 
 InitJoysticks:

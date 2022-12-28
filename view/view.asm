@@ -6,18 +6,6 @@ _darktimecount_hi       !byte 0
 _backgroundcolor_lo     !byte 0
 _backgroundcolor_hi     !byte 0
 
-UpdateDemoView:
-;         lda _menumode
-;         cmp #M_HANDLE_INPUT
-;         beq +
-;         cmp #M_SHOW_CREDIT_SCREEN
-;         beq +
-;         cmp #M_SHOW_HIGHSCORE_SCREEN
-;         beq +
-;         rts
-; +       jsr UpdateView
-        rts
-
 UpdateView:    ;Called at vertical blank to update level, text and sprites.
 
         ;subtract half screen width an height from player pos to get tilemap position for topleft corner of screen
@@ -37,8 +25,12 @@ UpdateView:    ;Called at vertical blank to update level, text and sprites.
         sbc #0
         sta L0_VSCROLL_H
 
-        jsr UpdatePlayerSprite 
         jsr UpdateCreatureSprites
+        lda _gamestatus
+        cmp #ST_SHOWMENU
+        beq +                   ;if menu is displayed and level 0 in the background, then nothing more to do
+        
+        jsr UpdatePlayerSprite 
         jsr UpdateLight
         jsr UpdateStatusTime
 
@@ -58,15 +50,9 @@ UpdateView:    ;Called at vertical blank to update level, text and sprites.
 +       rts
 
 UpdateStatusBar:
-        lda #4                ;set scroll offset to print status bar with four pixels margin
-        sta L1_HSCROLL_L
-        lda #3
-        sta L1_VSCROLL_L
-        stz L1_HSCROLL_H
-        stz L1_VSCROLL_H
 
         ;print text
-        +SetPrintParams 29,0,$01
+        +SetPrintParams 28,0,$01
         lda #<.statusbar
         sta ZP0
         lda #>.statusbar
@@ -74,7 +60,7 @@ UpdateStatusBar:
         jsr VPrintString
 
         ;print current level
-        +SetPrintParams 29,7
+        +SetPrintParams 28,7
         lda _level
         jsr VPrintShortNumber
 
@@ -82,13 +68,13 @@ UpdateStatusBar:
         jsr UpdateStatusTime:
 
         ;print number of lives left
-        +SetPrintParams 29,38
+        +SetPrintParams 28,37
         lda _lives              
         jsr VPrintShortNumber
         rts
 
 UpdateStatusTime:
-        +SetPrintParams 29,17
+        +SetPrintParams 28,17
         lda _minutes
         sta ZP0
         lda _seconds
@@ -96,7 +82,7 @@ UpdateStatusTime:
         jsr VPrintTime
         rts
 
-.statusbar      !scr " level                          lives   ",0
+.statusbar      !scr " level                         lives   ",0
 
 ; PrintDebugInformation:             ;DEBUG     
 ;         +SetPrintParams 2,0,$01
