@@ -27,6 +27,19 @@
 +
 }
 
+!macro Dec24 .addr {
+        dec .addr
+        lda .addr
+        cmp #$ff
+        bne +
+        dec .addr+1
+        lda .addr+1
+        cmp #$ff
+        bne +
+        dec .addr+2
++        
+}
+
 !macro Countdown16bit .addr {           ;decrease to 0, then stop
         lda .addr
         bne +

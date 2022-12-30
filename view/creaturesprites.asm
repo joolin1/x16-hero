@@ -40,11 +40,6 @@ CREATURE_ANIMATION_DELAY = 16   ;how manny jiffies to wait before next frame
                         !word   0, -2, -3, -5, -6, -8, -9,-10,-11,-12,-13,-14,-15,-15,-16,-16 ;sin angles 180-
                         !word -16,-16,-16,-15,-15,-14,-13,-12,-11,-10, -9, -8, -6, -5, -3, -2 ;sin angles 270-
 
-; .batxmovementtable      !word   0,  0,  1,  1,  2,  4,  5,  7,  9, 12, 14, 17, 20, 23, 26, 29 ;move right and back again in the same speed
-;                         !word  32, 35, 38, 41, 44, 47, 50, 52, 55, 57, 59, 60, 62, 63, 63, 64
-;                         !word  64, 64, 63, 63, 62, 60, 59, 57, 55, 52, 50, 47, 44, 41, 38, 35
-;                         !word  32, 29, 26, 23, 20, 17, 14, 12,  9,  7,  5,  4,  2,  1,  1,  0
-
 .batxmovementtable      !word   2,  3,  4,  6,  8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30   ;move right and back again, slightly slower when turning
                         !word  32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 61
                         !word  62, 61, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 40, 38, 36, 34
@@ -56,6 +51,7 @@ MOVEMENT_COUNT = 64
 _spriteypositiontable   !fill MAX_SPRITE_COUNT*2,0      ;reserve space for 16 visible sprites at the same time, positions are 16 bit
 _spritexpositiontable   !fill MAX_SPRITE_COUNT*2,0
 _spritetypetable        !fill MAX_SPRITE_COUNT,0        ;type of sprite, same as tile category
+_spritefliptable        !fill MAX_SPRITE_COUNT,0
 _spriteframetable       !fill MAX_SPRITE_COUNT,0        ;which sprite frame each creature is represented by
 _spriteindextable       !fill MAX_SPRITE_COUNT          ;which index creature has in global table of creatures
 _spritecount            !byte 0                         ;number of visible creature sprites
@@ -127,9 +123,13 @@ UpdateCreatureSprites:          ;This is called at VBLANK to update screen with 
         lda _spritetypetable,y
         cmp #TILECAT_LAMP
         bne +
-        lda #LAMP_COLLISION_MASK + 8
+        lda _spritefliptable,y                  ;load h-flip 
+        clc
+        adc #LAMP_COLLISION_MASK + 8            ;add mask and Z-depth
         bra ++
-+       lda #CREATURE_COLLISION_MASK + 8        
++       lda _spritefliptable,Y
+        clc
+        adc #CREATURE_COLLISION_MASK + 8        ;add mask and Z-depth   
 ++      sta VERA_DATA0                          ;set collision mask and enable sprite between layers
         lda #%01010010                          ;heigh/width = 16, palette offset = 2
         sta VERA_DATA0
@@ -203,6 +203,8 @@ CreaturesTick:          ;Called every jiffy to prepare data for next frame
         phy
         tya 
         sta _spriteindextable,x         ;save creature index (first creature in global list has index 0 and so on)
+        lda _creaturefliptable,y        ;save horizontal flip
+        sta _spritefliptable,x
         lda _creaturetypetable,y
         sta _spritetypetable,x          ;save sprite type
         sec
