@@ -5,8 +5,8 @@
                                                   ;              | 80 cols (each 256 bytes) x 30 rows = 256 x 30 = $1e00 bytes
 !addr TILES_ADDR             = $2000              ;        16 Kb | Room for 128 tiles   (16 rows x  8 bytes/row) -> 128 x 16 x  8 = $4000 bytes
 !addr PLAYER_SPRITES_ADDR    = $6000              ;         6 Kb | Room for 24 32x16 sprites (32 rows x 8 bytes/row = 256 bytes/sprite)
-!addr CREATURE_SPRITES_ADDR  = $7800              ;         6 Kb | Room for 48 16x16 sprites (16 rows x 8 bytes/row) = 128 bytes/sprite)
-!addr NEW_CHAR_ADDR          = $9000              ;         2 Kb | Charset is relocated here
+!addr CREATURE_SPRITES_ADDR  = $7800              ;         8 Kb | Room for 64 16x16 sprites (16 rows x 8 bytes/row) = 128 bytes/sprite)
+!addr NEW_CHAR_ADDR          = $9800              ;         2 Kb | Charset is relocated here
 !addr L0_MAP_ADDR            = $A000              ;        64 Kb | Layer 0 - game graphics layer. Max 256 tiles high x 128 tiles wide x 2 bytes for each tile = 64 Kb
 !addr IMAGE_ADDR             = $A000              ;        37 Kb | Layer 0 - title image 320x240 shares memory with tiles
 !addr GRAPHICS_PALETTES = PALETTE + $20

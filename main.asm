@@ -276,6 +276,7 @@ _noofplayers	        !byte 1
         rts
 
 .InitLevel:
+        jsr DisableLayer0
         jsr ClearTextLayer
         jsr InitLevel
         jsr InitPlayer

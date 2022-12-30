@@ -400,8 +400,8 @@ LB_MINERS_COL = 22
 LB_TIME_COL = 27
 LB_START_COL = 34
 ;
-.scoretable             !scr "                    saved        start",0
-                        !scr "   rank name        miners time  level",0
+.scoretable             !scr "                    saved       start",0
+                        !scr "   rank name        miners time level",0
                         !scr 0
                         !scr "    1st",0
                         !scr "    2nd",0

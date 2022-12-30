@@ -2,7 +2,7 @@
 
 LEVEL_COUNT       = 2   ;number of levels in game
 
-_levelstarttable        !byte 14,12      ;start row and col for level 1
+_levelstarttable        !byte 3,5        ;start row and col for level 1
                         !byte 14,12      ;level 2
 
 ;table for size of levels (0 = 32 tiles, 1 = 64, 2 = 128 and 3 = 256)

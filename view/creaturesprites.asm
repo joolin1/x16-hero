@@ -13,28 +13,42 @@ MAX_SPRITE_COUNT      = 16
 
 ;sprite start offsets for creature sprites
 SPIDER_START     = 0
-CLAW_START       = 4
-ALIEN_START      = 8
-BAT_START        = 12
-LAMP_START       = 16
+CLAW_START       = 8
+ALIEN_START      = 16
+BAT_START        = 24
+PLANT_START      = 32
+LAMP_START       = 40
 
 ;table for which sprite frame each creature starts with
 .frametable             !byte SPIDER_START, CLAW_START, ALIEN_START, BAT_START, LAMP_START
 .frameoffset            !byte 0 ;animation offset for creature sprites
 .creatureanimationdelay !byte 0
-CREATURE_ANIMATION_COUNT = 4    ;how many animation frames there are for each creature
-CREATURE_ANIMATION_DELAY = 12   ;how manny jiffies to wait before next frame
+CREATURE_ANIMATION_COUNT = 8    ;how many animation frames there are for each creature
+CREATURE_ANIMATION_DELAY = 16   ;how manny jiffies to wait before next frame
 
-;movement pattern for alien sprite
+;movement pattern for alien sprite counter clockwise circle
+; .alienxmovementtable    !word   0,  2,  3,  5,  6,  8,  9, 10, 11, 12, 13, 14, 15, 15, 16, 16 ;sin angles 0-
+; .alienymovementtable    !word  16, 16, 16, 15, 15, 14, 13, 12, 11, 10,  9,  8,  6,  5,  3,  2 ;sin angles 90-
+;                         !word   0, -2, -3, -5, -6, -8, -9,-10,-11,-12,-13,-14,-15,-15,-16,-16 ;sin angles 180-
+;                         !word -16,-16,-16,-15,-15,-14,-13,-12,-11,-10, -9, -8, -6, -5, -3, -2 ;sin angles 270-
+;                         !word   0,  2,  3,  5,  6,  8,  9, 10, 11, 12, 13, 14, 15, 15, 16, 16 ;cos angles 270-
+
+;movement pattern for alien sprite clockwise circle
+.alienymovementtable    !word -16,-16,-16,-15,-15,-14,-13,-12,-11,-10, -9, -8, -6, -5, -3, -2 ;sin angles 270-
 .alienxmovementtable    !word   0,  2,  3,  5,  6,  8,  9, 10, 11, 12, 13, 14, 15, 15, 16, 16 ;sin angles 0-
-.alienymovementtable    !word  16, 16, 16, 15, 15, 14, 13, 12, 11, 10,  9,  8,  6,  5,  3,  2 ;sin angles 90-
+                        !word  16, 16, 16, 15, 15, 14, 13, 12, 11, 10,  9,  8,  6,  5,  3,  2 ;sin angles 90-
                         !word   0, -2, -3, -5, -6, -8, -9,-10,-11,-12,-13,-14,-15,-15,-16,-16 ;sin angles 180-
                         !word -16,-16,-16,-15,-15,-14,-13,-12,-11,-10, -9, -8, -6, -5, -3, -2 ;sin angles 270-
-                        !word   0,  2,  3,  5,  6,  8,  9, 10, 11, 12, 13, 14, 15, 15, 16, 16 ;cos angles 270-
-.batxmovementtable      !word   0,  2,  4,  6,  8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30 ;just move to the right and left
-                        !word  32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62
-                        !word  64, 62, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 40, 38, 36, 34
-                        !word  32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10,  8,  6,  4,  2
+
+; .batxmovementtable      !word   0,  0,  1,  1,  2,  4,  5,  7,  9, 12, 14, 17, 20, 23, 26, 29 ;move right and back again in the same speed
+;                         !word  32, 35, 38, 41, 44, 47, 50, 52, 55, 57, 59, 60, 62, 63, 63, 64
+;                         !word  64, 64, 63, 63, 62, 60, 59, 57, 55, 52, 50, 47, 44, 41, 38, 35
+;                         !word  32, 29, 26, 23, 20, 17, 14, 12,  9,  7,  5,  4,  2,  1,  1,  0
+
+.batxmovementtable      !word   2,  3,  4,  6,  8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30   ;move right and back again, slightly slower when turning
+                        !word  32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 61
+                        !word  62, 61, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 40, 38, 36, 34
+                        !word  32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10,  8,  6,  4,  3
 
 .movementindex          !byte   0
 MOVEMENT_COUNT = 64
@@ -84,7 +98,7 @@ UpdateCreatureSprites:          ;This is called at VBLANK to update screen with 
         clc
         adc .frameoffset                        ;add offset to animate sprite    
         tax
-        beq+
+        beq +
 -       +Add16I ZP0, 4                          ;add frame index * 4 (size of a sprite >> 5) 
         dex
         bne -

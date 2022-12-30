@@ -115,7 +115,7 @@ S_COLON     = $3A
 
 ;*** VRAM *************************************************
 
-;Characters, base $0F800
+;Characters base
 !addr CHAR_ADDR         = $1F000
 
 ;PSG, base $1F9C0

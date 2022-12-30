@@ -19,10 +19,10 @@
 !addr EXPLOSIVES_ATTR_1       = $FC27
 
 ;sprite start offsets for explosives and laserbeam
-EXPLOSIVE_START = 20
-EXPLOSIVE_STOP  = 23
-LASER_START     = 24
-LASER_STOP      = 27
+EXPLOSIVE_START = 48
+EXPLOSIVE_STOP  = 51
+LASER_START     = 56
+LASER_STOP      = 63
 
 LASER_FIRE_TIME         = 30
 LASER_YOFFSET           = 7     ;laserbeam will radiate from players eyes, this many pixels up from the middle of the player sprite
