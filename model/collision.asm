@@ -66,7 +66,11 @@ KillPlayer:
         lda #SCREENHEIGHT/2
         sta .refypos
         stz .refypos+1
-        jsr .MarkCreatureAsDead                 ;kill creature as well
+        jsr .GetCreatureIndex
+        lda _spriteindextable,y         ;read which index sprite has in global creature list
+        tax
+        lda #CREATURE_DEAD              ;kill creature instantly (no dying animation)             
+        sta _creaturekilledtable,x      ;flag creature as dead
         jsr ShowDeadPlayer
         +CheckTimer .deaddelay, DEAD_DELAY      ;returns .A = true if timer ready      
         rts
@@ -85,8 +89,15 @@ KillCreature:
         lda #SCREENHEIGHT/2-LASER_YOFFSET
         sta .refypos
         stz .refypos+1
+        jsr .GetCreatureIndex
+        lda _spriteindextable,y         ;read which index sprite has in global creature list
+        tax
+        lda #CREATURE_DYING             
+        sta _creaturekilledtable,x      ;flag creature as dying (dying animation will begin)
+        rts
 
-.MarkCreatureAsDead:
+.GetCreatureIndex:      ;IN: refxpos, refypos (16 bit) - position of player or laserbeam. OUT: .Y = sprite index 
+
         ldy #0 ;loop through all visible creatures, find the one close to the laser beam and kill it
 
         ;2 - get position for current creature      
@@ -117,11 +128,6 @@ KillCreature:
         +Cmp16I .spriteypos, DISTANCE_LIMIT
         bcs +                           ;if too far away skip to next  
 
-        ;5 - kill creature
-        lda _spriteindextable,y         ;read which index sprite has in global creature list
-        tax
-        lda #1
-        sta _creaturekilledtable,x      ;flag creature as dead
         rts
 
 +       iny

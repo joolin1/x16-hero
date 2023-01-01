@@ -18,9 +18,14 @@ ALIEN_START      = 16
 BAT_START        = 24
 PLANT_START      = 32
 LAMP_START       = 40
+DIE_START        = 52   ;animation when creature dies
+
+CREATURE_ALIVE  = 0     ;1-4 is the dying phase, one explosion frame for each of these
+CREATURE_DYING  = 1
+CREATURE_DEAD   = 5
 
 ;table for which sprite frame each creature starts with
-.frametable             !byte SPIDER_START, CLAW_START, ALIEN_START, BAT_START, LAMP_START
+.frametable             !byte SPIDER_START, CLAW_START, ALIEN_START, BAT_START, PLANT_START, LAMP_START
 .frameoffset            !byte 0 ;animation offset for creature sprites
 .creatureanimationdelay !byte 0
 CREATURE_ANIMATION_COUNT = 8    ;how many animation frames there are for each creature
@@ -51,7 +56,8 @@ MOVEMENT_COUNT = 64
 _spriteypositiontable   !fill MAX_SPRITE_COUNT*2,0      ;reserve space for 16 visible sprites at the same time, positions are 16 bit
 _spritexpositiontable   !fill MAX_SPRITE_COUNT*2,0
 _spritetypetable        !fill MAX_SPRITE_COUNT,0        ;type of sprite, same as tile category
-_spritefliptable        !fill MAX_SPRITE_COUNT,0
+_spritefliptable        !fill MAX_SPRITE_COUNT,0        ;h-flip
+_spritekilledtable      !fill MAX_SPRITE_COUNT,0        ;alive, dying or dead
 _spriteframetable       !fill MAX_SPRITE_COUNT,0        ;which sprite frame each creature is represented by
 _spriteindextable       !fill MAX_SPRITE_COUNT          ;which index creature has in global table of creatures
 _spritecount            !byte 0                         ;number of visible creature sprites
@@ -69,6 +75,13 @@ HideCreatures:
         +VPokeSpritesI CREATURE_ATTR_0, ZP0, 0
         rts
 
+HideCreature:                                   ;IN: .A = VERA sprite index
+        asl
+        asl
+        asl                                     ;multiply by 8 because every sprite has 8 registers
+        +VPokeI CREATURE_ATTR_0, 0
+        rts
+
 UpdateCreatureSprites:          ;This is called at VBLANK to update screen with already prepared data
         jsr HideCreatures       ;start with disabling all sprites to avoid remnants if less number of sprites are visible this time compared to last time
         lda _spritecount
@@ -84,18 +97,31 @@ UpdateCreatureSprites:          ;This is called at VBLANK to update screen with 
         lda #$11
         sta VERA_ADDR_H
         ldy #0
-       
-        ;1 - set sprite address (frame)
---      lda #<CREATURE_SPRITES_ADDR>>5
+
+.SpriteLoop:
+
+        ;1 - set sprite address (frame) for creature
+        lda #<CREATURE_SPRITES_ADDR>>5
         sta ZP0
         lda #>CREATURE_SPRITES_ADDR>>5
         sta ZP1
-        lda _spriteframetable,y
+
+        lda _spritekilledtable,y
+        cmp #CREATURE_ALIVE
+        bne +
+
+        lda _spriteframetable,y         ;set sprite frame for living creature
         clc
-        adc .frameoffset                        ;add offset to animate sprite    
-        tax
+        adc .frameoffset                ;add offset to animate sprite    
+        bra ++
++       lda _spritekilledtable,y        ;set sprite frame for dying creature (same animation for all creatures)
+        dec                             ;killed status are 1-4, decrease to get values 0-3 = dying animation frame
+        clc
+        adc #DIE_START                  ;add offset to animate sprite    
+
+++      tax
         beq +
--       +Add16I ZP0, 4                          ;add frame index * 4 (size of a sprite >> 5) 
+-       +Add16I ZP0, 4                  ;add frame index * 4 (size of a sprite >> 5) 
         dex
         bne -
 +       lda ZP0
@@ -131,13 +157,14 @@ UpdateCreatureSprites:          ;This is called at VBLANK to update screen with 
         clc
         adc #CREATURE_COLLISION_MASK + 8        ;add mask and Z-depth   
 ++      sta VERA_DATA0                          ;set collision mask and enable sprite between layers
-        lda #%01010010                          ;heigh/width = 16, palette offset = 2
+        lda #%01010010                          ;height  and width = 16, palette offset = 2
         sta VERA_DATA0
 
         iny
         cpy _spritecount
-        bne --
-        rts
+        beq  +
+        jmp .SpriteLoop
++       rts
 
 .UpdateFrameOffset:             ;set animation frame for creature sprites
         +CheckTimer .creatureanimationdelay, CREATURE_ANIMATION_DELAY
@@ -157,10 +184,12 @@ CreaturesTick:          ;Called every jiffy to prepare data for next frame
 
         ;check if creature is alive
 -       lda _creaturekilledtable,y
-        bne ++
+        cmp #CREATURE_DEAD      ;if creature dead, just skip
+        bne +
+        jmp ++
 
         ;get sprite world position
-        tya
++       tya
         asl
         tay        
         lda _creatureypositiontable,y
@@ -205,7 +234,13 @@ CreaturesTick:          ;Called every jiffy to prepare data for next frame
         sta _spriteindextable,x         ;save creature index (first creature in global list has index 0 and so on)
         lda _creaturefliptable,y        ;save horizontal flip
         sta _spritefliptable,x
-        lda _creaturetypetable,y
+        lda _creaturekilledtable,y
+        sta _spritekilledtable,x
+        cmp #CREATURE_ALIVE             
+        beq +
+        inc
+        sta _creaturekilledtable,Y      ;creature is dying, increase value to continue dying until it is dead      
++       lda _creaturetypetable,y
         sta _spritetypetable,x          ;save sprite type
         sec
         sbc #TILECAT_FIRST_CREATURE     ;subtract with first creature's tile category to obtain a zero index

@@ -78,7 +78,8 @@ _noofplayers	        !byte 1
 .defaulthandler_lo 	!byte 0
 .defaulthandler_hi	!byte 0
 .vsynctrigger           !byte 0
-.sprcoltrigger          !byte 0
+.sprcolinfo             !byte 0
+.sprcol_disabled        !byte 0
 
 .SetupIrqHandler:
         sei
@@ -100,10 +101,12 @@ _noofplayers	        !byte 1
         sta VERA_ISR
         bit #4                          ;sprite collision interrupt?
         beq +
-        ldx .sprcoltrigger
+        ldx .sprcol_disabled
+        bne +
+        ldx .sprcolinfo
         bne +
         and #%11110000                  ;keep only collision info
-        sta .sprcoltrigger              ;save info about collision
+        sta .sprcolinfo                 ;save info about collision
         jmp (.defaulthandler_lo)
 +       bit #1                          ;vertical blank interrupt?
         beq +
@@ -190,7 +193,7 @@ _noofplayers	        !byte 1
 +       jsr .CheckForPause              ;check for pause before starting to change the model for next frame
         bcc +
         rts
-+       lda .sprcoltrigger
++       lda .sprcolinfo
         beq ++
         and #$f0
         cmp #$10
@@ -198,17 +201,19 @@ _noofplayers	        !byte 1
         jsr KillPlayer
         lda #ST_DEATH                   ;collision between player and a creature has occurred
         sta _gamestatus
-        stz .sprcoltrigger
+        stz .sprcolinfo
+        lda #1
+        sta .sprcol_disabled            ;sprite collisions need bo be disabled to prevent a new collision immediately after, not sure exactly why ...
         rts
 +       cmp #$20
         bne +
         jsr KillCreature                ;collision between laserbeam and a creature has occurred
-        stz .sprcoltrigger
+        stz .sprcolinfo
         bra ++
 +       cmp #$40
         bne ++
         jsr TurnOffLight                ;collision between player and a lamp has occurred, turn off light and set dark time counter
-        stz .sprcoltrigger
+        stz .sprcolinfo
 ++      jsr PlayerTick                  ;move hero and take actions depending on new position
         jsr CreaturesTick               ;calculate all sprite data - which are visible, their position in relation to player etc
         jsr TimeTick
@@ -293,13 +298,14 @@ _noofplayers	        !byte 1
 .RestartLevel:
         ;jsr RestartLevel
         ;jsr RestartCreatures
-        jsr CreaturesTick
+        jsr CreaturesTick       ;make sure to update creature data before updating view
+        jsr PlayerTick
         jsr UpdateStatusBar
         jsr UpdateView
         jsr ShowPlayer
         lda #ST_RUNNING
         sta _gamestatus
-        stz .sprcoltrigger
+        stz .sprcol_disabled
         rts       
 
 .ResumeGame:
@@ -356,7 +362,6 @@ _noofplayers	        !byte 1
         rts
 +       lda #ST_RESTARTLEVEL
         sta _gamestatus
-        stz .sprcoltrigger
         rts
 
 .LevelCompleted:                         ;level and maybe game completed step 1
@@ -420,7 +425,7 @@ GAME_OVER_DELAY = 180
 .RestartGame:                           ;help function
         jsr HidePlayer
         jsr HideCreatures
-        stz .sprcoltrigger
+        stz .sprcolinfo
         jsr GetSavedMinersCount
         sta ZP0
         lda _lastlevel_minutes

@@ -1,5 +1,26 @@
 ;*** creatures.asm *********************************************************************************
 
+;tile categories
+TILECAT_SPACE            = 0
+TILECAT_BLOCK            = 1
+TILECAT_WALL             = 2
+TILECAT_FIRST_CREATURE   = 3        ;(alias to next category)
+TILECAT_SPIDER           = 3
+TILECAT_CLAW             = 4
+TILECAT_ALIEN            = 5
+TILECAT_BAT              = 6
+TILECAT_PLANT            = 7
+TILECAT_LAMP             = 8
+TILECAT_TRAPPED_MINER    = 9
+
+;tiles
+TILE_SPACE = 0  ;used for replacing sprite tiles and blasted walls
+
+;table for mapping tile and category
+_tilecategorytable      !byte  0, 1, 1, 1, 1, 1, 1, 1
+                        !byte  1, 1, 2, 2, 2, 3, 4, 5
+                        !byte  6, 7, 8, 9, 1
+
 _creatureypositiontable !fill 256,0     ;allow for 128 creatures, position is 16 bit
 _creaturexpositiontable !fill 256,0
 _creaturetypetable      !fill 128,0
@@ -7,7 +28,7 @@ _creaturefliptable      !fill 128,0
 _creaturekilledtable    !fill 128,0
 _creaturecount          !byte 0
 
-.currenttile_lo         !byte 0 ;tile index 7:0
+.currenttile_lo         !byte 0 ;tile index bits 0-7
 .currenttile_hi         !byte 0 ;tile info, we're interested in h-flip = bit 2
 
 InitCreatures:                  ;Called when new level is set up. Tilemap is analyzed and tables with sprite information are built
@@ -16,7 +37,7 @@ InitCreatures:                  ;Called when new level is set up. Tilemap is ana
         rts
 
 RestartCreatures:
-        jsr .ResurrectCreatures        ;current choice is to not ressurect any creatures when level i restarted
+        jsr .ResurrectCreatures        ;current choice is to not ressurect any creatures when level is restarted
         jsr CreaturesTick
         rts
 
@@ -57,6 +78,10 @@ RestartCreatures:
         bne +
         jsr .AddCreature
         bra ++
++       cmp #TILECAT_PLANT
+        bne +
+        jsr .AddCreature
+        bra ++
 +       cmp #TILECAT_LAMP          ;the lamp is a special case, it is represented by a sprite to allow pixelperfect collisions with player, killed means in this case that the lamp goes dark
         bne ++
         jsr .AddCreature
@@ -84,7 +109,7 @@ RestartCreatures:
         lsr                             ;move it to bit 0 because h-flip is bit 0 in sprite register
         lsr                             
         sta _creaturefliptable,y
-        lda #0
+        lda #CREATURE_ALIVE
         sta _creaturekilledtable,y
 
         ;convert from tilemap coordinates to world coordinates by multiplying with 16 (tile size) and adding 8 (half tile size)
@@ -120,7 +145,7 @@ RestartCreatures:
         rts
 
 .ResurrectCreatures:
-        lda #0
+        lda #CREATURE_ALIVE
         ldy _creaturecount
 -       dey
         sta _creaturekilledtable,y

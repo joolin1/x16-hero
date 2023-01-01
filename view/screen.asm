@@ -5,27 +5,6 @@ SCREENHEIGHT = 240
 TILEWIDTH = 16
 TILEHEIGHT = 16
 
-;tile categories
-TILECAT_SPACE            = 0
-TILECAT_BLOCK            = 1
-TILECAT_WALL             = 2
-TILECAT_FIRST_CREATURE   = 3        ;(alias to next category)
-TILECAT_SPIDER           = 3
-TILECAT_CLAW             = 4
-TILECAT_ALIEN            = 5
-TILECAT_BAT              = 6
-TILECAT_LAMP             = 7
-TILECAT_TRAPPED_MINER    = 8
-TILECAT_OBSTACLE         = 9
-
-;tiles
-TILE_SPACE = 0  ;used for replacing sprite tiles and blasted walls
-
-;table for mapping tile and category
-_tilecategorytable      !byte  0, 1, 1, 1, 1, 1, 1, 1
-                        !byte  1, 1, 2, 2, 2, 3, 4, 5
-                        !byte  6, 7, 8, 1
-
 InitScreenAndSprites:
         jsr DisableLayers       ;Disable layers while setting up start screen
 
@@ -195,11 +174,11 @@ _palettes:
         !word $0000, $0fff, $0800, $0afe, $0c4c, $0080, $005f, $0ee7, $0d85, $0640, $0f77, $0000, $0777, $0af6, $008f, $0bbb    ;user interface (C64 palette but 6 = lighter blue and 11 = black instead of dark grey)
 _graphicspalettes:
 _playerpalette:
-        !src "playerpalette.asm"
+        !src "player_palette.asm"
 _creaturespalette:
-        !src "creaturespalette.asm"
+        !src "creatures_palette.asm"
 _tilespalette:
-        !src "tilespalette.asm"
+        !src "tiles_palette.asm"
 _imagepalette:
-        !src "imagepalette.asm"
+        !src "image_palette.asm"
 
