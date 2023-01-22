@@ -101,6 +101,8 @@ ClearTextLayer:
 RestoreScreenAndSprites:        ;Restore screen and sprites when user ends game
         
         stz VERA_CTRL           ;R-----DA (R=RESET, D=DCSEL, A=ADDRSEL)
+        jsr HideCreatures
+        jsr HidePlayer
 
         ;Display (DCSEL=0)
         lda DC_VIDEO

@@ -1,5 +1,16 @@
 ;*** level.asm  ***********************************************************************************
 
+;tile categories
+TILECAT_SPACE   = 0
+TILECAT_BLOCK   = 1
+TILECAT_WALL    = 2
+TILECAT_MINER   = 3
+
+;table for mapping tile and category (tiles for creatures will be replaced with a tile of category SPACE)
+_tilecategorytable      !byte  TILECAT_SPACE, TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK
+                        !byte  TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_WALL , TILECAT_WALL , TILECAT_WALL , TILECAT_SPACE, TILECAT_SPACE, TILECAT_SPACE
+                        !byte  TILECAT_SPACE, TILECAT_SPACE, TILECAT_SPACE, TILECAT_MINER, TILECAT_BLOCK
+
 LEVEL_COUNT       = 2   ;number of levels in game
 
 _levelstarttable        !byte 3,5        ;start row and col for level 1

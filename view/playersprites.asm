@@ -13,6 +13,16 @@ PLAYERWIDTH  = 16
 PLAYERHEIGHT = 32
 WALKING_DELAY = 6
 
+;addresses for sprite attributes of first creature that has sprite index 5
+PLAYER_ADDR_L       = $FC08
+PLAYER_MODE_ADDR_H  = $FC09
+PLAYER_XPOS_L       = $FC0A
+PLAYER_XPOS_H       = $FC0B
+PLAYER_YPOS_L       = $FC0C
+PLAYER_YPOS_H       = $FC0D
+PLAYER_ATTR_0       = $FC0E
+PLAYER_ATTR_1       = $FC0F
+
 !macro SetSprite .index, .frame, .flip, .collision_mask {        ;IN: index of sprite to change, index of frame, whether to flip sprit horzontally
         lda .frame
         sta ZP0

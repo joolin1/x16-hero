@@ -328,6 +328,15 @@
 
 ;*** Random Numbers ********************************************************************************
 
+SetRandomSeedZero:
+        stz .randomnumber
+        rts
+
+SetRandomSeed:
+        jsr RDTIM
+        sta .randomnumber
+        rts
+
 GetRandomNumber:
 	lda .randomnumber
 	beq +

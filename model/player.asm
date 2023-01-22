@@ -1,19 +1,19 @@
 ;*** player.asm ************************************************************************************
 
-LIFE_COUNT        = 2   ;number of lives for player
+LIFE_COUNT    = 10   ;number of lives for player
 
-WALKINGSPEED = 1 
+WALKINGSPEED  = 1 
 
-MIN_FLYINGSPEED = 1
-MAX_FLYINGSPEED = 2
-FLYINGTIME = 45
+MIN_FLYINGSPEED   = 1
+MAX_FLYINGSPEED   = 2
+FLYINGTIME        = 45
 FLYINGSPEED_DELAY = 45
-TAKEOFF_DELAY = 10
+TAKEOFF_DELAY     = 10
 
-MIN_FALLINGSPEED = 1
-MAX_FALLINGSPEED = 16
+MIN_FALLINGSPEED   = 1
+MAX_FALLINGSPEED   = 16
 FALLINGSPEED_DELAY = 8
-GRAVITY = 1
+GRAVITY            = 1
 
 ;player properties
 _flyingspeed    !word 0         ;16 bit value for easier math
@@ -370,7 +370,7 @@ CheckIfLevelComplete:
         +Copy16 _ypos_lo, ZP4
         +Copy16 _xpos_lo, ZP6
         jsr CheckTileStatus
-        cmp #TILECAT_TRAPPED_MINER
+        cmp #TILECAT_MINER
         bne +
         lda #1
         sta _levelcompleted
@@ -379,7 +379,7 @@ CheckIfLevelComplete:
 CheckLandingAndFalling:
         +Copy16 _ypos_lo, ZP4
         +Copy16 _xpos_lo, ZP6
-        +Add16I ZP4, 16 - 4     ;tile height - padding                 
+        +Add16I ZP4, 16 - 4 - 1  ;tile height - padding - 1 to see if player 1 above ground or more                
         jsr CheckTileStatus
         sta _currenttilebelow     
 
@@ -390,8 +390,7 @@ CheckLandingAndFalling:
         lda _isflying
         bne +                   ;if space below and flying, do nothing
         lda #1
-        sta _isfalling
-        ;jsr StartFalling        ;if space below and walking, start falling
+        sta _isfalling          ;if space below and walking, start falling
 +       rts
 
         ;handle if tile below is a block
@@ -426,16 +425,16 @@ KeepClearOfWalls:                       ;when falling keep clear of walls to the
         ;check bottom left corner of collision box
 +       +Copy16 _collboxq3_y, ZP4
         +Copy16 _collboxq3_x, ZP6
-        +Add16 ZP4, 16-4          
+        ;+Add16I ZP4, 16-4          
         jsr CheckTileStatus
         cmp #TILECAT_BLOCK
-        bne +
+        bne +   
         +Inc16 _xpos_lo                  ;if left bottom corner of collision box is blocked move player right
         rts
         ;check bottom right corner of collision box
 +       +Copy16 _collboxq4_y, ZP4
         +Copy16 _collboxq4_x, ZP6
-        +Add16 ZP4, 16-4
+        ;+Add16I ZP4, 16-4
         jsr CheckTileStatus
         cmp #TILECAT_BLOCK              ;if right bottom corner of collision box is blocked move player left
         bne +

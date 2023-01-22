@@ -8,7 +8,7 @@ M_ENTER_NEW_HIGH_SCORE_2 = 3
 M_SHOW_CREDIT_SCREEN	 = 4
 M_HANDLE_INPUT 			 = 5
 
-INACTIVITY_DELAY = 1
+INACTIVITY_DELAY = 100
 
 ;*** Public methods ********************************************************************************
 

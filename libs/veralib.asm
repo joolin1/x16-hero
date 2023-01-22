@@ -32,6 +32,16 @@
         sta VERA_DATA0
 }
 
+!macro VPokeIndirect .addr {    ;.addr and .addr+1 = pointer to address to change value of
+        ldx .addr               ;.A = value to set
+        stx VERA_ADDR_L
+        ldx .addr+1
+        stx VERA_ADDR_M
+        ldx #$01
+        stx VERA_ADDR_H
+        sta VERA_DATA0        
+}
+
 !macro VPeek .addr_lo {         ;carry flag = bank 0 or 1
         lda #0                  ;addr_lo = address to read, OUT: .A = value of memory address
         adc #0                  ;transfer carry flag to .A by adding WITH CARRY

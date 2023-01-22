@@ -12,6 +12,8 @@
 !addr GRAPHICS_PALETTES = PALETTE + $20
 !addr TILES_PALETTE     = PALETTE + $60
 
+CREATURE_SPRITES_SIZE = 128
+
 ;RAM Memory layout
 ;              $0810: game code
 ;              $9766: ZSound - NOT ADDED

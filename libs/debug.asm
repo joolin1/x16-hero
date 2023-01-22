@@ -2,6 +2,8 @@
 
 CLOCKCYCLES = $9FB8     ;clock cycles passed since start, 32 bit value
 
+ERROR_CREATURE_NOT_FOUND = 1
+
 _debug                  !byte 0         ;DEBUG - flag for breaking into debugger
 
 !macro CondBreakpoint {
@@ -16,7 +18,26 @@ _debug                  !byte 0         ;DEBUG - flag for breaking into debugger
         sta _debug
 }
 
-ChangeDebugColor:
+!macro DebugSelectButtonBreakpoint {
+        lda _joy0
+        bit #JOY_SELECT
+        bne +
+        !byte $db
++
+}
+
+DebugPrintError:
+        pha
+        +SetPrintParams 1,1,$01
+        +SetParamsI <.errormessage, >.errormessage
+        jsr VPrintString
+        pla
+        jsr VPrintShortNumber
+        rts
+
+.errormessage    !scr "error ",0
+
+DebugChangeColor:
         jsr VPoke               
         !word TILES_PALETTE+2        
         !byte $c5               
@@ -25,7 +46,7 @@ ChangeDebugColor:
         !byte $00               
         rts
 
-RestoreDebugColor:
+DebugRestoreColor:
         jsr VPoke                
         !word TILES_PALETTE+2        
         !byte $00               

@@ -9,6 +9,15 @@
 !addr LASER0_ATTR_0       = $FC16
 !addr LASER0_ATTR_1       = $FC17
 
+!addr LASER1_ADDR_L       = $FC18       ;laser beam is sprite 2 and 3
+!addr LASER1_MODE_ADDR_H  = $FC19
+!addr LASER1_XPOS_L       = $FC1A
+!addr LASER1_XPOS_H       = $FC1B
+!addr LASER1_YPOS_L       = $FC1C
+!addr LASER1_YPOS_H       = $FC1D
+!addr LASER1_ATTR_0       = $FC1E
+!addr LASER1_ATTR_1       = $FC1F
+
 !addr EXPLOSIVES_ADDR_L       = $FC20   ;explosives are sprite 4
 !addr EXPLOSIVES_MODE_ADDR_H  = $FC21
 !addr EXPLOSIVES_XPOS_L       = $FC22
@@ -166,6 +175,7 @@ DetonateExplosive:                      ;change background color fast according 
         beq +
         lda #ST_DEATH
         sta _gamestatus
+        jsr ShowDeadPlayer
 +       stz _explosivemode
         rts
 ++      asl
@@ -247,7 +257,6 @@ CheckIfPlayerBlasted:
         rts
 +       lda #1
         sta _playerblasted
-        jsr ShowDeadPlayer
         rts
 
 _playerblasted  !byte 0

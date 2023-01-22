@@ -116,6 +116,7 @@ PrintLeaderboard:
         rts
 
 GetHighScoreRank:                               ;IN. ZP0 = number of saved miners, ZP1-ZP2 = time. OUT: .A = rank (zero-indexed)
+        !byte $db
         lda ZP0                                 ;move parameters to be able to call IsTimeLess
         sta ZP6
         lda ZP1
@@ -154,6 +155,8 @@ GetHighScoreRank:                               ;IN. ZP0 = number of saved miner
         iny
         cpy #LB_ENTRIES_COUNT
         bne -
+        tya                                     ;number of saved miners were same as someone else in the table, but the time was not good enoug
+        rts
 +       ply
         tya
         rts

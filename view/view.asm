@@ -7,8 +7,15 @@ _backgroundcolor_lo     !byte 0
 _backgroundcolor_hi     !byte 0
 
 UpdateView:    ;Called at vertical blank to update level, text and sprites.
+        jsr UpdateTilemap
+        ; jsr UpdateCreatures      
+        ; jsr UpdatePlayerSprite 
+        ; jsr UpdateLight
+        ; jsr UpdateStatusTime
+        ; jsr UpdateExplosion
+        rts
 
-        ;subtract half screen width an height from player pos to get tilemap position for topleft corner of screen
+UpdateTilemap:                  ;subtract half screen width an height from player pos to get tilemap position for topleft corner of screen
         sec                             
         lda _xpos_lo
         sbc #SCREENWIDTH/2
@@ -24,17 +31,9 @@ UpdateView:    ;Called at vertical blank to update level, text and sprites.
         lda _ypos_hi
         sbc #0
         sta L0_VSCROLL_H
+        rts
 
-        jsr UpdateCreatureSprites
-        lda _gamestatus
-        cmp #ST_SHOWMENU
-        beq +                   ;if menu is displayed and level 0 in the background, then nothing more to do
-        
-        jsr UpdatePlayerSprite 
-        jsr UpdateLight
-        jsr UpdateStatusTime
-
-        ;change background color during an explosion
+UpdateExplosion:                ;change background color during an explosion
         lda _explosivemode
         beq +
         lda #<TILES_PALETTE+2
@@ -50,7 +49,6 @@ UpdateView:    ;Called at vertical blank to update level, text and sprites.
 +       rts
 
 UpdateStatusBar:
-
         ;print text
         +SetPrintParams 28,0,$01
         lda #<.statusbar
@@ -83,14 +81,3 @@ UpdateStatusTime:
         rts
 
 .statusbar      !scr " level                         lives   ",0
-
-; PrintDebugInformation:             ;DEBUG     
-;         +SetPrintParams 2,0,$01
-;         lda _joy0
-;         jsr VPrintNumber
-
-;         +SetPrintParams 7,0,$01
-;         +VPrintHex16Number _xpos_lo
-;         +SetPrintParams 8,0,$01
-;         +VPrintHex16Number _ypos_lo         
-;         rts

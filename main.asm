@@ -74,12 +74,10 @@ ST_QUITGAME        = 17  ;quit game
         rts
 
 _gamestatus             !byte 0       
-_noofplayers	        !byte 1    
 .defaulthandler_lo 	!byte 0
 .defaulthandler_hi	!byte 0
 .vsynctrigger           !byte 0
 .sprcolinfo             !byte 0
-.sprcol_disabled        !byte 0
 
 .SetupIrqHandler:
         sei
@@ -101,13 +99,9 @@ _noofplayers	        !byte 1
         sta VERA_ISR
         bit #4                          ;sprite collision interrupt?
         beq +
-        ldx .sprcol_disabled
-        bne +
         ldx .sprcolinfo
         bne +
-        and #%11110000                  ;keep only collision info
-        sta .sprcolinfo                 ;save info about collision
-        jmp (.defaulthandler_lo)
+        sta .sprcolinfo
 +       bit #1                          ;vertical blank interrupt?
         beq +
         sta .vsynctrigger
@@ -116,9 +110,6 @@ _noofplayers	        !byte 1
         cmp #ST_RUNNING
         bne +
         jsr UpdateView                  ;update screen when game is running
-+       cmp #ST_SHOWMENU
-        bne +
-        jsr UpdateView                  ;update demo background (level 0) when menu is displayed
 +       jmp (.defaulthandler_lo)     
 
 .QuitGame:                       
@@ -190,32 +181,48 @@ _noofplayers	        !byte 1
 +       rts
 
 .LevelTick:
-+       jsr .CheckForPause              ;check for pause before starting to change the model for next frame
+        jsr .CheckForPause              ;check for pause before starting to change the model for next frame
         bcc +
         rts
-+       lda .sprcolinfo
++       jsr UpdateCreatures      
+        jsr UpdatePlayerSprite 
+        jsr UpdateLight
+        jsr UpdateStatusTime
+        jsr UpdateExplosion
+        
+        lda .sprcolinfo
         beq ++
-        and #$f0
-        cmp #$10
+        and #$f0                        ;only keep collision info
+
+        ;collision creature - creature
+        cmp #$30
         bne +
-        jsr KillPlayer
-        lda #ST_DEATH                   ;collision between player and a creature has occurred
-        sta _gamestatus
-        stz .sprcolinfo
-        lda #1
-        sta .sprcol_disabled            ;sprite collisions need bo be disabled to prevent a new collision immediately after, not sure exactly why ...
-        rts
-+       cmp #$20
-        bne +
-        jsr KillCreature                ;collision between laserbeam and a creature has occurred
         stz .sprcolinfo
         bra ++
+
+        ;collision player - creature        
++       cmp #$10
+        bne +
+        jsr KillPlayer                  ;OUT: .Y = creature index
+        sty .creatureindex
+        lda #ST_DEATH
+        sta _gamestatus
+        rts
+
+        ;collision laserbeam - creature
++       cmp #$20
+        bne +
+        jsr KillCreature
+        stz .sprcolinfo
+        bra ++
+
+        ;collision player - lamp
 +       cmp #$40
         bne ++
         jsr TurnOffLight                ;collision between player and a lamp has occurred, turn off light and set dark time counter
         stz .sprcolinfo
+
 ++      jsr PlayerTick                  ;move hero and take actions depending on new position
-        jsr CreaturesTick               ;calculate all sprite data - which are visible, their position in relation to player etc
         jsr TimeTick
         lda _levelcompleted
         beq +
@@ -242,7 +249,6 @@ _noofplayers	        !byte 1
         jsr SetLayer0ToTileMode
 	lda #0
         sta _level
-        ;stz _level
 	jsr InitLevel			;init level 0 which is a demo level used as a background for the menu
 	lda #MENU_MAIN_POS              ;set camera position manually
 	sta _xpos_lo
@@ -250,8 +256,10 @@ _noofplayers	        !byte 1
 	lda #120
 	sta _ypos_lo
 	stz _ypos_hi
+        jsr UpdateTilemap
 	jsr InitCreatures
         jsr HidePlayer
+        jsr TurnOnLight
         jsr EnableLayer0
         jsr ClearTextLayer
         jsr EnableLayer1
@@ -263,12 +271,8 @@ _noofplayers	        !byte 1
 
 .ShowMenu:      
         jsr MenuHandler                 ;all routines for the menu is in menu.asm
-        +CheckTimer2 .creaturedelay, 2  ;slow down creature movement
-        beq +
-        jsr CreaturesTick
-+       rts
-
-.creaturedelay  !byte 0
+        jsr UpdateCreatures
+        rts
 
 .InitGame:
         lda #LIFE_COUNT                 ;init game
@@ -287,7 +291,6 @@ _noofplayers	        !byte 1
         jsr InitPlayer
         jsr InitCreatures
         jsr UpdateStatusBar
-        jsr UpdateView
         jsr ShowPlayer
         jsr TurnOnLight
         jsr EnableLayer0
@@ -296,16 +299,10 @@ _noofplayers	        !byte 1
         rts
 
 .RestartLevel:
-        ;jsr RestartLevel
-        ;jsr RestartCreatures
-        jsr CreaturesTick       ;make sure to update creature data before updating view
-        jsr PlayerTick
         jsr UpdateStatusBar
-        jsr UpdateView
         jsr ShowPlayer
         lda #ST_RUNNING
         sta _gamestatus
-        stz .sprcol_disabled
         rts       
 
 .ResumeGame:
@@ -350,12 +347,13 @@ _noofplayers	        !byte 1
         rts
 
 .HandleDeath:                   ;collision between player and a creature has occurred
-        jsr StopLaser
-        jsr StopCarSounds
-        jsr KillPlayer          ;returns true when totally dead...
+        +CheckTimer2 .deaddelay, DEAD_DELAY     ;returns .A = true if timer ready  
         bne +
-        rts
-+       dec _lives
+        rts 
++       ldy .creatureindex
+        jsr DisableCreatureSprite               ;player looses a life but at least the creature is killed/removed too ...
+        stz .sprcolinfo                         ;allow new collisions
+        dec _lives
         bne +
         lda #ST_GAMEOVER
         sta _gamestatus
@@ -363,6 +361,10 @@ _noofplayers	        !byte 1
 +       lda #ST_RESTARTLEVEL
         sta _gamestatus
         rts
+
+DEAD_DELAY = 120
+.deaddelay      !byte 0
+.creatureindex  !byte 0         ;creature that killed player
 
 .LevelCompleted:                         ;level and maybe game completed step 1
         lda _minutes
@@ -416,6 +418,10 @@ LEVEL_COMPLETED_DELAY    = 180
 .GameOver2:                             ;game over step 2
         +CheckTimer2 .gameoverdelay, GAME_OVER_DELAY
         beq +
+        lda _lastlevel_minutes
+        sta _minutes                    ;set back time to when last level was completed
+        lda _lastlevel_seconds
+        sta _seconds
         jsr .RestartGame                ;short delay before going to menu
 +       rts
 
@@ -428,10 +434,8 @@ GAME_OVER_DELAY = 180
         stz .sprcolinfo
         jsr GetSavedMinersCount
         sta ZP0
-        lda _lastlevel_minutes
-        sta _minutes                    ;set back time to when last level was completed
+        lda _minutes                    ;set back time to when last level was completed
         sta ZP1
-        lda _lastlevel_seconds
         lda _seconds
         sta ZP2
         jsr GetHighScoreRank
@@ -473,7 +477,6 @@ GAME_OVER_DELAY = 180
 !src "view/resources.asm"
 !src "view/soundfx.asm"
 !src "view/playersprites.asm"
-!src "view/creaturesprites.asm"
 !src "view/miscsprites.asm"
 
 ;*** Model *****************************
