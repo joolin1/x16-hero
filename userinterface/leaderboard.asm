@@ -116,7 +116,6 @@ PrintLeaderboard:
         rts
 
 GetHighScoreRank:                               ;IN. ZP0 = number of saved miners, ZP1-ZP2 = time. OUT: .A = rank (zero-indexed)
-        !byte $db
         lda ZP0                                 ;move parameters to be able to call IsTimeLess
         sta ZP6
         lda ZP1
@@ -334,6 +333,8 @@ ResetLeaderboard:               ;copy default leaderboard to leaderboard
         lda #0
         sta ZP5
         jsr CopyMem
+        lda #1
+        sta _startlevel
         rts
 
 ;*** Private ***************************************************************************************

@@ -76,6 +76,23 @@ HidePlayer:
         +VPokeI SPR1_ATTR_0,0    ;disable sprite 1
         rts
 
+SetPlayerSpritePos:
+        lda #<SPR1_XPOS_L
+        sta #VERA_ADDR_L
+        lda #>SPR1_XPOS_H
+        sta #VERA_ADDR_H
+        lda #$11
+        sta #VERA_ADDR_H
+                
+        sta VERA_DATA0
+
+        sta VERA_DATA0
+
+        sta VERA_DATA0
+
+        sta VERA_DATA0
+        rts
+
 UpdatePlayerSprite:
         jsr PlaySoundIfFlying     
         lda _isflying

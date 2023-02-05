@@ -193,7 +193,6 @@ DISTANCE_Y_LIMIT = 32
         beq + 
         jmp .ClosestCreatureLoop
 +       ldy .closestindex
-        ;!byte $db        
         rts
 
 

@@ -245,12 +245,22 @@ _gamestatus             !byte 0
 +	rts
 
 .InitMenu:
+        jsr .InitMenuBackground
+        jsr ClearTextLayer
+        jsr EnableLayer1
+        lda #ST_SHOWMENU
+        sta _gamestatus
+        lda #M_SHOW_MENU_SCREEN
+        sta _menumode
+        rts
+
+.InitMenuBackground:
         jsr DisableLayer0
         jsr SetLayer0ToTileMode
 	lda #0
         sta _level
 	jsr InitLevel			;init level 0 which is a demo level used as a background for the menu
-	lda #MENU_MAIN_POS              ;set camera position manually
+	lda #MENU_MAIN_POS              ;set camera position manually to show menu background
 	sta _xpos_lo
 	stz _xpos_hi
 	lda #120
@@ -261,13 +271,44 @@ _gamestatus             !byte 0
         jsr HidePlayer
         jsr TurnOnLight
         jsr EnableLayer0
-        jsr ClearTextLayer
-        jsr EnableLayer1
-        lda #ST_SHOWMENU
-        sta _gamestatus
+        rts
+
+.InitHighScoreBackground:
+        jsr DisableLayer0
+        jsr SetLayer0ToTileMode
+	lda #0
+        sta _level
+	jsr InitLevel			;init level 0 which is a demo level used as a background for the menu
+	lda #<MENU_HIGH_POS             ;set camera position manually to show high score background
+	sta _xpos_lo
+	lda #>MENU_HIGH_POS
+        sta _xpos_hi
+	lda #120
+	sta _ypos_lo
+	stz _ypos_hi
+        jsr UpdateTilemap
+	jsr InitCreatures
+        jsr HidePlayer
+        jsr TurnOnLight
+        jsr EnableLayer0
+        rts
+
+.EnterHighScore:
+	jsr HighScoreInput
+	bcs +
+	rts
++       lda #ST_SHOWMENU
+	sta _gamestatus
         lda #M_SHOW_MENU_SCREEN
         sta _menumode
-        rts
+       	lda #MENU_MAIN_POS              ;set camera position manually to show menu background
+	sta _xpos_lo
+	stz _xpos_hi
+	lda #120
+	sta _ypos_lo
+	stz _ypos_hi
+        jsr UpdateTilemap
+	rts
 
 .ShowMenu:      
         jsr MenuHandler                 ;all routines for the menu is in menu.asm
@@ -341,6 +382,7 @@ _gamestatus             !byte 0
         sta _gamestatus         ;quit game
         rts
 +       jsr ClearTextLayer
+        jsr UpdateStatusBar
         jsr PlayEngineSound     ;start engine sounds again
         lda #ST_RUNNING         ;resume game excactly where we were (= do not initialize any variables)
         sta _gamestatus
@@ -442,20 +484,17 @@ GAME_OVER_DELAY = 180
         cmp #LB_ENTRIES_COUNT
         bcs +
         jsr InitHighScoreInput
+        lda _level
+        pha
+        jsr .InitHighScoreBackground
+        pla
+        sta _level
         lda #ST_ENTERHIGHSCORE       ;player has a new high score!
         sta _gamestatus
         rts
 +       lda #ST_INITMENU             ;go directly to menu if no high score
         sta _gamestatus
         rts
-
-.EnterHighScore:
-	jsr HighScoreInput
-	bcs +
-	rts
-+       lda #ST_INITMENU
-	sta _gamestatus
-	rts
 
 ;*** Other source files ****************************************************************************
 

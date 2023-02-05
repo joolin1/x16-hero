@@ -16,6 +16,11 @@ UpdateView:    ;Called at vertical blank to update level, text and sprites.
         rts
 
 UpdateTilemap:                  ;subtract half screen width an height from player pos to get tilemap position for topleft corner of screen
+        +Cmp16I _xpos_lo, 160
+        bcs +
+        
+        bra ++
+        
         sec                             
         lda _xpos_lo
         sbc #SCREENWIDTH/2
@@ -24,7 +29,7 @@ UpdateTilemap:                  ;subtract half screen width an height from playe
         sbc #0
         sta L0_HSCROLL_H
 
-        sec
+++      sec
         lda _ypos_lo
         sbc #SCREENHEIGHT/2
         sta L0_VSCROLL_L

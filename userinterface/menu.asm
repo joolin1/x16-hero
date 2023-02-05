@@ -8,7 +8,7 @@ M_ENTER_NEW_HIGH_SCORE_2 = 3
 M_SHOW_CREDIT_SCREEN	 = 4
 M_HANDLE_INPUT 			 = 5
 
-INACTIVITY_DELAY = 100
+INACTIVITY_DELAY = 1
 
 ;*** Public methods ********************************************************************************
 
@@ -128,14 +128,14 @@ _menumode				!byte 0
 	bit #JOY_UP					;up?
 	bne +
 	jsr .DecreaseHandrow
-	stz .resetconfirmationflag	;cancel possibel confirmation questions if user moves away from question
+	stz .resetconfirmationflag	;cancel possible confirmation questions if user moves away from question
 	stz .quitconfirmationflag
 	stz .levelconfirmationflag
 	rts
 +	bit #JOY_DOWN				;down?
 	bne +
 	jsr .IncreaseHandrow
-	stz .resetconfirmationflag	;cancel possibel confirmation questions if user moves away from question
+	stz .resetconfirmationflag	;cancel possible confirmation questions if user moves away from question
 	stz .quitconfirmationflag
 	stz .levelconfirmationflag
 +	rts
@@ -226,6 +226,8 @@ _menumode				!byte 0
 	rts
 
 +   cmp #SET_START_LEVEL
+	bne +
+	lda .levelconfirmationflag
 	bne +
 	jsr .HandleSetStartLevel
 	rts
@@ -407,6 +409,7 @@ NO_POSITION  = 27
 	lda #MENU_MAIN_POS              ;set camera position  to first demo background
 	sta _xpos_lo
 	stz _xpos_hi
+	jsr UpdateTilemap
 	jsr ClearTextLayer
 	stz .handrow					;put selection hand on first row
 	jsr .UpdateMainMenu
@@ -439,6 +442,7 @@ NO_POSITION  = 27
 	sta _xpos_lo
 	lda #>MENU_HIGH_POS
 	sta _xpos_hi
+	jsr UpdateTilemap
 	jsr ClearTextLayer
 	jsr PrintLeaderboard
 	rts
@@ -448,6 +452,7 @@ NO_POSITION  = 27
 	sta _xpos_lo
 	lda #>MENU_CREDIT_POS
 	sta _xpos_hi
+	jsr UpdateTilemap
 	jsr ClearTextLayer
 	+SetPrintParams CREDITSCREEN_START_ROW,0,MENU_CREDITS_COLOR
 	lda #<.creditscreentext
