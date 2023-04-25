@@ -13,13 +13,13 @@ _tilecategorytable      !byte  TILECAT_SPACE, TILECAT_BLOCK, TILECAT_BLOCK, TILE
 
 LEVEL_COUNT       = 2   ;number of levels in game
 
-_levelstarttable        !byte 3,5        ;start row and col for level 1
-                        !byte 14,12      ;level 2
+_levelstarttable        !byte 0,1        ;start row and col for level 1
+                        !byte 3,3        ;level 2
 
 ;table for size of levels (0 = 32 tiles, 1 = 64, 2 = 128 and 3 = 256)
 _levelsizetable         !byte 0,1       ;level 0 is only used as background when displaying menu, high score table and credits
-                        !byte 1,0       ;height and width in VERA tilemap notation 
-                        !byte 1,0
+                        !byte 0,0       ;height and width in VERA tilemap notation 
+                        !byte 0,0
 
 _startlevel             !byte 1         ;which level game starts on, default is 1
 _level                  !byte 0         ;current level (zero-indexed)
@@ -28,6 +28,8 @@ _levelcompleted         !byte 0         ;flag
 _levelconvtable         !word 32,64,128,256
 _levelheight            !word 0         ;height and width in tiles
 _levelwidth             !word 0
+_levelxmaxpos           !word 0         ;max x pos for camera
+_levelymaxpos           !word 0         ;max y pos for camera
 .levelpow2width         !byte 0         ;level width where 2^_levelwidth = width in tiles (used when finding certain tile)
 
 InitLevel:
@@ -79,6 +81,29 @@ GetSavedMinersCount:            ;OUT: .A = number of saved miners (example: game
         adc #5                  ;convert from VERA notification
         sta .levelpow2width 
 
-        ;finally set tilemap size (passed in ZP0 and ZP1)
+        ;set tilemap size (passed in ZP0 and ZP1)
         jsr SetLayer0Size
+
+        ;set limit for camera
+        lda _levelheight
+        sta ZP0
+        lda _levelheight+1
+        sta ZP1
+        +MultiplyBy16 ZP0
+        +Sub16I ZP0, SCREENHEIGHT/2
+        lda ZP0
+        sta _levelymaxpos
+        lda ZP1
+        sta _levelymaxpos+1
+
+        lda _levelwidth
+        sta ZP0
+        lda _levelwidth+1
+        sta ZP1
+        +MultiplyBy16 ZP0
+        +Sub16I ZP0, SCREENWIDTH/2
+        lda ZP0
+        sta _levelxmaxpos
+        lda ZP1
+        sta _levelxmaxpos+1
         rts

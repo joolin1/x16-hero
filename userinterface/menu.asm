@@ -439,9 +439,9 @@ NO_POSITION  = 27
 
 .ShowHighScoreScreen:
 	lda #<MENU_HIGH_POS		;set camera position to second demo background
-	sta _xpos_lo
+	sta _camxpos_lo
 	lda #>MENU_HIGH_POS
-	sta _xpos_hi
+	sta _camxpos_hi
 	jsr UpdateTilemap
 	jsr ClearTextLayer
 	jsr PrintLeaderboard
@@ -449,9 +449,9 @@ NO_POSITION  = 27
 
 .ShowCreditScreen:
 	lda #<MENU_CREDIT_POS		;set camera position to second demo background
-	sta _xpos_lo
+	sta _camxpos_lo
 	lda #>MENU_CREDIT_POS
-	sta _xpos_hi
+	sta _camxpos_hi
 	jsr UpdateTilemap
 	jsr ClearTextLayer
 	+SetPrintParams CREDITSCREEN_START_ROW,0,MENU_CREDITS_COLOR

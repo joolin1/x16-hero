@@ -78,23 +78,30 @@ HidePlayer:
 
 SetPlayerSpritePos:
         lda #<SPR1_XPOS_L
-        sta #VERA_ADDR_L
-        lda #>SPR1_XPOS_H
-        sta #VERA_ADDR_H
+        sta VERA_ADDR_L
+        lda #>SPR1_XPOS_L
+        sta VERA_ADDR_M
         lda #$11
-        sta #VERA_ADDR_H
-                
+        sta VERA_ADDR_H
+        +PositionSprite _xpos_lo, _xpos_hi, _camxpos_lo, _camxpos_hi, SCREENWIDTH/2, 16
+        lda ZP0
+        ;sta _spr_xpos_lo
         sta VERA_DATA0
-
+        lda ZP1
+        ;sta _spr_xpos_lo+1
         sta VERA_DATA0
-
+        +PositionSprite _ypos_lo, _ypos_hi, _camypos_lo, _camypos_hi, SCREENHEIGHT/2, 32
+        lda ZP0        
         sta VERA_DATA0
-
+        lda ZP1
         sta VERA_DATA0
         rts
 
+;_spr_xpos_lo    !byte 0,0      ;debug info
+
 UpdatePlayerSprite:
-        jsr PlaySoundIfFlying     
+        jsr PlaySoundIfFlying
+        jsr SetPlayerSpritePos     
         lda _isflying
         beq +
         jsr .GetFlyingFrame

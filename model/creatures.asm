@@ -473,11 +473,11 @@ UpdateCreatures:                                ;called at VBLANK to update spri
 +       rts
 
 .GetHorizontalSpritePosition:   ;OUT: ZP0,ZP1 = x pos. x pos = 512 if not visible
-        +PositionSprite .pos_lo, .pos_hi, _xpos_lo, _xpos_hi, SCREENWIDTH/2, 16
+        +PositionSprite .pos_lo, .pos_hi, _camxpos_lo, _camxpos_hi, SCREENWIDTH/2, 16
         rts
 
 .GetVerticalSpritePosition:     ;OUT: ZP0,ZP1 = y pos. y pos = 512 if not visible
-        +PositionSprite .pos_lo, .pos_hi, _ypos_lo, _ypos_hi, SCREENHEIGHT/2, 16
+        +PositionSprite .pos_lo, .pos_hi, _camypos_lo, _camypos_hi, SCREENHEIGHT/2, 16
         rts
 
 .AddHorizontalOffset:           ;IN: ZP0,ZP1 = current position. OUT: ZP0,ZP1 = new position

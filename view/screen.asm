@@ -28,7 +28,7 @@ InitScreenAndSprites:
 
         ;(layer 0 is not set here, it will switch between bitmap and tile mode)
 
-        +CopyPalettesToVRAM _palettes, 0, 5
+        +CopyPalettesToVRAM _palettes, 0, 4             ;menu, player, creature and image palette will in index 0-3
         rts
 
 ShowStartImage:
@@ -44,7 +44,7 @@ SetLayer0ToBitmapMode:
         lda #IMAGE_ADDR>>9              ;set bitmap address and width 320 pixels
         and #%11111100
         sta L0_TILEBASE 
-        lda #4                          ;set palette index                
+        lda #3                          ;set palette index                
         sta L0_HSCROLL_H
         rts
 
@@ -172,6 +172,13 @@ DisableLayer1:
 _originalpalette:
         !word $0000, $0fff, $0800, $0afe, $0c4c, $00c5, $000a, $0ee7, $0d85, $0640, $0f77, $0333, $0777, $0af6, $008f, $0bbb    ;original colors, used for restoring colors when quitting game
 
+; palette layout
+; 0 - menu
+; 1 - player sprite
+; 2 - creature sprites
+; 3 - start image
+; 4 - 15 - tiles
+
 _palettes:                                       
         !word $0000, $0fff, $0800, $0afe, $0c4c, $0080, $005f, $0ee7, $0d85, $0640, $0f77, $0000, $0777, $0af6, $008f, $0bbb    ;user interface (C64 palette but 6 = lighter blue and 11 = black instead of dark grey)
 _graphicspalettes:
@@ -179,8 +186,8 @@ _playerpalette:
         !src "player_palette.asm"
 _creaturespalette:
         !src "creatures_palette.asm"
-_tilespalette:
-        !src "tiles_palette.asm"
+;_tilespalette:
+;        !src "tiles_palette.asm"
 _imagepalette:
         !src "image_palette.asm"
 

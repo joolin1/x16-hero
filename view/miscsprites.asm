@@ -34,11 +34,13 @@ LASER_START     = 56
 LASER_STOP      = 63
 
 LASER_FIRE_TIME         = 30
-LASER_YOFFSET           = 7     ;laserbeam will radiate from players eyes, this many pixels up from the middle of the player sprite
-LASER_XOFFSET           = 22    ;middle of laserbeam will be 22 pixels left or right of the player
-LASER_YPOS              = SCREENHEIGHT/2-LASER_YOFFSET
+LASER_YOFFSET           = 8     ;laserbeam will radiate from players eyes, this many pixels up from the middle of the player sprite
 
-_laser_xpos         !byte 0 ;current horizontal position in pixels
+
+_laser_xpos_lo      !byte 0 ;current laser position in pixels
+_laser_xpos_hi      !byte 0   
+_laser_ypos_lo      !byte 0
+_laser_ypos_hi      !byte 0
 .laserframe         !byte 0 ;current laserbeam frame
 .lasertime          !byte 0 ;how long the laser has been firing or reloading
 .laserenabled       !byte 0
@@ -262,12 +264,12 @@ CheckIfPlayerBlasted:
 _playerblasted  !byte 0
 
 SetExplosiveSpritePosition:
-        +PositionSprite _expl_xpos_lo, _expl_xpos_hi, _xpos_lo, _xpos_hi, SCREENWIDTH/2, 16
+        +PositionSprite _expl_xpos_lo, _expl_xpos_hi, _camxpos_lo, _camxpos_hi, SCREENWIDTH/2, 16
         lda ZP0
         sta VERA_DATA0
         lda ZP1
         sta VERA_DATA0
-        +PositionSprite _expl_ypos_lo, _expl_ypos_hi, _ypos_lo, _ypos_hi, SCREENHEIGHT/2, 16
+        +PositionSprite _expl_ypos_lo, _expl_ypos_hi, _camypos_lo, _camypos_hi, SCREENHEIGHT/2, 16
         lda ZP0
         sta VERA_DATA0
         lda ZP1
@@ -307,19 +309,28 @@ FireLaser:
         lda ZP1
         sta VERA_DATA0
 
-        ;set position
-        txa
+        ;calculate horizontal position
+        txa                     ;get index for laser offset table
         asl
+        asl                     ;sprite index * 4
         clc
+        adc _ismovingleft       ;add 2 if moving left
         adc _ismovingleft
         tay
-        lda .laseroffsettable,y     ;read horizontal position which depends on direction and if it is first or second laserbeam sprite
-        sta _laser_xpos
-        sta VERA_DATA0
-        stz VERA_DATA0
-        lda #LASER_YPOS        
-        sta VERA_DATA0              ;vertical position is same as player 
-        stz VERA_DATA0
+        lda .laseroffsettable,y
+        sta _laser_xpos_lo
+        lda .laseroffsettable+1,y
+        sta _laser_xpos_hi
+        +Add16 _laser_xpos_lo, _xpos_lo ;add horizontal offset to player position
+
+        ;calculate vertical position
+        lda _ypos_lo                
+        sta _laser_ypos_lo
+        lda _ypos_hi
+        sta _laser_ypos_hi
+        +Add16I _laser_ypos_lo, LASER_YOFFSET  ;add vertical offset to player position
+
+        jsr SetLaserSpritePosition
 
         ;set attributes
         lda #LASER_COLLISION_MASK+8
@@ -331,17 +342,31 @@ FireLaser:
 
         inx
         cpx #2
-        bne -
+        beq +
+        jmp -
 
-        inc .lasertime            
++       inc .lasertime            
         lda .lasertime
         cmp #LASER_FIRE_TIME
         bne +
         jsr StopLaser
 +       rts
 
+SetLaserSpritePosition:
+        +PositionSprite _laser_xpos_lo, _laser_xpos_hi, _camxpos_lo, _camxpos_hi, SCREENWIDTH/2, 16
+        lda ZP0
+        sta VERA_DATA0
+        lda ZP1
+        sta VERA_DATA0
+        +PositionSprite _laser_ypos_lo, _laser_ypos_hi, _camypos_lo, _camypos_hi, SCREENHEIGHT/2, 32
+        lda ZP0
+        sta VERA_DATA0
+        lda ZP1
+        sta VERA_DATA0
+        rts
+
 ; horizontal offset for laserbeam sprites, first sprite facing right, first sprite facing left, second sprite facing right, second sprite facing left
-.laseroffsettable:  !byte  SCREENWIDTH/2+6, SCREENWIDTH/2-6-32, SCREENWIDTH/2+6+16, SCREENWIDTH/2-6-16 
+.laseroffsettable:  !word  14, -30, 30, -14 
 
 ReloadLaser:
         lda #1

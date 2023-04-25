@@ -2,7 +2,7 @@
 
 !cpu 65c02
 !to "hero.prg", cbm
-!sl "hero.sym"
+;!sl "hero.sym"
 !src "includes/x16.asm"
 
 !macro CheckTimer2 .counter, .limit {        ;IN: address of counter, limit as immediate value. OUT: .A = true if counter has reached its goal otherwise false 
@@ -189,6 +189,7 @@ _gamestatus             !byte 0
         jsr UpdateLight
         jsr UpdateStatusTime
         jsr UpdateExplosion
+        ;jsr DebugPrintInfo      ;TEMP
         
         lda .sprcolinfo
         beq ++
@@ -223,6 +224,7 @@ _gamestatus             !byte 0
         stz .sprcolinfo
 
 ++      jsr PlayerTick                  ;move hero and take actions depending on new position
+        jsr UpdateCameraPosition        ;set camera in relation to where hero is
         jsr TimeTick
         lda _levelcompleted
         beq +
@@ -261,11 +263,11 @@ _gamestatus             !byte 0
         sta _level
 	jsr InitLevel			;init level 0 which is a demo level used as a background for the menu
 	lda #MENU_MAIN_POS              ;set camera position manually to show menu background
-	sta _xpos_lo
-	stz _xpos_hi
-	lda #120
-	sta _ypos_lo
-	stz _ypos_hi
+        sta _camxpos_lo
+        stz _camxpos_hi
+        lda #120
+        sta _camypos_lo
+        stz _camypos_hi
         jsr UpdateTilemap
 	jsr InitCreatures
         jsr HidePlayer
@@ -280,12 +282,12 @@ _gamestatus             !byte 0
         sta _level
 	jsr InitLevel			;init level 0 which is a demo level used as a background for the menu
 	lda #<MENU_HIGH_POS             ;set camera position manually to show high score background
-	sta _xpos_lo
+	sta _camxpos_lo
 	lda #>MENU_HIGH_POS
-        sta _xpos_hi
+        sta _camxpos_hi
 	lda #120
-	sta _ypos_lo
-	stz _ypos_hi
+	sta _camypos_lo
+	stz _camypos_hi
         jsr UpdateTilemap
 	jsr InitCreatures
         jsr HidePlayer
@@ -302,11 +304,11 @@ _gamestatus             !byte 0
         lda #M_SHOW_MENU_SCREEN
         sta _menumode
        	lda #MENU_MAIN_POS              ;set camera position manually to show menu background
-	sta _xpos_lo
-	stz _xpos_hi
+	sta _camxpos_lo
+	stz _camxpos_hi
 	lda #120
-	sta _ypos_lo
-	stz _ypos_hi
+	sta _camypos_lo
+	stz _camypos_hi
         jsr UpdateTilemap
 	rts
 

@@ -6,6 +6,11 @@ _darktimecount_hi       !byte 0
 _backgroundcolor_lo     !byte 0
 _backgroundcolor_hi     !byte 0
 
+_camxpos_lo     !byte 0         ;current camera position. Camera will follow player as long as the tilemap will allow it. E g x pos cannot be less than 160
+_camxpos_hi     !byte 0
+_camypos_lo     !byte 0
+_camypos_hi     !byte 0
+
 UpdateView:    ;Called at vertical blank to update level, text and sprites.
         jsr UpdateTilemap
         ; jsr UpdateCreatures      
@@ -16,26 +21,69 @@ UpdateView:    ;Called at vertical blank to update level, text and sprites.
         rts
 
 UpdateTilemap:                  ;subtract half screen width an height from player pos to get tilemap position for topleft corner of screen
-        +Cmp16I _xpos_lo, 160
-        bcs +
-        
-        bra ++
-        
+
         sec                             
-        lda _xpos_lo
+        lda _camxpos_lo
         sbc #SCREENWIDTH/2
         sta L0_HSCROLL_L
-        lda _xpos_hi
+        lda _camxpos_hi
         sbc #0
         sta L0_HSCROLL_H
 
-++      sec
-        lda _ypos_lo
+        sec
+        lda _camypos_lo
         sbc #SCREENHEIGHT/2
         sta L0_VSCROLL_L
-        lda _ypos_hi
+        lda _camypos_hi
         sbc #0
         sta L0_VSCROLL_H
+        rts
+
+UpdateCameraPosition:           ;camera will centre on player as long as possible, but will stop before tilemap/level wraps around
+
+        ;set horizontal position
+        +Cmp16I _xpos_lo, SCREENWIDTH/2
+        bcs +                   
+        lda #<SCREENWIDTH/2     ;player is left of camera limit, stop camera at left limit
+        sta _camxpos_lo
+        lda #>SCREENWIDTH/2
+        sta _camxpos_hi
+        bra ++
+
++       +Cmp16 _xpos_lo, _levelxmaxpos
+        bcc +
+        lda _levelxmaxpos       ;player is right of camera limit, stop camera at right limit
+        sta _camxpos_lo
+        lda _levelxmaxpos+1
+        sta _camxpos_hi
+        bra ++
+
++       lda _xpos_lo            ;player is within limits, center camera on player
+        sta _camxpos_lo
+        lda _xpos_hi
+        sta _camxpos_hi
+++
+        ;set vertical position
+++      +Cmp16I _ypos_lo, SCREENHEIGHT/2
+        bcs +                   
+        lda #<SCREENHEIGHT/2     ;player is above camera limit, stop camera at top limit
+        sta _camypos_lo
+        lda #>SCREENHEIGHT/2
+        sta _camypos_hi
+        rts
+
++       +Cmp16 _ypos_lo, _levelymaxpos
+        bcc +
+        lda _levelymaxpos       ;player is below camera limit, stop camera at bottom limit
+        sta _camypos_lo
+        lda _levelymaxpos+1
+        sta _camypos_hi
+        rts
+
++       lda _ypos_lo            ;player is within limits, center camera on player
+        sta _camypos_lo
+        lda _ypos_hi
+        sta _camypos_hi
         rts
 
 UpdateExplosion:                ;change background color during an explosion

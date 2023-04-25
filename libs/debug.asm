@@ -37,6 +37,15 @@ DebugPrintError:
 
 .errormessage    !scr "error ",0
 
+DebugPrintInfo:
+        +SetPrintParams 1,1,$01
+        +VPrintHex16Number _xpos_lo
+        +SetPrintParams 2,1,$01
+        +VPrintHex16Number _camxpos_lo
+        ; +SetPrintParams 3,1, $01
+        ; +VPrintHex16Number _spr_xpos_lo
+        rts
+
 DebugChangeColor:
         jsr VPoke               
         !word TILES_PALETTE+2        

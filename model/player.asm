@@ -91,6 +91,7 @@ InitPlayer:
 PlayerTick:                     ;advance one frame
         jsr .SetCollisionBox
         jsr .UpdatePlayerPosition
+        jsr .UpdateLaserAndExpolosives
         jsr CheckIfLevelComplete
         jsr CheckLandingAndFalling
         lda _currenttilebelow
@@ -149,26 +150,7 @@ PlayerTick:                     ;advance one frame
         jsr .FallDown                   ;fall down if falling
         jsr .CountDownFlyingTime        ;player will start to lose height a short time after boosting by pressing up
 
-        ;any button pressed?
-++      lda _joy0
-        bit #JOY_BUTTON_A
-        bne +
-        jsr FireLaser
-        bra ++
-+       jsr ReloadLaser      
-++      lda _joy0
-        bit #JOY_BUTTON_B
-        bne +
-        lda _explosivemode
-        bne +
-        lda _isflying
-        bne +
-        lda _isfalling
-        bne +
-        lda #EXPLOSIVE_PLACE
-        sta _explosivemode
-
-+       lda #1
+        lda #1
         sta _ismoving           ;assume that player is moving, if not this will be false at the end of the routine
 
         lda _joy0        
@@ -204,6 +186,26 @@ PlayerTick:                     ;advance one frame
         jsr .MoveRight
         jsr .IncreaseFlyingSpeed
         rts
+
+.UpdateLaserAndExpolosives:
+        lda _joy0
+        bit #JOY_BUTTON_A
+        bne +
+        jsr FireLaser
+        bra ++
++       jsr ReloadLaser      
+++      lda _joy0
+        bit #JOY_BUTTON_B
+        bne +
+        lda _explosivemode
+        bne +
+        lda _isflying
+        bne +
+        lda _isfalling
+        bne +
+        lda #EXPLOSIVE_PLACE
+        sta _explosivemode
++       rts 
 
 .SetNotMoving:
         lda #MIN_FLYINGSPEED

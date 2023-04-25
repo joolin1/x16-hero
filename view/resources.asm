@@ -35,6 +35,7 @@ SAVEDGAME_BANK          = 4
 .playername     !text "PLAYER.BIN",0
 .creaturesname  !text "CREATURES.BIN",0
 .fontname       !text "FONT.BIN",0
+.palettename    !text "PALETTE.BIN",0
 .levelname      !text "LEVEL"
 .levelnumber    !byte 0,0       ;level number in ascii
                 !text ".BIN",0
@@ -69,6 +70,7 @@ LoadGraphics:
         +LoadResource .playername   , PLAYER_SPRITES_ADDR   , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
         +LoadResource .creaturesname, CREATURE_SPRITES_ADDR , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
         +LoadResource .fontname     , NEW_CHAR_ADDR         , LOAD_TO_VRAM_BANK0, FILE_HAS_NO_HEADER
+        +LoadResource .palettename  , PALETTE               , LOAD_TO_VRAM_BANK1, FILE_HAS_HEADER
 
         lda _fileerrorflag
         beq +
