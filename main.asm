@@ -364,7 +364,7 @@ _gamestatus             !byte 0
         beq +
         clc
         rts
-+       jsr StopCarSounds
++       jsr StopPlayerSounds
         jsr ShowPauseMenu    
         lda #ST_PAUSED
         sta _gamestatus
@@ -419,10 +419,14 @@ DEAD_DELAY = 120
         cmp #LEVEL_COUNT
         bne +
         ;game completed
+        jsr StopPlayerSounds
+        jsr StopLaser
         jsr PlayFinishedSound
         jsr PrintGameCompleted
         bra ++
         ;level completed
+        jsr StopPlayerSounds
+        jsr StopLaser
 +       jsr PlayFinishedSound
         jsr PrintLevelFinished
 ++      lda #ST_LEVELCOMPLETED2

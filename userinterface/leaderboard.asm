@@ -392,7 +392,7 @@ ResetLeaderboard:               ;copy default leaderboard to leaderboard
         sta .leaderboard_times+3,y
         rts
 
-.leaderboardname        !raw "HIGHSCORES.BIN",0
+.leaderboardname        !raw "@:HIGHSCORES.BIN",0
 
 LB_ROW = 4
 LB_NAME_LENGTH = 11

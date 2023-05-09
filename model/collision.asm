@@ -53,8 +53,9 @@ TurnOffLight:
 
 KillPlayer:                             ;OUT: .Y = index of creature that player collided with
         jsr ShowDeadPlayer
-        jsr StopCarSounds
+        jsr StopPlayerSounds
         jsr StopLaser
+        jsr PlayPlayerKilledSound
         jsr .GetPlayerPosition
         jsr .GetClosestCreature
         lda #CREATURE_DEAD              ;this status will instantly kill the creature = its sprite will be disabled right away 
@@ -62,6 +63,7 @@ KillPlayer:                             ;OUT: .Y = index of creature that player
         rts
 
 KillCreature:
+        jsr PlayCreatureKilledSound
         jsr .GetLaserPosition
         jsr .GetClosestCreature
         lda #CREATURE_DYING_START

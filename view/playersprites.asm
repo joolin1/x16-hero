@@ -117,7 +117,7 @@ PlaySoundIfFlying:
         bne +
         lda _isflying
         bne +
-        jsr StopCarSounds
+        jsr StopEngineSound
         rts
 +       jsr PlayEngineSound
         rts

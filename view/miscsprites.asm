@@ -281,6 +281,10 @@ FireLaser:
         bne +
         rts
 
++       lda .lasertime
+        bne +
+        jsr PlayLaserSound      ;start sound effect when laser triggered
+
 +       inc .laserframe
         lda .laserframe
         cmp #LASER_STOP-LASER_START+1
@@ -369,6 +373,8 @@ SetLaserSpritePosition:
 .laseroffsettable:  !word  14, -30, 30, -14 
 
 ReloadLaser:
+        jsr StopLaserSound
+        stz .lasertime
         lda #1
         sta .laserenabled
         lda #2
@@ -377,6 +383,7 @@ ReloadLaser:
         rts
 
 StopLaser:
+        jsr StopLaserSound
         stz .lasertime
         stz .laserenabled
         lda #2
