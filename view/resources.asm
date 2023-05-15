@@ -9,8 +9,6 @@
 !addr NEW_CHAR_ADDR          = $9800              ;         2 Kb | Charset is relocated here
 !addr L0_MAP_ADDR            = $A000              ;        64 Kb | Layer 0 - game graphics layer. Max 256 tiles high x 128 tiles wide x 2 bytes for each tile = 64 Kb
 !addr IMAGE_ADDR             = $A000              ;        37 Kb | Layer 0 - title image 320x240 shares memory with tiles
-!addr GRAPHICS_PALETTES = PALETTE + $20
-!addr TILES_PALETTE     = PALETTE + $60
 
 CREATURE_SPRITES_SIZE = 128
 

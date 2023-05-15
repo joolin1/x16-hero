@@ -19,11 +19,12 @@ _debug                  !byte 0         ;DEBUG - flag for breaking into debugger
 }
 
 !macro DebugSelectButtonBreakpoint {
+        pha
         lda _joy0
         bit #JOY_SELECT
         bne +
         !byte $db
-+
++       pla
 }
 
 DebugPrintError:
@@ -48,18 +49,18 @@ DebugPrintInfo:
 
 DebugChangeColor:
         jsr VPoke               
-        !word TILES_PALETTE+2        
+        !word TILES_PALETTES_ADDR+2        
         !byte $c5               
         jsr VPoke               
-        !word TILES_PALETTE+3        
+        !word TILES_PALETTES_ADDR+3        
         !byte $00               
         rts
 
 DebugRestoreColor:
         jsr VPoke                
-        !word TILES_PALETTE+2        
+        !word TILES_PALETTES_ADDR+2        
         !byte $00               
         jsr VPoke               
-        !word TILES_PALETTE+3        
+        !word TILES_PALETTES_ADDR+3        
         !byte $00               
         rts

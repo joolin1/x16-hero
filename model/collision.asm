@@ -15,20 +15,20 @@ UpdateLight:            ;if dark light up after a certain amount of time
 +       rts
 
 TurnOnLight: 
-        +CopyPalettesToVRAM _graphicspalettes, 1, 3
+        +CopyPalettesToVRAM _graphicpalettes, 1, 5      ;Restore 5 palettes (player, creatures, reserverd, tiles, tiles)
         stz _darkmode
         rts
 
 TurnOffLight:
-        lda #<GRAPHICS_PALETTES
+        lda #<GRAPHICS_PALETTES_ADDR
         sta VERA_ADDR_L
-        lda #>GRAPHICS_PALETTES           
+        lda #>GRAPHICS_PALETTES_ADDR           
         sta VERA_ADDR_M
         lda #$11                
         sta VERA_ADDR_H
 
         ldy #0           
--       lda _graphicspalettes,y
+-       lda _graphicpalettes,y
         sta ZP0         ;temp save .A
         lsr             ;make color darker by dividing color value by four
         lsr
@@ -41,7 +41,7 @@ TurnOffLight:
         ora ZP1         ;combine high and low nybble
         sta VERA_DATA0     
         iny
-        cpy #96         ;3 palettes * 16 colors * 2 bytes             
+        cpy #160        ;5 palettes * 16 colors * 2 bytes (player, creatures, reserved, tiles, tiles)             
         bne -
         lda #<DARK_TIME
         sta _darktimecount_lo
@@ -51,15 +51,11 @@ TurnOffLight:
         sta _darkmode
         rts
 
-KillPlayer:                             ;OUT: .Y = index of creature that player collided with
-        jsr ShowDeadPlayer
-        jsr StopPlayerSounds
-        jsr StopLaser
-        jsr PlayPlayerKilledSound
+KillPlayerAndCreature:                  ;OUT: .Y = index of creature that player collided with
         jsr .GetPlayerPosition
         jsr .GetClosestCreature
         lda #CREATURE_DEAD              ;this status will instantly kill the creature = its sprite will be disabled right away 
-        sta _creaturelifetable,y                      
+        sta _creaturelifetable,y  
         rts
 
 KillCreature:

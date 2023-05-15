@@ -6,6 +6,10 @@ _darktimecount_hi       !byte 0
 _backgroundcolor_lo     !byte 0
 _backgroundcolor_hi     !byte 0
 
+.deathcolorvalue        !byte 0
+DEATH_COLOR = 17
+DEATH_COLOR_ADDR = TILES_PALETTES_ADDR + DEATH_COLOR * 2
+
 _camxpos_lo     !byte 0         ;current camera position. Camera will follow player as long as the tilemap will allow it. E g x pos cannot be less than 160
 _camxpos_hi     !byte 0
 _camypos_lo     !byte 0
@@ -13,6 +17,7 @@ _camypos_hi     !byte 0
 
 UpdateView:    ;Called at vertical blank to update level, text and sprites.
         jsr UpdateTilemap
+        jsr UpdateTileColors
         ; jsr UpdateCreatures      
         ; jsr UpdatePlayerSprite 
         ; jsr UpdateLight
@@ -86,12 +91,35 @@ UpdateCameraPosition:           ;camera will centre on player as long as possibl
         sta _camypos_hi
         rts
 
+UpdateTileColors:
+        +CheckTimer .fallingspeeddelay, DEATHCOLOR_DELAY
+        bne +
+        rts
++
+-       ldy .redindex
+        lda .redvalues,y
+        bne +
+        stz .redindex
+        bra -
++       ldx _darkmode
+        beq +
+        lda .darkredvalues,y
++       +VPoke DEATH_COLOR_ADDR+1       ;set next value of color
+        inc .redindex
+        rts
+
+DEATHCOLOR_DELAY = 6
+.reddelay       !byte 0
+.redindex       !byte 0
+.redvalues      !byte 7,7,7,8,8,9,10,10,11,11,11,10,10,9,8,8,0     ;0-terminated table
+.darkredvalues  !byte 1,1,1,1,1,1, 1, 1, 1, 1, 1, 1, 1,1,1,1,0     ;color when light is turned off
+
 UpdateExplosion:                ;change background color during an explosion
         lda _explosivemode
         beq +
-        lda #<TILES_PALETTE+2
+        lda #<TILES_PALETTES_ADDR+2
         sta VERA_ADDR_L
-        lda #>TILES_PALETTE+2
+        lda #>TILES_PALETTES_ADDR+2
         sta VERA_ADDR_M
         lda #$11
         sta VERA_ADDR_H

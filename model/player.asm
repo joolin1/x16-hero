@@ -25,12 +25,17 @@ _isflying       !byte 0         ;boolean, whether player is flying or walking
 _ismoving       !byte 0         ;boolean, whether player is moving or standing still
 _ismovingleft   !byte 0         ;boolean, whether player is pointing left or right
 
-_lives          !byte 0
+_lives          !byte 0  
 
 _xpos_lo        !byte 0         ;current position in game world 
 _xpos_hi        !byte 0
 _ypos_lo        !byte 0
 _ypos_hi        !byte 0
+_last_xpos_lo   !byte 0         ;former position in game world (used for moving player back after collision with lethal tile)
+_last_xpos_hi   !byte 0
+_last_ypos_lo   !byte 0
+_last_ypos_hi   !byte 0
+
 
 _currenttilebelow       !byte 0
 _lasttilebelow          !byte 0
@@ -88,11 +93,31 @@ InitPlayer:
         stz _ismovingleft
         rts           
 
+MovePlayerBack:
+        lda _last_xpos_lo
+        sta _xpos_lo
+        lda _last_xpos_hi
+        sta _xpos_hi
+        lda _last_ypos_lo
+        sta _ypos_lo
+        lda _last_ypos_hi
+        sta _ypos_hi
+        rts
+
 PlayerTick:                     ;advance one frame
+        lda _xpos_lo            ;save current position, soon to be former position
+        sta _last_xpos_lo
+        lda _xpos_hi
+        sta _last_xpos_hi
+        lda _ypos_lo
+        sta _last_ypos_lo
+        lda _ypos_hi
+        sta _last_ypos_hi
+
         jsr .SetCollisionBox
         jsr .UpdatePlayerPosition
-        jsr .UpdateLaserAndExpolosives
-        jsr CheckIfLevelComplete
+        jsr .UpdateLaserAndExplosives
+        jsr CheckSpecialTileCollisions
         jsr CheckLandingAndFalling
         lda _currenttilebelow
         sta _lasttilebelow
@@ -187,7 +212,7 @@ PlayerTick:                     ;advance one frame
         jsr .IncreaseFlyingSpeed
         rts
 
-.UpdateLaserAndExpolosives:
+.UpdateLaserAndExplosives:
         lda _joy0
         bit #JOY_BUTTON_A
         bne +
@@ -213,14 +238,26 @@ PlayerTick:                     ;advance one frame
         stz _ismoving
         rts
 
+KillPlayerLava:
+        jsr ShowDeadPlayer
+        jsr StopPlayerSounds
+        jsr PlayPlayerKilledSound 
+        lda #ST_DEATH_LAVA
+        sta _gamestatus
+        rts
+
 !macro BreakIfTileIsBlocking {
         jsr CheckTileStatus
-        cmp #TILECAT_BLOCK
+        cmp #TILECAT_DEATH
+        bne +
+        jsr KillPlayerLava
+        rts
++       cmp #TILECAT_BLOCK
         bne +
         rts
 +       cmp #TILECAT_WALL
         bne +
-        rts
+        rts      
 +
 }
 
@@ -368,11 +405,11 @@ CheckTileStatus:                        ;IN: ZP4, ZP5 = y coordinate, ZP6, ZP7 =
         lda _tilecategorytable,y        ;read tile category
         rts                             ;OUT: .A = tile
 
-CheckIfLevelComplete:
+CheckSpecialTileCollisions:     
         +Copy16 _ypos_lo, ZP4
         +Copy16 _xpos_lo, ZP6
         jsr CheckTileStatus
-        cmp #TILECAT_MINER
+        cmp #TILECAT_MINER      ;check if level finished
         bne +
         lda #1
         sta _levelcompleted
@@ -385,8 +422,15 @@ CheckLandingAndFalling:
         jsr CheckTileStatus
         sta _currenttilebelow     
 
+        ;handle if tile below is lava
+        cmp #TILECAT_DEATH
+        bne +
+        +Sub16I _last_ypos_lo,8
+        jsr KillPlayerLava
+        rts
+
         ;handle if tile below is space
-        cmp #TILECAT_SPACE
++       cmp #TILECAT_SPACE
         bne ++
         jsr KeepClearOfWalls
         lda _isflying
@@ -433,14 +477,25 @@ KeepClearOfWalls:                       ;when falling keep clear of walls to the
         bne +   
         +Inc16 _xpos_lo                  ;if left bottom corner of collision box is blocked move player right
         rts
++       cmp #TILECAT_DEATH
+        bne +
+        +Add16I _last_xpos_lo,8            ;move back a bit extra to not die immediately again
+        jsr KillPlayerLava
+        rts
         ;check bottom right corner of collision box
 +       +Copy16 _collboxq4_y, ZP4
         +Copy16 _collboxq4_x, ZP6
         ;+Add16I ZP4, 16-4
         jsr CheckTileStatus
+        ;+DebugSelectButtonBreakpoint
         cmp #TILECAT_BLOCK              ;if right bottom corner of collision box is blocked move player left
         bne +
-        +Dec16 _xpos_lo          
+        +Dec16 _xpos_lo
+        rts
++       cmp #TILECAT_DEATH
+        bne +
+        +Sub16I _last_xpos_lo,8            ;move back a bit extra to not die immediately again
+        jsr KillPlayerLava                
 +       rts
 
 .IncreaseFlyingSpeed:

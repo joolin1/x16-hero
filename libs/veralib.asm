@@ -110,7 +110,7 @@
 +       
 }
 
-!macro CopyPalettesToVRAM .source,.deststart, .count {      ;IN .deststart = first palette index to copy to, .count = number of palettes (max 8!)
+!macro CopyPalettesToVRAM .source,.deststart, .count {      ;IN .source = source address, .deststart = first palette index to copy to, .count = number of palettes (max 8!)
         lda #<PALETTE+.deststart*32
         sta VERA_ADDR_L
         lda #>PALETTE+.deststart*32           
@@ -121,6 +121,22 @@
         ldy #0           
 -       lda .source,y        
         sta VERA_DATA0     
+        iny
+        cpy #.count*32  ;loop through number of palettes * 16 colors * 2 bytes             
+        bne -
+}
+
+!macro CopyPalettesFromVRAM .dest,.sourcestart, .count {    ;IN .dest = destination address, .sourcestart = first palette index to copy from, .count = number of palettes (max 8!)
+        lda #<PALETTE+.sourcestart*32
+        sta VERA_ADDR_L
+        lda #>PALETTE+.sourcestart*32           
+        sta VERA_ADDR_M
+        lda #$11                
+        sta VERA_ADDR_H
+
+        ldy #0           
+-       lda VERA_DATA0
+        sta .dest,y     
         iny
         cpy #.count*32  ;loop through number of palettes * 16 colors * 2 bytes             
         bne -

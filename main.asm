@@ -36,14 +36,16 @@ ST_RESUMEGAME      = 6   ;resume game
 ST_RUNNING         = 7   ;normal gameplay
 ST_PAUSED          = 8   ;game paused
 ST_KILL            = 9   ;player has killed a creature
-ST_DEATH           = 10  ;player has been killed
-ST_RESTARTLEVEL    = 11  ;restart level if lives left
-ST_LEVELCOMPLETED  = 12  ;level/game completed
-ST_LEVELCOMPLETED2 = 13  ;level/game completed step 2
-ST_GAMEOVER        = 14  ;game over, no lives left
-ST_GAMEOVER2       = 15  ;game over step 2
-ST_ENTERHIGHSCORE  = 16  ;let player enter name for new high score
-ST_QUITGAME        = 17  ;quit game
+ST_DEATH_CREATURE  = 10  ;player has been killed by creature
+ST_DEATH_EXPLOSION = 11  ;player has been killed by being to close to an explosion
+ST_DEATH_LAVA      = 12  ;player has been killed by touching lava
+ST_RESTARTLEVEL    = 13  ;restart level if lives left
+ST_LEVELCOMPLETED  = 14  ;level/game completed
+ST_LEVELCOMPLETED2 = 15  ;level/game completed step 2
+ST_GAMEOVER        = 16  ;game over, no lives left
+ST_GAMEOVER2       = 17  ;game over step 2
+ST_ENTERHIGHSCORE  = 18  ;let player enter name for new high score
+ST_QUITGAME        = 19  ;quit game
 
 ;*** Main program **********************************************************************************
 
@@ -157,9 +159,15 @@ _gamestatus             !byte 0
 +       cmp #ST_RESUMEGAME              ;resume game after pause or player killed
         bne +
         jmp .ResumeGame
-+       cmp #ST_DEATH                   ;player has been killed
++       cmp #ST_DEATH_CREATURE          ;player has been killed
         bne +
-        jmp .HandleDeath
+        jmp .PlayerKilled
++       cmp #ST_DEATH_EXPLOSION
+        bne +
+        jmp .PlayerKilled
++       cmp #ST_DEATH_LAVA
+        bne +
+        jmp .PlayerKilled
 +       cmp #ST_RESTARTLEVEL
         bne +
         jmp .RestartLevel
@@ -204,9 +212,13 @@ _gamestatus             !byte 0
         ;collision player - creature        
 +       cmp #$10
         bne +
-        jsr KillPlayer                  ;OUT: .Y = creature index
-        sty .creatureindex
-        lda #ST_DEATH
+        jsr ShowDeadPlayer
+        jsr StopPlayerSounds
+        jsr PlayPlayerKilledSound 
+
+        ; jsr KillPlayerAndCreature       ;OUT: .Y = creature index
+        ; sty .creatureindex
+        lda #ST_DEATH_CREATURE
         sta _gamestatus
         rts
 
@@ -230,6 +242,11 @@ _gamestatus             !byte 0
         beq +
         lda #ST_LEVELCOMPLETED
         sta _gamestatus
+        rts
++       ;lda _playerdead
+        ;beq +
+        ;lda #ST_DEATH
+        ;sta _gamestatus
 +       rts
 
 .InitStartScreen:                       ;init start screen
@@ -390,14 +407,20 @@ _gamestatus             !byte 0
         sta _gamestatus
         rts
 
-.HandleDeath:                   ;collision between player and a creature has occurred
+.PlayerKilled:                  ;player killed by a creature, a too close explosion or touching lava
         +CheckTimer2 .deaddelay, DEAD_DELAY     ;returns .A = true if timer ready  
         bne +
         rts 
-+       ldy .creatureindex
++       lda _gamestatus
+        cmp #ST_DEATH_CREATURE
+        bne +
+        jsr KillPlayerAndCreature               ;OUT: .Y = creature index
         jsr DisableCreatureSprite               ;player looses a life but at least the creature is killed/removed too ...
         stz .sprcolinfo                         ;allow new collisions
-        dec _lives
++       cmp #ST_DEATH_LAVA
+        bne +
+        jsr MovePlayerBack                      ;move player to former position to avoid dying over and over again ...
++       dec _lives
         bne +
         lda #ST_GAMEOVER
         sta _gamestatus
@@ -408,9 +431,11 @@ _gamestatus             !byte 0
 
 DEAD_DELAY = 120
 .deaddelay      !byte 0
-.creatureindex  !byte 0         ;creature that killed player
 
 .LevelCompleted:                         ;level and maybe game completed step 1
+        jsr StopPlayerSounds
+        jsr StopLaser
+        jsr PlayFinishedSound
         lda _minutes
         sta _lastlevel_minutes
         lda _seconds
@@ -418,17 +443,9 @@ DEAD_DELAY = 120
         lda _level
         cmp #LEVEL_COUNT
         bne +
-        ;game completed
-        jsr StopPlayerSounds
-        jsr StopLaser
-        jsr PlayFinishedSound
-        jsr PrintGameCompleted
+        jsr PrintGameCompleted  ;game completed
         bra ++
-        ;level completed
-        jsr StopPlayerSounds
-        jsr StopLaser
-+       jsr PlayFinishedSound
-        jsr PrintLevelFinished
++       jsr PrintLevelFinished  ;level completed
 ++      lda #ST_LEVELCOMPLETED2
         sta _gamestatus
         rts

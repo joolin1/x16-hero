@@ -175,9 +175,11 @@ DetonateExplosive:                      ;change background color fast according 
         stz _explosioncolorindex
         lda _playerblasted
         beq +
-        lda #ST_DEATH
+        lda #ST_DEATH_EXPLOSION
         sta _gamestatus
         jsr ShowDeadPlayer
+        jsr StopPlayerSounds
+        jsr PlayPlayerKilledSound 
 +       stz _explosivemode
         rts
 ++      asl

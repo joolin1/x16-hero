@@ -134,7 +134,10 @@ AdjustEngineSound:
 
 StopEngineSound:
         ldy #PLAYING_ENGINE     ;set effects as not playing
-        lda #0
+        lda _playingtable,y
+        bne +
+        rts                     ;sound is not playing
++       lda #0
         sta _playingtable,y
         lda #ENGINE_VOICE                  
         jsr StopSound           
