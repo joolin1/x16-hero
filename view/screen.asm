@@ -31,9 +31,9 @@ InitScreenAndSprites:
 
         ;(layer 0 is not set here, it will switch between bitmap and tile mode)
 
-        +CopyPalettesToVRAM _palettes, 0, 4             ;copy menu, player and creature colors to palette 0-3
+        ;+CopyPalettesToVRAM _palettes, 0, 4            ;copy menu, player and creature colors to palette 0-3
         +CopyPalettesToVRAM _imagepalette, 15,1         ;copy image colors to palette 15
-        +CopyPalettesFromVRAM _tilespalettes, 4,2       ;copy tile colors from VRAM, these are loaded directly there but needs backup to be able to restore light after darkness
+        +CopyPalettesFromVRAM _graphicpalettes, 1,5     ;copy game colors from VRAM, these are loaded directly there but needs backup to be able to restore light after darkness
         rts
 
 ShowStartImage:
@@ -174,29 +174,18 @@ DisableLayer1:
 
 .original_l1_mapbase    !byte 0
 
-_originalpalette:
-        !word $0000, $0fff, $0800, $0afe, $0c4c, $00c5, $000a, $0ee7, $0d85, $0640, $0f77, $0333, $0777, $0af6, $008f, $0bbb    ;original colors, used for restoring colors when quitting game
+;*** Palettes *****************************
 
-;*** Palette Layout *****************************
+_originalpalette:       ;0 - original colors used for restoring colors when quitting game
+        !word $0000, $0fff, $0800, $0afe, $0c4c, $00c5, $000a, $0ee7, $0d85, $0640, $0f77, $0333, $0777, $0af6, $008f, $0bbb    
 
-;0 - user interface (C64 palette but 6 = lighter blue and 11 = black instead of dark grey)                                             
-_palettes:              !word $0000, $0fff, $0800, $0afe, $0c4c, $0080, $005f, $0ee7, $0d85, $0640, $0f77, $0000, $0777, $0af6, $008f, $0bbb
+_graphicpalettes:       ;game colors that needs backup to be able to put the light back on after time in darkness
+        !fill 16*2,0    ;1 - player palette
+        !fill 16*2,0    ;2 - creatures palette
+        !fill 16*2,0    ;3 - reserved
+        !fill 16*2,0    ;4 - tiles palette
+        !fill 16*2,0    ;5 - tiles palette
 
-_graphicpalettes:
-
-;1 - player sprite
-_playerpalette:         !src "player_palette.asm"
-
-;2 - creature sprites
-_creaturespalette:      !src "creatures_palette.asm"
-
-;3 - reserved
-                        !fill 16*2,0
-
-;4-5 - tiles
-_tilespalettes:         !fill 16*2,0
-                        !fill 16*2,0
-
-;15 - start image
-_imagepalette:          !src "image_palette.asm"
+_imagepalette:          ;15 - image palette
+        !src "image_palette.asm"
 

@@ -127,7 +127,7 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         +MultiplyBy16 map_row_l         ;multiply by 16 (tile size) and add 8 (half tile) to get world coordinates
         +MultiplyBy16 map_col_l
         +Add16I map_row_l, 8
-        +Add16I map_col_l, 8
+        +Add16I map_col_l, 8   
 
         lda _creaturecount              ;store world coordinates for each sprite in tables
         tay
@@ -176,7 +176,7 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         stz VERA_DATA1                  ;for now set screen y pos to 0
         stz VERA_DATA1
 
-        ;6 - set attributes for sprit
+        ;6 - set attributes for sprite
         lda currenttile_hi                      ;read high byte of current tile
         and #4                                  ;move h-flip bit to bit 0 to suit sprite register
         lsr
@@ -218,9 +218,10 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         sta spr_def_addr_h
         lda #CREATURE_COLLISION_MASK
         sta spr_coll_mask
+        +Sub16I map_row_l, 2            ;move spider 2 pixels up to align rock ceiling
         rts
 +       cmp #TILE_CLAW
-        bne +
+        bne ++
         lda #TYPE_CLAW
         sta _creaturetypetable,y
         lda #<CLAW_ADDR
@@ -229,8 +230,14 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         sta spr_def_addr_h
         lda #CREATURE_COLLISION_MASK
         sta spr_coll_mask
+        lda currenttile_hi
+        and #4
+        beq +
+        +Add16I map_col_l, 2
         rts
-+       cmp #TILE_ALIEN
++       +Sub16I map_col_l, 2
+        rts
+++      cmp #TILE_ALIEN
         bne +
         lda #TYPE_ALIEN
         sta _creaturetypetable,y
@@ -262,9 +269,10 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         sta spr_def_addr_h
         lda #CREATURE_COLLISION_MASK
         sta spr_coll_mask
+        +Add16I map_row_l, 2            ;move plant 2 pixels down to align rock floor
         rts
 +       cmp #TILE_LAMP
-        bne +
+        bne ++
         lda #TYPE_LAMP
         sta _creaturetypetable,y        
         lda #<LAMP_ADDR
@@ -273,7 +281,13 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         sta spr_def_addr_h
         lda #LAMP_COLLISION_MASK
         sta spr_coll_mask
-+       rts
+        lda currenttile_hi
+        and #4
+        beq +
+        +Add16I map_col_l, 2
+        rts
++       +Sub16I map_col_l, 2
+++      rts
 
 ;**************************************************************************************************
 ;*** Routines for updating creatures during gameplay                                            ***
