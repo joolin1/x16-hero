@@ -92,7 +92,7 @@ UpdateCameraPosition:           ;camera will centre on player as long as possibl
         rts
 
 UpdateTileColors:
-        +CheckTimer .fallingspeeddelay, DEATHCOLOR_DELAY
+        +CheckTimer .reddelay, DEATHCOLOR_DELAY
         bne +
         rts
 +

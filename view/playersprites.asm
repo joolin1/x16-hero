@@ -70,6 +70,7 @@ ShowDeadPlayer:
         lda #PLAYER_DEAD
         sta .frame
         +SetSprite PLAYER_INDEX, .frame
+        jsr StopLaser
         rts
 
 HidePlayer:

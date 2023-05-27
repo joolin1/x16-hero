@@ -295,6 +295,9 @@ KillPlayerLava:
         +Sub16 ZP4           ;ZP4-.A          
         +BreakIfTileIsBlocking
  
++       +Cmp16I _ypos_lo, 16            ;block player from flying to far up
+        bcs +
+        rts
 +       +Sub16 _ypos_lo, _flyingspeed
         rts
 
@@ -485,9 +488,7 @@ KeepClearOfWalls:                       ;when falling keep clear of walls to the
         ;check bottom right corner of collision box
 +       +Copy16 _collboxq4_y, ZP4
         +Copy16 _collboxq4_x, ZP6
-        ;+Add16I ZP4, 16-4
         jsr CheckTileStatus
-        ;+DebugSelectButtonBreakpoint
         cmp #TILECAT_BLOCK              ;if right bottom corner of collision box is blocked move player left
         bne +
         +Dec16 _xpos_lo
