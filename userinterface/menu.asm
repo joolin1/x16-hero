@@ -407,8 +407,8 @@ NO_POSITION  = 27
 
 .ShowMenuScreen:					;print complete menu including setting layers, clear layers and print all text
 	lda #MENU_MAIN_POS              ;set camera position  to first demo background
-	sta _xpos_lo
-	stz _xpos_hi
+	sta _camxpos_lo
+	stz _camxpos_hi
 	jsr UpdateTilemap
 	jsr ClearTextLayer
 	stz .handrow					;put selection hand on first row
@@ -487,7 +487,7 @@ NO_POSITION  = 27
 !scr "             by john rizen",0
 !scr 0
 !scr 0
-!scr "             copyright 2021",0
+!scr "             copyright 2023",0
 !scr 0
 !scr "          by johan k;rlin and",0
 !scr 0
@@ -495,7 +495,7 @@ NO_POSITION  = 27
 !scr 0
 !scr "          all rights reserved",0
 !scr 0
-!scr "              version 0.1",0
+!scr "              version 0.2",0
 
 CREDITSCREEN_ROW_COUNT = 19
 CREDITSCREEN_START_ROW = 5

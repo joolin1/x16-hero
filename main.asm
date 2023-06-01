@@ -4,6 +4,7 @@
 !to "hero.prg", cbm
 ;!sl "hero.sym"
 !src "includes/x16.asm"
+!src "includes/zsound.asm"
 
 !macro CheckTimer2 .counter, .limit {        ;IN: address of counter, limit as immediate value. OUT: .A = true if counter has reached its goal otherwise false 
         inc .counter
@@ -17,11 +18,26 @@
 ++
 }
 
-;*** Basic program ("10 SYS 2064") *****************************************************************
+;*** Basic program ("1 SYS2061") *****************************************************************
 
 *=$0801
-	!byte $0E,$08,$0A,$00,$9E,$20,$32,$30,$36,$34,$00,$00,$00,$00,$00
-*=$0810
+; 	!byte $0E,$08,$0A,$00,$9E,$20,$32,$30,$36,$34,$00,$00,$00,$00,$00
+; *=$0810
+
+BASIC:	!BYTE $0B,$08,$01,$00,$9E,$32,$30,$36,$31,$00,$00,$00   ;Adds BASIC line:  1 SYS 2061
+
+        jmp .StartGame
+
+;It is required that zsound load in at $0810, because it is
+;a pre-built binary compiled from C.  So, the binary is
+;placed here in the source code, and as you can see there
+;is a JMP command right before it to bypass it.  
+
+!BINARY "ZSOUND.BIN"		;ZSsound program binary.
+
+;pad 47 bytes for zsound variable space.
+!BYTE	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+!BYTE	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 
 ;*** Game globals **********************************************************************************
 
@@ -52,13 +68,14 @@ ST_QUITGAME        = 19  ;quit game
 .StartGame:
         ;init everything
         jsr LoadLeaderboard             ;load leaderboard, if not successful a new file will be created       
-        jsr LoadGraphics                ;load tiles and sprites from disk to VRAM
+        jsr LoadResources               ;load all resources (graphics, music ...)
         bcc +
         rts                             ;exit if some resource failed to load
 +       lda #ST_INITSTARTSCREEN
         sta _gamestatus
         jsr InitScreenAndSprites
         jsr InitJoysticks               ;check which type of joysticks (game controllers) are being used 
+        jsr Z_init_player
         jsr .SetupIrqHandler
 
         ;main loop
@@ -122,6 +139,7 @@ _gamestatus             !byte 0
 	sta IRQ_HANDLER_H
 	cli
         jsr RestoreScreenAndSprites
+        jsr Z_stopmusic
         rts
 
 .GameTick:                              ;this subroutine is called every jiffy and advances the game one frame
@@ -133,6 +151,7 @@ _gamestatus             !byte 0
         jmp .HandlePause
 
 +       jsr SfxTick                     ;update all sound effects that are currently playing
+        jsr Z_playmusic                 ;continue to play music if something is currently playing
 
         lda _gamestatus
         cmp #ST_RUNNING                 ;gameplay is running
@@ -250,10 +269,16 @@ _gamestatus             !byte 0
 +       rts
 
 .InitStartScreen:                       ;init start screen
+        lda #ZSM_TITLE_BANK
+        jsr StartMusic
 	jsr ShowStartImage
 	lda #ST_SHOWSTARTSCREEN
 	sta _gamestatus
+        lda #1
+        sta .fromstartscreenflag
 	rts
+
+.fromstartscreenflag    !byte 0
 
 .ShowStartScreen:                       ;start screen is displayed, wait for player to press something
 	lda _joy0
@@ -264,7 +289,13 @@ _gamestatus             !byte 0
 +	rts
 
 .InitMenu:
-        jsr .InitMenuBackground
+        lda .fromstartscreenflag
+        bne +
+        jsr Z_stopmusic
+        lda #ZSM_TITLE_BANK
+        jsr StartMusic
+        stz .fromstartscreenflag
++       jsr .InitMenuBackground
         jsr ClearTextLayer
         jsr EnableLayer1
         lda #ST_SHOWMENU
@@ -327,6 +358,9 @@ _gamestatus             !byte 0
 	sta _camypos_lo
 	stz _camypos_hi
         jsr UpdateTilemap
+        jsr Z_stopmusic
+        lda #ZSM_TITLE_BANK
+        jsr StartMusic
 	rts
 
 .ShowMenu:      
@@ -335,6 +369,7 @@ _gamestatus             !byte 0
         rts
 
 .InitGame:
+        jsr Z_stopmusic
         lda #LIFE_COUNT                 ;init game
         sta _lives
         lda _startlevel
@@ -470,7 +505,7 @@ _lastlevel_seconds      !byte 0
         sta _gamestatus                 ;short delay before going to next level
         rts
 
-LEVEL_COMPLETED_DELAY    = 180
+LEVEL_COMPLETED_DELAY    = 240
 .levelcompleteddelay     !byte 0
 
 .GameOver:                              ;game over step 1
@@ -506,6 +541,8 @@ GAME_OVER_DELAY = 180
         jsr GetHighScoreRank
         cmp #LB_ENTRIES_COUNT
         bcs +
+        lda #ZSM_HIGHSCORE_BANK
+        jsr StartMusic
         jsr InitHighScoreInput
         lda _level
         pha

@@ -13,8 +13,8 @@
 CREATURE_SPRITES_SIZE = 128
 
 ;RAM Memory layout
-;              $0810: game code
-;              $9766: ZSound - NOT ADDED
+;              $0810: ZSoun
+;                   : Game Code
 ;              $A000: RAM banks
 
 ;VRAM banks
@@ -23,9 +23,26 @@ IMAGE_BANK              = 1
 ;RAM banks
 FIRST_BANK              = 1
 ZSM_TITLE_BANK          = 1     ;NOTE: if tune more than 8 KB it needs several banks
-ZSM_MENU_BANK           = 2
-ZSM_NAMEENTRY_BANK      = 3
-SAVEDGAME_BANK          = 4
+ZSM_KILLED_BANK         = 4
+ZSM_GAMEOVER_BANK       = 5
+ZSM_LEVELCOMPLETE_BANK  = 6
+ZSM_HIGHSCORE_BANK      = 7   
+SAVEDGAME_BANK          = 8
+
+StartMusic:              ;IN: .A = ram bank
+	ldx #<BANK_ADDR
+	ldy #>BANK_ADDR
+	jsr Z_startmusic
+      	lda #0
+	jsr Z_force_loop
+        rts
+
+StartMusicNoLoop:       ;IN: .A = ram bank
+	ldx #<BANK_ADDR
+	ldy #>BANK_ADDR
+	jsr Z_startmusic
+        jsr Z_disable_loop
+        rts
 
 ;Graphic resources to load
 .imagename      !text "IMAGE.BIN",0
@@ -38,6 +55,13 @@ SAVEDGAME_BANK          = 4
 .levelnumber    !byte 0,0       ;level number in ascii
                 !text ".BIN",0
 .leveldecimal   !word 0         ;current level in decimal form
+
+;Sound resources to load
+.zsmtitle               !text "TITLE.ZSM",0
+.zsmkilled              !text "KILLED.ZSM",0
+.zsmgameover            !text "GAMEOVER.ZSM",0
+.zsmlevelcomplete       !text "LEVELCOMPLETE.ZSM",0
+.zsmhighscore           !text "HIGHSCORE.ZSM",0
 
 _fileerrorflag  !byte   0   ;at least one i/o error has occurred if set
 
@@ -62,13 +86,28 @@ _fileerrorflag  !byte   0   ;at least one i/o error has occurred if set
 +
 }
 
-LoadGraphics:
+LoadResources:
         stz _fileerrorflag
-        +LoadResource .tilesname    , TILES_ADDR            , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
-        +LoadResource .playername   , PLAYER_SPRITES_ADDR   , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
-        +LoadResource .creaturesname, CREATURE_SPRITES_ADDR , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
-        +LoadResource .fontname     , NEW_CHAR_ADDR         , LOAD_TO_VRAM_BANK0, FILE_HAS_NO_HEADER
-        +LoadResource .palettename  , PALETTE               , LOAD_TO_VRAM_BANK1, FILE_HAS_HEADER
+        +LoadResource .tilesname       , TILES_ADDR            , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
+        +LoadResource .playername      , PLAYER_SPRITES_ADDR   , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
+        +LoadResource .creaturesname   , CREATURE_SPRITES_ADDR , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
+        +LoadResource .fontname        , NEW_CHAR_ADDR         , LOAD_TO_VRAM_BANK0, FILE_HAS_NO_HEADER
+        +LoadResource .palettename     , PALETTE               , LOAD_TO_VRAM_BANK1, FILE_HAS_HEADER
+        lda #ZSM_TITLE_BANK
+        sta RAM_BANK
+        +LoadResource .zsmtitle        , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
+        lda #ZSM_KILLED_BANK
+        sta RAM_BANK
+        +LoadResource .zsmkilled       , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
+        lda #ZSM_GAMEOVER_BANK
+        sta RAM_BANK
+        +LoadResource .zsmgameover     , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
+        lda #ZSM_LEVELCOMPLETE_BANK
+        sta RAM_BANK
+        +LoadResource .zsmlevelcomplete, BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
+        lda #ZSM_HIGHSCORE_BANK
+        sta RAM_BANK
+        +LoadResource .zsmhighscore    , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
 
         lda _fileerrorflag
         beq +

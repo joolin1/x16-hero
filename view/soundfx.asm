@@ -167,11 +167,13 @@ StopLaserSound:
 ;*** Player killed ******************************
 
 PlayPlayerKilledSound:
-        ldy #PLAYING_PLAYERDEAD
-        lda #1
-        sta _playingtable,y
-        stz .playerdead_index
-        stz .playerdead_delay
+        lda #ZSM_KILLED_BANK
+        jsr StartMusicNoLoop
+        ; ldy #PLAYING_PLAYERDEAD
+        ; lda #1
+        ; sta _playingtable,y
+        ; stz .playerdead_index
+        ; stz .playerdead_delay
         rts
 
 .playerdead_index           !byte 0
@@ -207,16 +209,18 @@ PlayExplosionSound:
 ;*** Level completed ****************************
 
 PlayFinishedSound:
-        ldy #PLAYING_FINISHED1
-        lda #1
-        sta _playingtable,y
-        stz .finished1_index
-        stz .finished1_delay
-        ldy #PLAYING_FINISHED2            ;use two voices
-        lda #1
-        sta _playingtable,y
-        stz .finished2_index
-        stz .finished2_delay
+        lda #ZSM_LEVELCOMPLETE_BANK
+        jsr StartMusicNoLoop
+        ; ldy #PLAYING_FINISHED1
+        ; lda #1
+        ; sta _playingtable,y
+        ; stz .finished1_index
+        ; stz .finished1_delay
+        ; ldy #PLAYING_FINISHED2            ;use two voices
+        ; lda #1
+        ; sta _playingtable,y
+        ; stz .finished2_index
+        ; stz .finished2_delay
         rts
 
 .finished1_index           !byte 0
