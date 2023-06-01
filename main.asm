@@ -234,9 +234,6 @@ _gamestatus             !byte 0
         jsr ShowDeadPlayer
         jsr StopPlayerSounds
         jsr PlayPlayerKilledSound 
-
-        ; jsr KillPlayerAndCreature       ;OUT: .Y = creature index
-        ; sty .creatureindex
         lda #ST_DEATH_CREATURE
         sta _gamestatus
         rts
@@ -244,6 +241,7 @@ _gamestatus             !byte 0
         ;collision laserbeam - creature
 +       cmp #$20
         bne +
+        !byte $db
         jsr KillCreature
         stz .sprcolinfo
         bra ++
@@ -410,18 +408,26 @@ _gamestatus             !byte 0
         sta _gamestatus
         rts
 
-.CheckForPause:
+.CheckForPause:                 ;OUT: .C = true if pause
         lda _joy0
         and #JOY_START
         beq +
+        lda #1
+        sta .startbuttonreleased
         clc
+        rts
++       lda .startbuttonreleased
+        bne +
         rts
 +       jsr StopPlayerSounds
         jsr ShowPauseMenu    
         lda #ST_PAUSED
         sta _gamestatus
+        stz .startbuttonreleased
         sec
         rts
+
+.startbuttonreleased    !byte 0
  
 .HandlePause:                   ;pause is made by just cutting sound and stop movement
         jsr UpdatePauseMenu     ;OUT: .A = seleced menu item. -1 = nothing selected
