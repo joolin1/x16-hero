@@ -115,7 +115,7 @@ _gamestatus             !byte 0
 
 .IrqHandler:
         lda VERA_ISR
-        sta VERA_ISR
+        sta .current_vera_isr
         bit #4                          ;sprite collision interrupt?
         beq +
         ldx .sprcolinfo
@@ -124,12 +124,15 @@ _gamestatus             !byte 0
 +       bit #1                          ;vertical blank interrupt?
         beq +
         sta .vsynctrigger
-        sta VERA_ISR
         lda _gamestatus
         cmp #ST_RUNNING
         bne +
         jsr UpdateView                  ;update screen when game is running
-+       jmp (.defaulthandler_lo)     
++       lda .current_vera_isr
+        sta VERA_ISR
+        jmp (.defaulthandler_lo)     
+
+.current_vera_isr       !byte 0
 
 .QuitGame:                       
  	sei                             ;restore default irq handler
@@ -241,7 +244,6 @@ _gamestatus             !byte 0
         ;collision laserbeam - creature
 +       cmp #$20
         bne +
-        !byte $db
         jsr KillCreature
         stz .sprcolinfo
         bra ++
@@ -259,14 +261,14 @@ _gamestatus             !byte 0
         beq +
         lda #ST_LEVELCOMPLETED
         sta _gamestatus
-        rts
-+       ;lda _playerdead
-        ;beq +
-        ;lda #ST_DEATH
-        ;sta _gamestatus
 +       rts
 
 .InitStartScreen:                       ;init start screen
+        ;*** TEMP *******
+        lda #ST_INITMENU                ;TEMP: skip image for now, it is rather crappy ... 
+        sta _gamestatus
+        bra .InitMenu
+        ;*** END TEMP ***
         lda #ZSM_TITLE_BANK
         jsr StartMusic
 	jsr ShowStartImage

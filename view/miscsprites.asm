@@ -34,7 +34,7 @@ LASER_START     = 56
 LASER_STOP      = 63
 
 LASER_FIRE_TIME         = 30
-LASER_YOFFSET           = 8     ;laserbeam will radiate from players eyes, this many pixels up from the middle of the player sprite
+LASER_YOFFSET           = 8     ;laserbeam will radiate this many pixels down from the top of the player sprite
 
 
 _laser_xpos_lo      !byte 0 ;current laser position in pixels

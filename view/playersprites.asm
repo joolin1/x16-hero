@@ -55,15 +55,16 @@ PLAYER_ATTR_1       = $FC0F
 }
 
 ShowPlayer:
-        +VPokeI SPR1_ATTR_0, PLAYER_COLLISION_MASK+8    ;enable sprite and set collision mask
         +VPokeI SPR1_ATTR_1, %10010001                  ;set palette 1
-        +VPokeI SPR1_XPOS_L, SCREENWIDTH/2-PLAYERWIDTH/2
-        +VPokeI SPR1_XPOS_H, 0
-        +VPokeI SPR1_YPOS_L, SCREENHEIGHT/2-PLAYERHEIGHT/2
-        +VPokeI SPR1_YPOS_H, 0
+        jsr SetPlayerSpritePos
+        ; +VPokeI SPR1_XPOS_L, SCREENWIDTH/2-PLAYERWIDTH/2
+        ; +VPokeI SPR1_XPOS_H, 0
+        ; +VPokeI SPR1_YPOS_L, SCREENHEIGHT/2-PLAYERHEIGHT/2
+        ; +VPokeI SPR1_YPOS_H, 0
         lda #PLAYER_FLYING_START
         sta .frame       
         +SetSprite PLAYER_INDEX, .frame
+        +VPokeI SPR1_ATTR_0, PLAYER_COLLISION_MASK+8    ;enable sprite and set collision mask
         rts
 
 ShowDeadPlayer:

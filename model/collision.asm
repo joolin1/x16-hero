@@ -137,6 +137,11 @@ DISTANCE_Y_LIMIT = 32
         beq +
         +Add16I VERA_ADDR_L, 8          ;if dead skip to next                           
         jmp .NextClosestCreature
++       lda _creaturetypetable,y
+        cmp #TYPE_LAMP
+        bne +
+        +Add16I VERA_ADDR_L, 8          ;if dead skip to next                           
+        jmp .NextClosestCreature
 
         ;3 - get position for creature sprite
 +       lda VERA_DATA0
