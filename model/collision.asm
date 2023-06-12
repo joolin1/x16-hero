@@ -51,8 +51,24 @@ TurnOffLight:
         sta _darkmode
         rts
 
+DISTANCE_X_LIMIT = 32  
+DISTANCE_Y_LIMIT = 32
+
+PLAYER_COLLISION = 0
+LASER_COLLISION  = 1
+
+.spritexpos     = ZP2   ;position of centre of creature
+.spriteypos     = ZP4
+.refxpos        = ZP6   ;reference point, can be player or laserbeam
+.refypos        = ZP8
+.closestdist    = ZPA
+.closestindex   = ZPC   ;index of the closest creature
+.colltype       = ZPD   ;player or laser colliding
+
 KillPlayerAndCreature:                  ;OUT: .Y = index of creature that player collided with
         jsr .GetPlayerPosition
+        lda #PLAYER_COLLISION
+        sta .colltype
         jsr .GetClosestCreature
         lda #CREATURE_DEAD              ;this status will instantly kill the creature = its sprite will be disabled right away 
         sta _creaturelifetable,y  
@@ -61,21 +77,13 @@ KillPlayerAndCreature:                  ;OUT: .Y = index of creature that player
 KillCreature:
         jsr PlayCreatureKilledSound
         jsr .GetLaserPosition
+        lda #LASER_COLLISION
+        sta .colltype
         jsr .GetClosestCreature
         lda #CREATURE_DYING_START
         sta _creaturelifetable,y                ;this status will start dying animation and when over completely kill the creature = disable sprite
         jsr DisarmCreatureSprite
         rts
-
-DISTANCE_X_LIMIT = 32  
-DISTANCE_Y_LIMIT = 32
-
-.spritexpos     = ZP2   ;position of centre of creature
-.spriteypos     = ZP4
-.refxpos        = ZP6   ;reference point, can be player or laserbeam
-.refypos        = ZP8
-.closestdist    = ZPA
-.closestindex   = ZPC   ;index of the closest creature
 
 .GetPlayerPosition:                     ;OUT: .refxpos,  .refypos = player sprite position        
         lda #<PLAYER_XPOS_L
@@ -140,7 +148,7 @@ DISTANCE_Y_LIMIT = 32
 +       lda _creaturetypetable,y
         cmp #TYPE_LAMP
         bne +
-        +Add16I VERA_ADDR_L, 8          ;if dead skip to next                           
+        +Add16I VERA_ADDR_L, 8          ;if lamp skip to next                           
         jmp .NextClosestCreature
 
         ;3 - get position for creature sprite
@@ -178,9 +186,16 @@ DISTANCE_Y_LIMIT = 32
         +Abs16 .spriteypos                      ;spriteypos now = abs y dist
         lda .spriteypos+1
         bne .NextClosestCreature                ;if abs y dist > 255 skip to next creature
+        
+        lda .colltype
+        cmp #PLAYER_COLLISION
+        beq +
+        lda .spriteypos                         
+        cmp #9                                  ;if laser - creature collision, allow max 9 pixels vertical distance
+        bcs .NextClosestCreature
 
         ;6 - compare distance with the currently shortest
-        +Add16 .spritexpos, .spriteypos         ;add x and y dist to get a measure of total distance (we skip the pythagorean theorem ...)
++       +Add16 .spritexpos, .spriteypos         ;add x and y dist to get a measure of total distance (we skip the pythagorean theorem ...)
         +Cmp16 .spritexpos, .closestdist
         bcs .NextClosestCreature                ;skip to next if distance not shorter than currently shortest
 

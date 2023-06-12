@@ -434,8 +434,11 @@ CheckLandingAndFalling:
 
         ;handle if tile below is space
 +       cmp #TILECAT_SPACE
-        bne ++
-        jsr KeepClearOfWalls
+        beq +
+        cmp #TILECAT_MINER
+        beq +
+        bra ++
++       jsr KeepClearOfWalls
         lda _isflying
         bne +                   ;if space below and flying, do nothing
         lda #1
