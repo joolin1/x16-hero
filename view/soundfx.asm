@@ -208,7 +208,7 @@ PlayExplosionSound:
 
 ;*** Level completed ****************************
 
-PlayFinishedSound:
+PlayLevelCompleteSound:
         lda #ZSM_LEVELCOMPLETE_BANK
         jsr StartMusicNoLoop
         ; ldy #PLAYING_FINISHED1
@@ -221,6 +221,20 @@ PlayFinishedSound:
         ; sta _playingtable,y
         ; stz .finished2_index
         ; stz .finished2_delay
+        rts
+
+;*** Game over **********************************
+
+PlayGameOverSound:
+        lda #ZSM_GAMEOVER_BANK
+        jsr StartMusicNoLoop
+        rts
+
+;*** Game completed *****************************
+
+PlayGameCompleteSound:
+        lda #ZSM_GAMECOMPLETE_BANK
+        jsr StartMusic
         rts
 
 .finished1_index           !byte 0

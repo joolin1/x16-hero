@@ -26,8 +26,9 @@ ZSM_TITLE_BANK          = 1     ;NOTE: if tune more than 8 KB it needs several b
 ZSM_KILLED_BANK         = 4
 ZSM_GAMEOVER_BANK       = 5
 ZSM_LEVELCOMPLETE_BANK  = 6
-ZSM_HIGHSCORE_BANK      = 7   
-SAVEDGAME_BANK          = 8
+ZSM_GAMECOMPLETE_BANK   = 7   
+ZSM_HIGHSCORE_BANK      = 8
+SAVEDGAME_BANK          = 9
 
 StartMusic:              ;IN: .A = ram bank
 	ldx #<BANK_ADDR
@@ -61,6 +62,7 @@ StartMusicNoLoop:       ;IN: .A = ram bank
 .zsmkilled              !text "KILLED.ZSM",0
 .zsmgameover            !text "GAMEOVER.ZSM",0
 .zsmlevelcomplete       !text "LEVELCOMPLETE.ZSM",0
+.zsmgamecomplete        !text "GAMECOMPLETE.ZSM",0
 .zsmhighscore           !text "HIGHSCORE.ZSM",0
 
 _fileerrorflag  !byte   0   ;at least one i/o error has occurred if set
@@ -105,6 +107,9 @@ LoadResources:
         lda #ZSM_LEVELCOMPLETE_BANK
         sta RAM_BANK
         +LoadResource .zsmlevelcomplete, BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
+        lda #ZSM_GAMECOMPLETE_BANK
+        sta RAM_BANK
+        +LoadResource .zsmgamecomplete , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
         lda #ZSM_HIGHSCORE_BANK
         sta RAM_BANK
         +LoadResource .zsmhighscore    , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER

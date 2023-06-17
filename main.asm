@@ -57,11 +57,13 @@ ST_DEATH_EXPLOSION = 11  ;player has been killed by being to close to an explosi
 ST_DEATH_LAVA      = 12  ;player has been killed by touching lava
 ST_RESTARTLEVEL    = 13  ;restart level if lives left
 ST_LEVELCOMPLETED  = 14  ;level/game completed
-ST_LEVELCOMPLETED2 = 15  ;level/game completed step 2
-ST_GAMEOVER        = 16  ;game over, no lives left
-ST_GAMEOVER2       = 17  ;game over step 2
-ST_ENTERHIGHSCORE  = 18  ;let player enter name for new high score
-ST_QUITGAME        = 19  ;quit game
+ST_LEVELCOMPLETED2 = 15  ;level completed, more to go
+ST_GAMECOMPLETED   = 16  ;all levels completed
+ST_GAMECOMPLETED2  = 17  ;all levels completed step 2
+ST_GAMEOVER        = 18  ;game over, no lives left
+ST_GAMEOVER2       = 19  ;game over step 2
+ST_ENTERHIGHSCORE  = 20  ;let player enter name for new high score
+ST_QUITGAME        = 21  ;quit game
 
 ;*** Main program **********************************************************************************
 
@@ -199,6 +201,12 @@ _gamestatus             !byte 0
 +       cmp #ST_LEVELCOMPLETED2
         bne +
         jmp .LevelCompleted2
++       cmp #ST_GAMECOMPLETED
+        bne +
+        jmp .GameCompleted
++       cmp #ST_GAMECOMPLETED2
+        bne +
+        jmp .GameCompleted2
 +       cmp #ST_GAMEOVER
         bne +
         jmp .GameOver
@@ -478,7 +486,6 @@ DEAD_DELAY = 120
 .LevelCompleted:                         ;level and maybe game completed step 1
         jsr StopPlayerSounds
         jsr StopLaser
-        jsr PlayFinishedSound
         lda _minutes
         sta _lastlevel_minutes
         lda _seconds
@@ -487,27 +494,23 @@ DEAD_DELAY = 120
         cmp #LEVEL_COUNT
         bne +
         jsr PrintGameCompleted  ;game completed
-        bra ++
+        jsr PlayGameCompleteSound
+        lda #ST_GAMECOMPLETED
+        sta _gamestatus
+        rts
 +       jsr PrintLevelFinished  ;level completed
-++      lda #ST_LEVELCOMPLETED2
+        jsr PlayLevelCompleteSound
+        lda #ST_LEVELCOMPLETED2
         sta _gamestatus
         rts
 
 _lastlevel_minutes      !byte 0
 _lastlevel_seconds      !byte 0
 
-.LevelCompleted2:                       ;level and maybe game completed step 2
+.LevelCompleted2:                       ;level completed step 2
         +CheckTimer2 .levelcompleteddelay, LEVEL_COMPLETED_DELAY
         bne +
         rts
-
-+       lda _level
-        cmp #LEVEL_COUNT
-        bne +
-        ;game completed
-        jsr .RestartGame
-        rts
-        ;level completed
 +       inc _level
         lda #ST_INITLEVEL
         sta _gamestatus                 ;short delay before going to next level
@@ -516,8 +519,28 @@ _lastlevel_seconds      !byte 0
 LEVEL_COMPLETED_DELAY    = 240
 .levelcompleteddelay     !byte 0
 
+.GameCompleted:
+        +CheckTimer2 .gamecompleteddelay, GAME_COMPLETED_DELAY
+        bne +
+        rts
++       lda #ST_GAMECOMPLETED2
+        sta _gamestatus
+        rts   
+
+GAME_COMPLETED_DELAY    = 240
+.gamecompleteddelay     !byte 0
+
+.GameCompleted2:
+        lda _joy0
+        cmp #JOY_NOTHING_PRESSED
+        beq +
+        jsr .RestartGame
++       rts
+
 .GameOver:                              ;game over step 1
-        jsr PlayFinishedSound
+        jsr StopPlayerSounds
+        jsr StopLaser        
+        jsr PlayGameOverSound
         jsr PrintGameOver
         lda #ST_GAMEOVER2
         sta _gamestatus

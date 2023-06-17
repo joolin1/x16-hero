@@ -189,32 +189,39 @@ UpdatePauseMenu:
 
 ;*** Boards ***************************************************************************************
 
-BOARD_TEXT_COLOR = $07
+BOARD_HEADING_COLOR = $07
+BOARD_TEXT_COLOR    = $01
 
 PrintLevelFinished:
-        +SetPrintParams 12,7,BOARD_TEXT_COLOR
+        +SetPrintParams 12,9,BOARD_HEADING_COLOR
         +SetParamsI <.board_levelfinished, >.board_levelfinished
         jsr VPrintString
         jsr VPrintString
         rts
 
 PrintGameOver:
-        +SetPrintParams 12,11,BOARD_TEXT_COLOR
+        +SetPrintParams 12,11,BOARD_HEADING_COLOR
         +SetParamsI <.board_gameover, >.board_gameover
         jsr VPrintString
         jsr VPrintString
         rts
 
 PrintGameCompleted:
+        +SetPrintParams 9,4,BOARD_HEADING_COLOR
+        +SetParamsI <.board_completedheading, >.board_completedheading
+        jsr VPrintString
+        jsr VPrintString
         +SetPrintParams 12,7,BOARD_TEXT_COLOR
-        +SetParamsI <.board_gamecompleted, >.board_gamecompleted
+        jsr VPrintString
+        jsr VPrintString
+        jsr VPrintString
+        jsr VPrintString
+        jsr VPrintString
+        jsr VPrintString
+        jsr VPrintString
         jsr VPrintString
         jsr VPrintString
         rts
-
-;                         ;     L        E      V        E      L            F      I      N        I      S        H      E      D      !
-; .board_levelfinished:   !byte 108,109, 80,81, 148,149, 80,81, 108,109, 32, 84,85, 96,97, 116,117, 96,97, 136,137, 92,93, 80,81, 76,77, 170, 0
-;                         !byte 110,111, 82,83, 150,151, 82,83, 110,111, 32, 86,87, 98,99, 118,119, 98,99, 138,139, 94,95, 82,83, 78,79, 171, 0
 
                         ;     M        I      N        E      R            S        A      V        E      D      !
 .board_levelfinished:   !byte 112,113, 96,97, 116,117, 80,81, 132,133, 32, 136,137, 64,65, 148,149, 80,81, 76,77, 170, 0
@@ -224,7 +231,12 @@ PrintGameCompleted:
 .board_gameover         !byte 88,89, 64,65, 112,113, 80,81, 32, 120,121, 148,149, 80,81, 132,133, 170, 0
                         !byte 90,91, 66,67, 114,115, 82,83, 32, 122,123, 150,151, 82,83, 134,135, 171, 0
 
-                        ;     G      A      M        E          C      O        M        P        L        E      T        E      D      !       
-.board_gamecompleted    !byte 88,89, 64,65, 112,113, 80,81, 32, 72,73, 120,121, 112,113, 124,125, 108,109, 80,81, 140,141, 80,81, 76,77, 170, 0
-                        !byte 90,91, 66,67, 114,115, 82,83, 32, 74,75, 122,123, 114,115, 126,127, 110,111, 82,83, 142,143, 82,83, 78,79, 171, 0
-
+                        ;     M        I      S        S        I      O        N            C       O        M        P        L        E      T        E     !       
+.board_completedheading !byte 112,113, 96,97, 136,137, 136,137, 96,97, 120,121, 116,117, 32, 72,73, 120,121, 112,113, 124,125, 108,109, 80,81, 140,141, 80,81, 170, 0
+                        !byte 114,115, 98,99, 138,139, 138,139, 98,99, 122,123, 118,119, 32, 74,75, 122,123, 114,115, 126,127, 110,111, 82,83, 142,143, 82,83, 171, 0
+.board_completedtext    !scr "   you are a true hero!",0,0
+                        !scr " the international rescue",0,0
+                        !scr "service for trapped miners",0,0
+                        !scr "   will honor you with",0,0
+                        !scr "   a medal of bravery!",0
+                        
