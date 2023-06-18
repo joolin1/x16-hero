@@ -394,9 +394,9 @@ ResetLeaderboard:               ;copy default leaderboard to leaderboard
 
 .leaderboardname        !raw "@:HIGHSCORES.BIN",0
 
-LB_ROW = 4
+LB_ROW = 2
 LB_NAME_LENGTH = 11
-LB_HEADING_COUNT = 3
+LB_HEADING_COUNT = 6
 LB_ENTRIES_COUNT = 10
 
 LB_NAME_COL = 8
@@ -404,7 +404,13 @@ LB_MINERS_COL = 22
 LB_TIME_COL = 27
 LB_START_COL = 34
 ;
-.scoretable             !scr "                    saved       start",0
+.scoretable             ;     H      I      G      H          S        C      O        R        E      S
+                        !scr "         "
+                        !byte 92,93, 96,97, 88,89, 92,93, 32, 136,137, 72,73, 120,121, 132,133, 80,81, 136,137, 0
+                        !scr "         "
+                        !byte 94,95, 98,99, 90,91, 94,95, 32, 138,139, 74,75, 122,123, 134,135, 82,83, 138,139, 0
+                        !scr 0
+                        !scr "                    saved       start",0
                         !scr "   rank name        miners time level",0
                         !scr 0
                         !scr "    1st",0
@@ -418,7 +424,7 @@ LB_START_COL = 34
                         !scr "    9th",0
                         !scr "   10th",0
 
-.leaderboard_colors             !byte 7,7,0                       ;headings
+.leaderboard_colors             !byte 7,7,7,1,1,7                  ;headings
 .leaderboard_table_colors       !byte 2,7,14,5,15,8,4,9,13,10      ;table
 
 .leaderboard            ;data are read from file

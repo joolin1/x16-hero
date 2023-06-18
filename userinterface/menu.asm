@@ -8,7 +8,7 @@ M_ENTER_NEW_HIGH_SCORE_2 = 3
 M_SHOW_CREDIT_SCREEN	 = 4
 M_HANDLE_INPUT 			 = 5
 
-INACTIVITY_DELAY = 1
+INACTIVITY_DELAY = 2
 
 ;*** Public methods ********************************************************************************
 
@@ -41,11 +41,21 @@ MenuHandler:
 	rts
 +	+GetJoy0_NoRepeat .highscorewait
 	cmp #JOY_NOTHING_PRESSED
-	beq +
-	lda #M_SHOW_MENU_SCREEN
-	sta _menumode					;show menu if user presses anything
+	bne +
+	+Inc16 .inactivitytimer_lo
 	rts
-+	+Inc16 .inactivitytimer_lo
++	bit #JOY_RIGHT
+	bne +
+	lda #M_SHOW_CREDIT_SCREEN		;show credit screeen if user presses right
+	sta _menumode
+	jsr .ShowCreditScreen
+    stz .inactivitytimer_lo
+	stz .inactivitytimer_hi
+	lda #1
+	sta .creditwait					
+	rts
++   lda #M_SHOW_MENU_SCREEN
+	sta _menumode					;show menu if user presses anything else
 	rts
 
     ;show credit screen
@@ -57,13 +67,23 @@ MenuHandler:
 	lda #M_SHOW_MENU_SCREEN			;show menu screen after a certain delay
 	sta _menumode
 	rts
-+	lda _joy0
++	+GetJoy0_NoRepeat .creditwait
 	cmp #JOY_NOTHING_PRESSED
-	beq +
-	lda #M_SHOW_MENU_SCREEN			;show menu directly if user presses anything
-	sta _menumode
+	bne +
+	+Inc16 .inactivitytimer_lo
 	rts
-+	+Inc16 .inactivitytimer_lo
++	bit #JOY_LEFT
+	bne +
+	lda #M_SHOW_HIGHSCORE_SCREEN
+	sta _menumode
+	jsr .ShowHighScoreScreen
+	stz .inactivitytimer_lo
+	stz .inactivitytimer_hi
+	lda #1
+	sta .highscorewait
+	rts
++	lda #M_SHOW_MENU_SCREEN			;show menu directly if user presses anything
+	sta _menumode
 	rts
 
 	;handle user input
@@ -74,21 +94,23 @@ MenuHandler:
 +   lda .inactivitytimer_hi
 	cmp #INACTIVITY_DELAY
 
-	beq +
-	jsr .HandleUserInput
-	rts
-
-+	lda #M_SHOW_HIGHSCORE_SCREEN
+	bne +
+	lda #M_SHOW_HIGHSCORE_SCREEN
 	sta _menumode
 	jsr .ShowHighScoreScreen
 	stz .inactivitytimer_lo
 	stz .inactivitytimer_hi
 	rts
 
++	jsr .HandleUserInput
+	rts
+
++	
 _menumode				!byte 0
 .inactivitytimer_lo		!byte 0		;timer to measure user inactivity
 .inactivitytimer_hi		!byte 0
-.highscorewait			!byte 0 
+.highscorewait			!byte 0
+.creditwait				!byte 0
 
 ;*** Private methods *******************************************************************************
 
@@ -119,6 +141,9 @@ _menumode				!byte 0
 	lda .resetconfirmationflag
 	bne +
 	lda .quitconfirmationflag
+	bne +
+	lda _menumode
+	cmp #M_HANDLE_INPUT
 	bne +
 	jsr .UpdateMainMenu
 +	rts
@@ -166,7 +191,27 @@ _menumode				!byte 0
 	bne .HandleConfirmationLeftRight
 	lda .levelconfirmationflag
 	bne .HandleSetValueLeftRight
-	rts
+	lda _joy0
+	bit #JOY_LEFT
+	bne +
+	lda #M_SHOW_CREDIT_SCREEN		;show credit screeen if user presses left
+	sta _menumode
+	jsr .ShowCreditScreen
+    stz .inactivitytimer_lo
+	stz .inactivitytimer_hi
+	lda #1
+	sta .creditwait
+	rts	
++	bit #JOY_RIGHT
+	bne +
+	lda #M_SHOW_HIGHSCORE_SCREEN	;show high score screen if user presses right
+	sta _menumode
+	jsr .ShowHighScoreScreen
+	stz .inactivitytimer_lo
+	stz .inactivitytimer_hi
+	lda #1
+	sta .highscorewait
++	rts
 
 .HandleSetValueLeftRight:
 	lda _joy0
@@ -495,17 +540,13 @@ NO_POSITION  = 27
 !scr 0
 !scr "          all rights reserved",0
 !scr 0
-!scr "              version 0.2",0
+!scr "              version 0.5",0
 
 CREDITSCREEN_ROW_COUNT = 19
 CREDITSCREEN_START_ROW = 5
 
 .menutext
-!scr 0
-!scr 0
-!scr 0
-!scr 0
-!scr 0
+!scr 0,0,0,0,0
 ;                  H      .    E      .    R        .    O        .
 !byte 32,32,32,32, 92,93, 168, 80,81, 168, 132,133, 168, 120,121, 168, 0
 !byte 32,32,32,32, 94,95, 169, 82,83, 169, 134,135, 169, 122,123, 169, 0
@@ -518,7 +559,8 @@ CREDITSCREEN_START_ROW = 5
 !scr "reset high scores   ",0	;add extra spaces to overwrite confirmation question if user says no
 !scr 0
 !scr "quit game           ",0	;add extra spaces to overwrite confirmation question if user says no
-!scr 0
+!scr 0,0
+!scr " < switch screen >",0
 
 MENU_COL = 10	;which column menu should be printed at
 
@@ -553,8 +595,10 @@ MENU_ITEMS_COUNT = 4
 				!byte MENU_BLACK
 quitgame		!byte MENU_WHITE
 				!byte MENU_BLACK
+				!byte MENU_BLACK
+				!byte MENU_TITLE_COLOR
 
-MENU_ROW_COUNT = 17
+MENU_ROW_COUNT = 19
 
 ;Menu item mapping
 START_GAME		= 0
