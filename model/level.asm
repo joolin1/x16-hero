@@ -37,9 +37,6 @@ InitLevel:
         stz _levelcompleted
         jsr LoadLevel
         jsr .SetLevelProperties
-; RestartLevel:
-;         jsr .SetPlayerProperties
-;         jsr TurnOnLight
         rts
 
 GetSavedMinersCount:            ;OUT: .A = number of saved miners (example: game ends on level 5 (not completed), start level is 1 -> 5 - 1 + 0 = 4)

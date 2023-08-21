@@ -1,6 +1,6 @@
 ;*** player.asm ************************************************************************************
 
-LIFE_COUNT    = 10   ;number of lives for player
+LIFE_COUNT    = 2   ;number of lives for player
 
 WALKINGSPEED  = 1 
 

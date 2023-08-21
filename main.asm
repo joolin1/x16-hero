@@ -62,8 +62,9 @@ ST_GAMECOMPLETED   = 16  ;all levels completed
 ST_GAMECOMPLETED2  = 17  ;all levels completed step 2
 ST_GAMEOVER        = 18  ;game over, no lives left
 ST_GAMEOVER2       = 19  ;game over step 2
-ST_ENTERHIGHSCORE  = 20  ;let player enter name for new high score
-ST_QUITGAME        = 21  ;quit game
+ST_GAMEOVER3       = 20
+ST_ENTERHIGHSCORE  = 21  ;let player enter name for new high score
+ST_QUITGAME        = 22  ;quit game
 
 ;*** Main program **********************************************************************************
 
@@ -213,6 +214,9 @@ _gamestatus             !byte 0
 +       cmp #ST_GAMEOVER2               ;wait for input from player
         bne +
         jmp .GameOver2
++       cmp #ST_GAMEOVER3
+        bne +
+        jmp .GameOver3
 +       cmp #ST_ENTERHIGHSCORE
         bne +
         jmp .EnterHighScore
@@ -546,8 +550,15 @@ GAME_COMPLETED_DELAY    = 240
         sta _gamestatus
         rts
 
-.GameOver2:                             ;game over step 2
-        +CheckTimer2 .gameoverdelay, GAME_OVER_DELAY
+.GameOver2:                             ;game over step 2 - just add waiting time
+        +CheckTimer2 .gameoverdelay, GAME_OVER_DELAY/2
+        beq +
+        lda #ST_GAMEOVER3
+        sta _gamestatus
++       rts
+
+.GameOver3:                             ;game over step 3
+        +CheckTimer2 .gameoverdelay, GAME_OVER_DELAY/2
         beq +
         lda _lastlevel_minutes
         sta _minutes                    ;set back time to when last level was completed
@@ -556,7 +567,7 @@ GAME_COMPLETED_DELAY    = 240
         jsr .RestartGame                ;short delay before going to menu
 +       rts
 
-GAME_OVER_DELAY = 180
+GAME_OVER_DELAY = 300
 .gameoverdelay  !byte 0
 
 .RestartGame:                           ;help function
