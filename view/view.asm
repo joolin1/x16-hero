@@ -7,7 +7,7 @@ _backgroundcolor_lo     !byte 0
 _backgroundcolor_hi     !byte 0
 
 .deathcolorvalue        !byte 0
-DEATH_COLOR = 17
+DEATH_COLOR = 15
 DEATH_COLOR_ADDR = TILES_PALETTES_ADDR + DEATH_COLOR * 2
 
 _camxpos_lo     !byte 0         ;current camera position. Camera will follow player as long as the tilemap will allow it. E g x pos cannot be less than 160

@@ -423,8 +423,8 @@ _menumode				!byte 0
 	rts
 
 .answer		!byte 0				;boolean, "yes" = true, "no" = false
-YES_POSITION = 25
-NO_POSITION  = 27
+YES_POSITION = 24
+NO_POSITION  = 26
 
 .ClearHand:
 	lda #<.clearhandtext
@@ -519,13 +519,13 @@ NO_POSITION  = 27
 ;*** Start screen and menu data ************************************************
 
 .creditscreentext:
-!scr "              "
-	; H      .    E      .    R        .    O        .
-!byte 92,93, 168, 80,81, 168, 132,133, 168, 120,121, 168, 0
-!scr "              "
-!byte 94,95, 169, 82,83, 169, 134,135, 169, 122,123, 169, 0
+!scr "         "
+	; M        I      N        E           R        E      S        C      U        E
+!byte 112,113, 96,97, 116,117, 80,81, 168, 132,133, 80,81, 136,137, 72,73, 144,145, 80,81, 0
+!scr "         "
+!byte 114,115, 98,99, 118,119, 82,83, 168, 134,135, 82,83, 138,139, 74,75, 146,147, 82,83, 0
 !scr 0
-!scr "     a tribute to the original game",0
+!scr "      inspired by the game h.e.r.o.",0
 !scr 0
 !scr "       for atari and commodore 64",0
 !scr 0
@@ -547,9 +547,9 @@ CREDITSCREEN_START_ROW = 5
 
 .menutext
 !scr 0,0,0,0,0
-;                  H      .    E      .    R        .    O        .
-!byte 32,32,32,32, 92,93, 168, 80,81, 168, 132,133, 168, 120,121, 168, 0
-!byte 32,32,32,32, 94,95, 169, 82,83, 169, 134,135, 169, 122,123, 169, 0
+	; M        I      N        E           R        E      S        C      U        E
+!byte 112,113, 96,97, 116,117, 80,81, 168, 132,133, 80,81, 136,137, 72,73, 144,145, 80,81, 0
+!byte 114,115, 98,99, 118,119, 82,83, 168, 134,135, 82,83, 138,139, 74,75, 146,147, 82,83, 0
 !scr 0
 !scr 0
 !scr "start the game",0
@@ -560,18 +560,18 @@ CREDITSCREEN_START_ROW = 5
 !scr 0
 !scr "quit game           ",0	;add extra spaces to overwrite confirmation question if user says no
 !scr 0,0
-!scr " < switch screen >",0
+!scr "  < switch screen >",0
 
-MENU_COL = 10	;which column menu should be printed at
+MENU_COL = 9	;which column menu should be printed at
 
 .confirmation_question	!scr "are you sure? (y/n)?",0
 .setleveltext			!scr "set start level     ",0
 
-.handtext		!scr "  >",0
-.clearhandtext	!scr "   ",0
+.handtext		!scr " >",0
+.clearhandtext	!scr "  ",0
 
 LEVEL_ROW = 11
-ARROW_POSITIONS = 26
+ARROW_POSITIONS = 25
 .levelsetters	!scr "<  >",0
 
 .menuitems 		!byte 9,11,13,15	;which menu rows that represent menu items

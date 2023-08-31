@@ -2,19 +2,30 @@
 
 ;tile categories
 TILECAT_SPACE   = 0
-TILECAT_BLOCK   = 1
-TILECAT_WALL    = 2
-TILECAT_DEATH   = 3
+TILECAT_BLOCK   = 1     
+TILECAT_WALL    = 2     ;tiles that can be blasted
+TILECAT_DEATH   = 3     ;tiles that kills the player
 TILECAT_MINER   = 4
 
 ;table for mapping tile and category (tiles for creatures will be replaced with a tile of category SPACE)
-_tilecategorytable      !byte  TILECAT_SPACE, TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK
-                        !byte  TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_WALL , TILECAT_WALL , TILECAT_WALL , TILECAT_SPACE, TILECAT_SPACE, TILECAT_SPACE
-                        !byte  TILECAT_SPACE, TILECAT_SPACE, TILECAT_SPACE, TILECAT_DEATH, TILECAT_MINER, TILECAT_BLOCK
+_tilecategorytable      !byte TILECAT_SPACE, TILECAT_SPACE, TILECAT_SPACE ; 0- 2
+                        !byte TILECAT_SPACE, TILECAT_SPACE, TILECAT_SPACE ; 3- 5
+                        !byte TILECAT_SPACE, TILECAT_SPACE, TILECAT_SPACE ; 6- 8
+                        !byte TILECAT_SPACE, TILECAT_BLOCK, TILECAT_BLOCK ; 9-11
+                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK ;12-14
+                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK ;15-17
+                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK ;18-20
+                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK ;21-23
+                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK ;24-26
+                        !byte TILECAT_WALL , TILECAT_WALL , TILECAT_WALL  ;27-29
+                        !byte TILECAT_DEATH, TILECAT_DEATH, TILECAT_BLOCK ;30-32
+                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK ;33-35
+                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_MINER ;36-38
+                        !byte TILECAT_BLOCK                               ;39   
 
 LEVEL_COUNT       = 2   ;number of levels in game
 
-_levelstarttable        !byte 0,1        ;start row and col for level 1
+_levelstarttable        !byte 2,3        ;start row and col for level 1
                         !byte 3,3        ;level 2
 
 ;table for size of levels (0 = 32 tiles, 1 = 64, 2 = 128 and 3 = 256)

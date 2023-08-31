@@ -2,14 +2,14 @@
 
 ;creature tiles that are replaced with sprites
 TILE_SPACE              = 0     ;used for replacing sprite tiles and blasted walls
-TILE_FIRST_CREATURE     = 13
-TILE_SPIDER             = 13
-TILE_CLAW               = 14
-TILE_ALIEN              = 15
-TILE_BAT                = 16
-TILE_PLANT              = 17
-TILE_LAMP               = 18
-TILE_LAST_CREATURE      = 18
+TILE_FIRST_CREATURE     = 32
+TILE_SPIDER             = 32
+TILE_CLAW               = 33
+TILE_ALIEN              = 34
+TILE_BAT                = 35
+TILE_PLANT              = 36
+TILE_LAMP               = 37
+TILE_LAST_CREATURE      = 37
 
 ;addresses for sprite attributes of first creature that has sprite index 5
 CREATURE_ADDR_L       = $FC28
