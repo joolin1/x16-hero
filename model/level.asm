@@ -20,8 +20,7 @@ _tilecategorytable      !byte TILECAT_SPACE, TILECAT_SPACE, TILECAT_SPACE ; 0- 2
                         !byte TILECAT_WALL , TILECAT_WALL , TILECAT_WALL  ;27-29
                         !byte TILECAT_DEATH, TILECAT_DEATH, TILECAT_BLOCK ;30-32
                         !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK ;33-35
-                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_MINER ;36-38
-                        !byte TILECAT_BLOCK                               ;39   
+                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_MINER ;36-38 
 
 LEVEL_COUNT       = 2   ;number of levels in game
 

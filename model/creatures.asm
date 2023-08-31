@@ -9,7 +9,8 @@ TILE_ALIEN              = 34
 TILE_BAT                = 35
 TILE_PLANT              = 36
 TILE_LAMP               = 37
-TILE_LAST_CREATURE      = 37
+TILE_MINER              = 38
+TILE_LAST_CREATURE      = 38
 
 ;addresses for sprite attributes of first creature that has sprite index 5
 CREATURE_ADDR_L       = $FC28
@@ -29,9 +30,12 @@ BAT_ADDR    = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 24) >> 5
 PLANT_ADDR  = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 32) >> 5
 LAMP_ADDR   = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 40) >> 5
 DIE_ADDR    = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 52) >> 5 ;animation when creature dies
+MINER_ADDR  = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 64) >> 5
 
 CREATURE_HEIGHT = 16
 CREATURE_WIDTH = 16
+
+CREATURE_ALIGN = 1 ;move ceratin sprites this many pixels closer to the wall, ceiling or floor.
 
 Z_DEPTH = 8     ;place sprites between layers
 
@@ -42,8 +46,9 @@ TYPE_ALIEN      = 2
 TYPE_BAT        = 3
 TYPE_PLANT      = 4
 TYPE_LAMP       = 5     ;lamps are represented by sprites to allow pixel perfect collisions with player
+TYPE_MINER      = 6     ;miners are sprites to share palette with other sprites instead of tiles
 
-_creatureaddrtable      !word SPIDER_ADDR, CLAW_ADDR, ALIEN_ADDR, BAT_ADDR, PLANT_ADDR, LAMP_ADDR       ;used to translate type to address
+_creatureaddrtable      !word SPIDER_ADDR, CLAW_ADDR, ALIEN_ADDR, BAT_ADDR, PLANT_ADDR, LAMP_ADDR, MINER_ADDR  ;used to translate type to address
 
 MAX_SPRITE_COUNT = 64                           ;maximum number of creatures allowed in a tilemap
 _creaturecount                  !byte 0         ;number of creatures/sprites in the tilemap
@@ -218,7 +223,7 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         sta spr_def_addr_h
         lda #CREATURE_COLLISION_MASK
         sta spr_coll_mask
-        +Sub16I map_row_l, 2            ;move spider 2 pixels up to align rock ceiling
+        +Sub16I map_row_l, CREATURE_ALIGN       ;move spider up to align rock ceiling
         rts
 +       cmp #TILE_CLAW
         bne ++
@@ -269,7 +274,7 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         sta spr_def_addr_h
         lda #CREATURE_COLLISION_MASK
         sta spr_coll_mask
-        +Add16I map_row_l, 2            ;move plant 2 pixels down to align rock floor
+        +Add16I map_row_l, CREATURE_ALIGN       ;move plant down to align rock floor
         rts
 +       cmp #TILE_LAMP
         bne ++
@@ -281,13 +286,23 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         sta spr_def_addr_h
         lda #LAMP_COLLISION_MASK
         sta spr_coll_mask
-        lda currenttile_hi
-        and #4
-        beq +
-        +Add16I map_col_l, 2
+        lda currenttile_hi              ;move lamp left or right to align to wall
+        and #4                  
+        beq +   
+        +Add16I map_col_l, CREATURE_ALIGN
         rts
-+       +Sub16I map_col_l, 2
-++      rts
++       +Sub16I map_col_l, CREATURE_ALIGN
+++      cmp #TILE_MINER
+        bne +
+        lda #TYPE_MINER
+        sta _creaturetypetable,y
+        lda #<MINER_ADDR
+        sta spr_def_addr_l
+        lda #>MINER_ADDR
+        sta spr_def_addr_h
+        lda #MINER_COLLISION_MASK
+        sta spr_coll_mask
++       rts
 
 ;**************************************************************************************************
 ;*** Routines for updating creatures during gameplay                                            ***
@@ -427,7 +442,11 @@ UpdateCreatures:                                ;called at VBLANK to update spri
         +Add16I VERA_ADDR_L,2
         bra .SetCreaturePosition
 +       lda _creaturetypetable,y                ;read creature type
-        asl
+        cmp #TYPE_MINER
+        bne +
+        +Add16I VERA_ADDR_L,2
+        bra .SetCreaturePosition
++       asl
         tax
         lda _creatureaddrtable,x                ;read base address for this type of creature
         sta .addr_lo

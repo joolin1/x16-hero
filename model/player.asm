@@ -117,7 +117,7 @@ PlayerTick:                     ;advance one frame
         jsr .SetCollisionBox
         jsr .UpdatePlayerPosition
         jsr .UpdateLaserAndExplosives
-        jsr CheckSpecialTileCollisions
+        ;jsr CheckSpecialTileCollisions This is obsolete, needed when miner was a tile instead of a sprite
         jsr CheckLandingAndFalling
         lda _currenttilebelow
         sta _lasttilebelow
@@ -408,15 +408,15 @@ CheckTileStatus:                        ;IN: ZP4, ZP5 = y coordinate, ZP6, ZP7 =
         lda _tilecategorytable,y        ;read tile category
         rts                             ;OUT: .A = tile
 
-CheckSpecialTileCollisions:     
-        +Copy16 _ypos_lo, ZP4
-        +Copy16 _xpos_lo, ZP6
-        jsr CheckTileStatus
-        cmp #TILECAT_MINER      ;check if level finished
-        bne +
-        lda #1
-        sta _levelcompleted
-+       rts
+; CheckSpecialTileCollisions:     miner was a tile but is now a sprite!
+;         +Copy16 _ypos_lo, ZP4
+;         +Copy16 _xpos_lo, ZP6
+;         jsr CheckTileStatus
+;         cmp #TILECAT_MINER      ;check if level finished
+;         bne +
+;         lda #1
+;         sta _levelcompleted
+; +       rts
 
 CheckLandingAndFalling:
         +Copy16 _ypos_lo, ZP4

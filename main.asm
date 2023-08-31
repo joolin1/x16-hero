@@ -236,9 +236,19 @@ _gamestatus             !byte 0
         lda .sprcolinfo
         beq ++
         and #$f0                        ;only keep collision info
+        
+        ;collision player - miner
+        cmp #$80
+        bne +
+        lda #1
+        sta _levelcompleted
+        lda #ST_LEVELCOMPLETED
+        sta _gamestatus
+        stz .sprcolinfo
+        rts
 
         ;collision creature - creature
-        cmp #$30
++       cmp #$30
         bne +
         stz .sprcolinfo
         bra ++
@@ -269,10 +279,10 @@ _gamestatus             !byte 0
 ++      jsr PlayerTick                  ;move hero and take actions depending on new position
         jsr UpdateCameraPosition        ;set camera in relation to where hero is
         jsr TimeTick
-        lda _levelcompleted
-        beq +
-        lda #ST_LEVELCOMPLETED
-        sta _gamestatus
+        ; lda _levelcompleted
+        ; beq +
+        ; lda #ST_LEVELCOMPLETED
+        ; sta _gamestatus
 +       rts
 
 .InitStartScreen:                       ;init start screen
@@ -401,6 +411,7 @@ _gamestatus             !byte 0
         jsr ShowPlayer
         jsr TurnOnLight
         jsr EnableLayer0
+        stz .sprcolinfo
         lda #ST_RUNNING
         sta _gamestatus
         rts

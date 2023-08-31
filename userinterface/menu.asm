@@ -529,7 +529,7 @@ NO_POSITION  = 26
 !scr 0
 !scr "       for atari and commodore 64",0
 !scr 0
-!scr "             by john rizen",0
+!scr "         original by john rizen",0
 !scr 0
 !scr 0
 !scr "             copyright 2023",0

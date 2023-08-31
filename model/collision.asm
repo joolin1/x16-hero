@@ -1,10 +1,10 @@
 ;*** collision.asm *********************************************************************************
 
-PLAYER_COLLISION_MASK   = %01010000
-CREATURE_COLLISION_MASK = %00110000    ;Creatures can either collide with the player or the shots from the player.
+PLAYER_COLLISION_MASK   = %11010000     ;player can collide with miner, lamps and creatures
+CREATURE_COLLISION_MASK = %00110000     ;creatures can collide with the player or shots from the player.
 LAMP_COLLISION_MASK     = %01000000
-LASER_COLLISION_MASK    = %00100000    ;laser should collide with creatures but not with player
-
+LASER_COLLISION_MASK    = %00100000     ;laser can collide with creatures but not with player
+MINER_COLLISION_MASK    = %10000000     ;miner can collide with player, when this happens the miner is rescued!
 DARK_TIME = 300
 
 UpdateLight:            ;if dark light up after a certain amount of time
