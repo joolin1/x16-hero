@@ -116,13 +116,18 @@ DEATHCOLOR_DELAY = 6
 
 UpdateExplosion:                ;change background color during an explosion
         lda _explosivemode
-        beq +
+        cmp #EXPLOSIVE_DETONATE
+        bne +
         lda #<TILES_PALETTES_ADDR+2
         sta VERA_ADDR_L
         lda #>TILES_PALETTES_ADDR+2
         sta VERA_ADDR_M
         lda #$11
         sta VERA_ADDR_H
+        lda _backgroundcolor_lo
+        sta VERA_DATA0
+        lda _backgroundcolor_hi
+        sta VERA_DATA0
         lda _backgroundcolor_lo
         sta VERA_DATA0
         lda _backgroundcolor_hi

@@ -51,10 +51,12 @@ EXPLOSIVE_YOFFSET         = 4   ;explosives are placed at player's feet
 EXPLOSIVE_XOFFSET         = 4
 EXPLOSIVE_SAFE_DISTANCE   = 32  ;player must be 3 tiles away to not be killed...
 
+EXPLOSIVE_NO             = 0
 EXPLOSIVE_PLACE          = 1     ;explosion mode, enumerable
 EXPLOSIVE_BURN           = 2
 EXPLOSIVE_START_DETONATE = 3
 EXPLOSIVE_DETONATE       = 4
+EXPLOSIVE_END_DETONATE   = 5
 _explosivemode          !byte 0 ;explosive lit or detonating?
 
 _expl_xpos_lo           !byte 0 ;explosive's position in world
@@ -68,6 +70,7 @@ _explosiveframedelay    !byte 0 ;speed of animation of burning stub thread
 
 UpdateExplosive:
         lda _explosivemode
+        cmp #EXPLOSIVE_NO
         bne +
         rts
 +       cmp #EXPLOSIVE_PLACE
@@ -83,12 +86,18 @@ UpdateExplosive:
         jsr PlayExplosionSound
         jsr CheckIfPlayerBlasted
         jsr RemoveWall
+        jsr SaveBackgroundColors
         lda #EXPLOSIVE_DETONATE
         sta _explosivemode
         rts
 +       cmp #EXPLOSIVE_DETONATE
         bne +
         jsr DetonateExplosive
+        cmp #EXPLOSIVE_END_DETONATE
+        bne +
+        jsr RestoreBackgrounColors
+        lda #EXPLOSIVE_NO
+        sta _explosivemode
 +       rts
 
 PlaceExplosive:
@@ -168,11 +177,46 @@ BurnExplosive:
         sta _explosivemode
 +       rts
 
-DetonateExplosive:                      ;change background color fast according to a color table
+SaveBackgroundColors:   ;save color 1 and 2 in tile palette
+        lda #<TILES_PALETTES_ADDR+2
+        sta VERA_ADDR_L
+        lda #>TILES_PALETTES_ADDR+2
+        sta VERA_ADDR_M
+        lda #$11
+        sta VERA_ADDR_H
+        lda VERA_DATA0
+        sta .original_backgroundcolors
+        lda VERA_DATA0
+        sta .original_backgroundcolors + 1
+        lda VERA_DATA0
+        sta .original_backgroundcolors + 2
+        lda VERA_DATA0
+        sta .original_backgroundcolors + 3
+        rts
+
+RestoreBackgrounColors: ;restore color 1 and 2 in tile palette
+        lda #<TILES_PALETTES_ADDR+2
+        sta VERA_ADDR_L
+        lda #>TILES_PALETTES_ADDR+2
+        sta VERA_ADDR_M
+        lda #$11
+        sta VERA_ADDR_H
+        lda .original_backgroundcolors
+        sta VERA_DATA0
+        lda .original_backgroundcolors + 1
+        sta VERA_DATA0
+        lda .original_backgroundcolors + 2
+        sta VERA_DATA0
+        lda .original_backgroundcolors + 3
+        sta VERA_DATA0
+        rts
+
+.original_backgroundcolors      !word 0,0
+
+DetonateExplosive:                      ;change background color fast according to a color table, color 1 and 2 in tile palette will be affected
         lda _explosioncolorindex
         cmp #EXPLOSIONCOLORCOUNT
         bne ++       
-        stz _explosioncolorindex
         lda _playerblasted
         beq +
         lda #ST_DEATH_EXPLOSION
@@ -180,7 +224,9 @@ DetonateExplosive:                      ;change background color fast according 
         jsr ShowDeadPlayer
         jsr StopPlayerSounds
         jsr PlayPlayerKilledSound 
-+       stz _explosivemode
++       lda #EXPLOSIVE_END_DETONATE
+        sta _explosivemode
+        stz _explosioncolorindex
         rts
 ++      asl
         tay
