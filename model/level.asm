@@ -8,19 +8,26 @@ TILECAT_DEATH   = 3     ;tiles that kills the player
 TILECAT_MINER   = 4
 
 ;table for mapping tile and category (tiles for creatures will be replaced with a tile of category SPACE)
-_tilecategorytable      !byte TILECAT_SPACE, TILECAT_SPACE, TILECAT_SPACE ; 0- 2
-                        !byte TILECAT_SPACE, TILECAT_SPACE, TILECAT_SPACE ; 3- 5
-                        !byte TILECAT_SPACE, TILECAT_SPACE, TILECAT_SPACE ; 6- 8
-                        !byte TILECAT_SPACE, TILECAT_BLOCK, TILECAT_BLOCK ; 9-11
-                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK ;12-14
-                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK ;15-17
-                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK ;18-20
-                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK ;21-23
-                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK ;24-26
-                        !byte TILECAT_WALL , TILECAT_WALL , TILECAT_WALL  ;27-29
-                        !byte TILECAT_DEATH, TILECAT_DEATH, TILECAT_BLOCK ;30-32
-                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_BLOCK ;33-35
-                        !byte TILECAT_BLOCK, TILECAT_BLOCK, TILECAT_MINER ;36-38 
+_tilecategorytable      !byte 1,1,1,1 ; 0- 3 (creatures = block, but unimportant because it is exchanged)
+                        !byte 1,1,4,0 ; 4- 7 
+                        !byte 0,0,0,0 ; 8-11
+                        !byte 0,0,0,0 ;12-15
+                        !byte 0,1,1,1 ;16-19
+                        !byte 1,1,1,1 ;20-23
+                        !byte 1,1,1,1 ;24-27
+                        !byte 1,1,1,1 ;28-31
+                        !byte 1,1,1,1 ;32-35
+                        !byte 3,3,2,2 ;36-39
+                        !byte 2,1,1,1 ;40-43
+                        !byte 1,1,1,3 ;44-47
+                        !byte 0,0,0,0 ;48-51
+                        !byte 1,1,3,0 ;52-55
+                        !byte 0,1,1,1 ;56-59
+                        !byte 1,0,0,0 ;60-63
+                        !byte 0,0,0,1 ;64-67
+                        !byte 1,1,1,3 ;68-71
+                        !byte 0,0,0,0 ;72-75
+                        !byte 0,0     ;76-77
 
 LEVEL_COUNT       = 2   ;number of levels in game
 

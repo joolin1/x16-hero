@@ -1,7 +1,7 @@
 ;*** main.asm - Entry point for game, setup and main game loop *************************************
 
 !cpu 65c02
-!to "hero.prg", cbm
+!to "mine.prg", cbm
 ;!sl "hero.sym"
 !src "includes/x16.asm"
 !src "includes/zsound.asm"
@@ -286,18 +286,18 @@ _gamestatus             !byte 0
 +       rts
 
 .InitStartScreen:                       ;init start screen
-        ;*** TEMP *******
-        lda #ST_INITMENU                ;TEMP: skip image for now, it is rather crappy ... 
+        ;*** SKIP IMAGE ***
+        lda #ST_INITMENU                ;skip image at least for now, it is rather crappy ... 
         sta _gamestatus
         bra .InitMenu
-        ;*** END TEMP ***
-        lda #ZSM_TITLE_BANK
-        jsr StartMusic
-	jsr ShowStartImage
-	lda #ST_SHOWSTARTSCREEN
-	sta _gamestatus
-        lda #1
-        sta .fromstartscreenflag
+        ;*** END SKIP *****
+        ; lda #ZSM_TITLE_BANK
+        ; jsr StartMusic
+	; jsr ShowStartImage
+	; lda #ST_SHOWSTARTSCREEN
+	; sta _gamestatus
+        ; lda #1
+        ; sta .fromstartscreenflag
 	rts
 
 .fromstartscreenflag    !byte 0

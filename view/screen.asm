@@ -32,26 +32,26 @@ InitScreenAndSprites:
         ;(layer 0 is not set here, it will switch between bitmap and tile mode)
 
         ;+CopyPalettesToVRAM _palettes, 0, 4            ;copy menu, player and creature colors to palette 0-3
-        +CopyPalettesToVRAM _imagepalette, 15,1         ;copy image colors to palette 15
+        ;+CopyPalettesToVRAM _imagepalette, 15,1         ;copy image colors to palette 15
         +CopyPalettesFromVRAM _graphicpalettes, 1,5     ;copy game colors from VRAM, these are loaded directly there but needs backup to be able to restore light after darkness
         rts
 
-ShowStartImage:
-        jsr LoadStartImage
-        jsr SetLayer0ToBitmapMode
-        jsr EnableLayer0
-        jsr DisableLayer1
-        rts
+; ShowStartImage:
+;         jsr LoadStartImage
+;         jsr SetLayer0ToBitmapMode
+;         jsr EnableLayer0
+;         jsr DisableLayer1
+;         rts
 
-SetLayer0ToBitmapMode:
-        lda #%00000110                  ;Bitmap mode, 4 bpp = 16 colors
-        sta L0_CONFIG
-        lda #IMAGE_ADDR>>9              ;set bitmap address and width 320 pixels
-        and #%11111100
-        sta L0_TILEBASE 
-        lda #15                         ;set palette index                
-        sta L0_HSCROLL_H
-        rts
+; SetLayer0ToBitmapMode:
+;         lda #%00000110                  ;Bitmap mode, 4 bpp = 16 colors
+;         sta L0_CONFIG
+;         lda #IMAGE_ADDR>>9              ;set bitmap address and width 320 pixels
+;         and #%11111100
+;         sta L0_TILEBASE 
+;         lda #15                         ;set palette index                
+;         sta L0_HSCROLL_H
+;         rts
 
 SetLayer0ToTileMode:
         lda #L0_MAP_ADDR>>9             ;set map base address
@@ -186,6 +186,6 @@ _graphicpalettes:       ;game colors that needs backup to be able to put the lig
         !fill 16*2,0    ;4 - tiles palette
         !fill 16*2,0    ;5 - tiles palette
 
-_imagepalette:          ;15 - image palette
-        !src "image_palette.asm"
+; _imagepalette:          ;15 - image palette
+;         !src "image_palette.asm"
 

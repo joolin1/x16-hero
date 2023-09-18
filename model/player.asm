@@ -51,7 +51,7 @@ COLLBOX_Q2_Y = -13
 COLLBOX_Q3_Y =  9
 COLLBOX_Q4_Y =  9
 
-TILE_GROUND_LEVEL = 6   ;adjustment of where to place player vertically when landing
+TILE_GROUND_LEVEL = 5;6   ;adjustment of where to place player vertically when landing
 
 ;collision box
 _collboxq1_x    !word 0
@@ -428,7 +428,7 @@ CheckLandingAndFalling:
         ;handle if tile below is lava
         cmp #TILECAT_DEATH
         bne +
-        +Sub16I _last_ypos_lo,8
+        +Sub16I _last_ypos_lo, 32
         jsr KillPlayerLava
         rts
 

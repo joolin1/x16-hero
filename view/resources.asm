@@ -8,7 +8,7 @@
 !addr CREATURE_SPRITES_ADDR  = $7400              ;         8 Kb | Room for 64 16x16 sprites (16 rows x 8 bytes/row) = 128 bytes/sprite)
 !addr NEW_CHAR_ADDR          = $9800              ;         2 Kb | Charset is relocated here
 !addr L0_MAP_ADDR            = $A000              ;        64 Kb | Layer 0 - game graphics layer. Max 256 tiles high x 128 tiles wide x 2 bytes for each tile = 64 Kb
-!addr IMAGE_ADDR             = $A000              ;        37 Kb | Layer 0 - title image 320x240 shares memory with tiles
+;!addr IMAGE_ADDR             = $A000              ;        37 Kb | Layer 0 - title image 320x240 shares memory with tiles
 
 CREATURE_SPRITES_SIZE = 128
 
@@ -18,7 +18,7 @@ CREATURE_SPRITES_SIZE = 128
 ;              $A000: RAM banks
 
 ;VRAM banks
-IMAGE_BANK              = 1
+;IMAGE_BANK              = 1
 
 ;RAM banks
 FIRST_BANK              = 1
@@ -46,15 +46,21 @@ StartMusicNoLoop:       ;IN: .A = ram bank
         rts
 
 ;Graphic resources to load
-.imagename      !text "IMAGE.BIN",0
+;.imagename      !text "IMAGE.BIN",0
 .tilesname      !text "TILES.BIN",0
-.playername     !text "PLAYER.BIN",0
-.creaturesname  !text "CREATURES.BIN",0
+.playername     !text "SPRITE0.BIN",0
+.creaturesname  !text "SPRITE1.BIN",0
 .fontname       !text "FONT.BIN",0
-.palettename    !text "PALETTE.BIN",0
-.levelname      !text "LEVEL"
-.levelnumber    !byte 0,0       ;level number in ascii
-                !text ".BIN",0
+.palettename    !text "PAL.BIN",0
+
+.lowlevelname           !text "MAP"
+.lowlevelnumber         !byte 0         ;level number (0-9) in ascii
+                        !text ".BIN",0
+
+.highlevelname          !text "MAP"
+.highlevelnumber        !byte 0,0       ;level number(10-) in ascii
+                        !text ".BIN",0
+
 .leveldecimal   !word 0         ;current level in decimal form
 
 ;Sound resources to load
@@ -121,9 +127,9 @@ LoadResources:
 +       clc                             ;clear carry to flag everything is ok
         rts
 
-LoadStartImage:
-        +LoadResource .imagename, IMAGE_ADDR, LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
-        rts
+; LoadStartImage:
+;         +LoadResource .imagename, IMAGE_ADDR, LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
+;         rts
 
 LoadLevel:
         stz _fileerrorflag
@@ -138,17 +144,25 @@ LoadLevel:
         lsr
         clc
         adc #$30                ;convert to ascii by adding code for "0"
-        sta .levelnumber
+        sta .highlevelnumber
 
         lda .leveldecimal
         and #%00001111          ;mask out low digit of current level
         clc
         adc #$30                ;convert to ascii
-        sta .levelnumber+1
+        sta .highlevelnumber+1
 
-        +LoadResource .levelname, L0_MAP_ADDR, LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
+        lda .highlevelnumber
+        cmp #$30                ;if high digit is "0" then load skip it in filename
+        bne +
+        lda .highlevelnumber+1
+        sta .lowlevelnumber
+        +LoadResource .lowlevelname, L0_MAP_ADDR, LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
+        bra ++
 
-        lda _fileerrorflag
++       +LoadResource .highlevelname, L0_MAP_ADDR, LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
+
+++      lda _fileerrorflag
         beq +
         sec                             ;set carry to flag error
         rts

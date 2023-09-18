@@ -1,16 +1,16 @@
 ;*** creatures.asm *********************************************************************************
 
 ;creature tiles that are replaced with sprites
-TILE_SPACE              = 0     ;used for replacing sprite tiles and blasted walls
-TILE_FIRST_CREATURE     = 32
-TILE_SPIDER             = 32
-TILE_CLAW               = 33
-TILE_ALIEN              = 34
-TILE_BAT                = 35
-TILE_PLANT              = 36
-TILE_LAMP               = 37
-TILE_MINER              = 38
-TILE_LAST_CREATURE      = 38
+TILE_SPACE              = 7     ;used for replacing sprite tiles and blasted walls
+TILE_FIRST_CREATURE     = 0
+TILE_SPIDER             = 0
+TILE_CLAW               = 1
+TILE_ALIEN              = 2
+TILE_BAT                = 3
+TILE_PLANT              = 4
+TILE_LAMP               = 5
+TILE_MINER              = 6
+TILE_LAST_CREATURE      = 6
 
 ;addresses for sprite attributes of first creature that has sprite index 5
 CREATURE_ADDR_L       = $FC28

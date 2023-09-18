@@ -5,7 +5,7 @@ CREATURE_COLLISION_MASK = %00110000     ;creatures can collide with the player o
 LAMP_COLLISION_MASK     = %01000000
 LASER_COLLISION_MASK    = %00100000     ;laser can collide with creatures but not with player
 MINER_COLLISION_MASK    = %10000000     ;miner can collide with player, when this happens the miner is rescued!
-DARK_TIME = 300
+DARK_TIME = 600
 
 UpdateLight:            ;if dark light up after a certain amount of time
         lda _darkmode
@@ -31,13 +31,17 @@ TurnOffLight:
 -       lda _graphicpalettes,y
         sta ZP0         ;temp save .A
         lsr             ;make color darker by dividing color value by four
-        lsr
+        ;lsr
+        +Countdown
+        +Countdown
         and #$f0        ;keep high nybble 
         sta ZP1         ;temp save high nybble
         lda ZP0         ;restore original value
         and #$0f        ;keep low nybble
         lsr             ;make color darker by dividing color value by four
-        lsr
+        +Countdown
+        +Countdown
+        ;lsr
         ora ZP1         ;combine high and low nybble
         sta VERA_DATA0     
         iny

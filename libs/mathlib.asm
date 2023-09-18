@@ -40,6 +40,13 @@
 +        
 }
 
+!macro Countdown {                ;IN: .A, decrease to 0, then stop
+        cmp #0
+        beq +
+        dec
++
+}
+
 !macro Countdown16bit .addr {           ;decrease to 0, then stop
         lda .addr
         bne +
