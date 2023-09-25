@@ -30,18 +30,21 @@ TurnOffLight:
         ldy #0           
 -       lda _graphicpalettes,y
         sta ZP0         ;temp save .A
-        lsr             ;make color darker by dividing color value by four
-        ;lsr
-        +Countdown
-        +Countdown
-        and #$f0        ;keep high nybble 
+        lsr             ;transfer high nybble to lower bits
+        lsr
+        lsr
+        lsr
+        lsr             ;divide low nybble by 2
+        +Countdown      ;subtract 1 if > 0
+        asl             ;transfer back low nybble to high
+        asl
+        asl
+        asl 
         sta ZP1         ;temp save high nybble
         lda ZP0         ;restore original value
         and #$0f        ;keep low nybble
-        lsr             ;make color darker by dividing color value by four
-        +Countdown
-        +Countdown
-        ;lsr
+        lsr             ;make color darker by dividing color value by 2
+        +Countdown      ;subtract 1 if > 0
         ora ZP1         ;combine high and low nybble
         sta VERA_DATA0     
         iny

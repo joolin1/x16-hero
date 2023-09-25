@@ -31,6 +31,7 @@ PLANT_ADDR  = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 32) >> 5
 LAMP_ADDR   = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 40) >> 5
 DIE_ADDR    = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 52) >> 5 ;animation when creature dies
 MINER_ADDR  = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 64) >> 5
+DARK_LAMP_ADDR = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 65) >> 5
 
 CREATURE_HEIGHT = 16
 CREATURE_WIDTH = 16
@@ -427,7 +428,7 @@ UpdateCreatures:                                ;called at VBLANK to update spri
         phy
         jsr .HandleDyingCreature
         ply
-        bra .SetCreaturePosition
+        jmp .SetCreaturePosition
 
 .NextCreature:                                  ;creature is dead, skip to next
         +Add16I VERA_ADDR_L, 8       
@@ -456,6 +457,18 @@ UpdateCreatures:                                ;called at VBLANK to update spri
         inc
         and #FRAME_COUNT-1
         sta _creatureframetable,y               ;step to next frame
+        tax
+        lda _darkmode
+        beq +
+        lda _creaturetypetable,y
+        cmp #TYPE_LAMP
+        bne +
+        lda #<DARK_LAMP_ADDR
+        sta VERA_DATA0
+        lda #>DARK_LAMP_ADDR
+        sta VERA_DATA0
+        bra .SetCreaturePosition
++       txa
         asl
         asl                                     ;multiply by 4 (sprite size = 128 and 128 >> 5 = 4)
         +Add16 .addr_lo                         ;add frame offset to base address

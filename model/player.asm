@@ -94,7 +94,8 @@ InitPlayer:
         rts           
 
 MovePlayerBack:
-        lda _last_xpos_lo
+        ;move player back after being killed by lava contact to avoid being killed immediately again
+        lda _last_xpos_lo       
         sta _xpos_lo
         lda _last_xpos_hi
         sta _xpos_hi
@@ -102,6 +103,24 @@ MovePlayerBack:
         sta _ypos_lo
         lda _last_ypos_hi
         sta _ypos_hi
+
+        lda _isfalling
+        bne +
+        lda _isflying
+        bne +
+        rts             
+
+        ;if player has come from above by falling or flying down on the lava, then let him fly above the lava to avoid being killed immediately again
++       !byte $db
+        stz _isfalling
+        lda #1                          ;make him fly 
+        sta _isflying                
+        lda #120                        ;give him longer time before he starts to fall
+        sta _flyingtime
+        lda #MIN_FLYINGSPEED
+        sta _flyingspeed
+        lda #MIN_FALLINGSPEED
+        sta _fallingspeed
         rts
 
 PlayerTick:                     ;advance one frame
@@ -117,7 +136,6 @@ PlayerTick:                     ;advance one frame
         jsr .SetCollisionBox
         jsr .UpdatePlayerPosition
         jsr .UpdateLaserAndExplosives
-        ;jsr CheckSpecialTileCollisions This is obsolete, needed when miner was a tile instead of a sprite
         jsr CheckLandingAndFalling
         lda _currenttilebelow
         sta _lasttilebelow
@@ -295,7 +313,7 @@ KillPlayerLava:
         +Sub16 ZP4           ;ZP4-.A          
         +BreakIfTileIsBlocking
  
-+       +Cmp16I _ypos_lo, 16            ;block player from flying to far up
++       +Cmp16I _ypos_lo, 16            ;block player from flying too far up
         bcs +
         rts
 +       +Sub16 _ypos_lo, _flyingspeed
@@ -408,16 +426,6 @@ CheckTileStatus:                        ;IN: ZP4, ZP5 = y coordinate, ZP6, ZP7 =
         lda _tilecategorytable,y        ;read tile category
         rts                             ;OUT: .A = tile
 
-; CheckSpecialTileCollisions:     miner was a tile but is now a sprite!
-;         +Copy16 _ypos_lo, ZP4
-;         +Copy16 _xpos_lo, ZP6
-;         jsr CheckTileStatus
-;         cmp #TILECAT_MINER      ;check if level finished
-;         bne +
-;         lda #1
-;         sta _levelcompleted
-; +       rts
-
 CheckLandingAndFalling:
         +Copy16 _ypos_lo, ZP4
         +Copy16 _xpos_lo, ZP6
@@ -428,7 +436,6 @@ CheckLandingAndFalling:
         ;handle if tile below is lava
         cmp #TILECAT_DEATH
         bne +
-        +Sub16I _last_ypos_lo, 32
         jsr KillPlayerLava
         rts
 
