@@ -231,6 +231,7 @@ _gamestatus             !byte 0
         jsr UpdateLight
         jsr UpdateStatusTime
         jsr UpdateExplosion
+        jsr LightUpLevel
         ;jsr DebugPrintInfo      ;TEMP
         
         lda .sprcolinfo

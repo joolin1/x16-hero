@@ -111,8 +111,7 @@ MovePlayerBack:
         rts             
 
         ;if player has come from above by falling or flying down on the lava, then let him fly above the lava to avoid being killed immediately again
-+       !byte $db
-        stz _isfalling
++       stz _isfalling
         lda #1                          ;make him fly 
         sta _isflying                
         lda #120                        ;give him longer time before he starts to fall
@@ -492,7 +491,7 @@ KeepClearOfWalls:                       ;when falling keep clear of walls to the
         rts
 +       cmp #TILECAT_DEATH
         bne +
-        +Add16I _last_xpos_lo,8            ;move back a bit extra to not die immediately again
+        ;+Add16I _last_xpos_lo,8            ;move back a bit extra to not die immediately again
         jsr KillPlayerLava
         rts
         ;check bottom right corner of collision box
@@ -505,7 +504,7 @@ KeepClearOfWalls:                       ;when falling keep clear of walls to the
         rts
 +       cmp #TILECAT_DEATH
         bne +
-        +Sub16I _last_xpos_lo,8            ;move back a bit extra to not die immediately again
+        ;+Sub16I _last_xpos_lo,8            ;move back a bit extra to not die immediately again
         jsr KillPlayerLava                
 +       rts
 

@@ -95,6 +95,18 @@
         sta .addr_lo+1        
 }
 
+!macro Add24 .addr_lo {                 ;IN .A = value to add. OUT: result in .addr_lo, .addr_lo+1 and .addr_lo+2
+        clc
+        adc .addr_lo
+        sta .addr_lo
+        lda .addr_lo+1
+        adc #0
+        sta .addr_lo+1
+        lda .addr_lo+2
+        adc #0
+        sta .addr_lo+2
+}
+
 !macro Add16I .addr_lo, .value {     ;OUT: result in .addr_lo and .addr_lo+1
         lda .addr_lo
         clc

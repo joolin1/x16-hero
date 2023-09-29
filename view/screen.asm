@@ -182,9 +182,9 @@ _originalpalette:       ;0 - original colors used for restoring colors when quit
 _graphicpalettes:       ;game colors that needs backup to be able to put the light back on after time in darkness
         !fill 16*2,0    ;1 - player palette
         !fill 16*2,0    ;2 - creatures palette
-        !fill 16*2,0    ;3 - reserved
+        !fill 16*2,0    ;3 - black palette used for unexplored tiles and sprites
         !fill 16*2,0    ;4 - tiles palette
-        !fill 16*2,0    ;5 - tiles palette
+        !fill 16*2,0    ;5 - tiles palette (not used)
 
 ; _imagepalette:          ;15 - image palette
 ;         !src "image_palette.asm"
