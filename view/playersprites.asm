@@ -11,7 +11,8 @@ PLAYER_DEAD          = 12
 PLAYER_INDEX = 1        ;player is sprite 1
 PLAYERWIDTH  = 16
 PLAYERHEIGHT = 32
-WALKING_DELAY = 6
+MIN_ANIMATIONDELAY = 2
+MAX_ANIMATIONDELAY = 4
 
 ;addresses for sprite attributes of first creature that has sprite index 5
 PLAYER_ADDR_L       = $FC08
@@ -57,10 +58,6 @@ PLAYER_ATTR_1       = $FC0F
 ShowPlayer:
         +VPokeI SPR1_ATTR_1, %10010001                  ;set palette 1
         jsr SetPlayerSpritePos
-        ; +VPokeI SPR1_XPOS_L, SCREENWIDTH/2-PLAYERWIDTH/2
-        ; +VPokeI SPR1_XPOS_H, 0
-        ; +VPokeI SPR1_YPOS_L, SCREENHEIGHT/2-PLAYERHEIGHT/2
-        ; +VPokeI SPR1_YPOS_H, 0
         lda #PLAYER_FLYING_START
         sta .frame       
         +SetSprite PLAYER_INDEX, .frame
@@ -151,7 +148,8 @@ PlaySoundIfFlying:
         lda #PLAYER_WALKING_START       ;player is not moving - set first walking sprite
         sta .frame
         rts
-+       +CheckTimer .animationdelay, WALKING_DELAY
++       jsr .CheckForAnimation 
+        ;+CheckTimer .animationdelay, 6
         bne +
         rts
 +       inc .frame                      ;player is walking - set next walking sprite
@@ -163,7 +161,24 @@ PlaySoundIfFlying:
         sta .frame
         rts
 
-.wasflying      !byte 0         ;whether player has just landed
-.frame          !byte 0         ;current sprite frame
-.animationdelay !byte 0         ;delay counter to slow down animation 
+.wasflying              !byte 0         ;whether player has just landed
+.frame                  !byte 0         ;current sprite frame
+.animationdelay         !byte 0         ;delay counter to slow down animation 
 
+.CheckForAnimation:     ;check if time for next player walking frame
+        ; +SetPrintParams 1,1,$01
+        ; lda _walkingspeed
+        ; jsr VPrintHexNumber
+        lda _walkingspeed
+        cmp #MIN_WALKINGSPEED
+        bne +
+        lda #MAX_ANIMATIONDELAY
+        bra ++
++       lda #MIN_ANIMATIONDELAY
+        ldx .animationdelay
+        cpx #MIN_ANIMATIONDELAY
+        bcc ++
+        ldx #MIN_ANIMATIONDELAY-1            ;when we set a narrower limit, make sure counter has not already passed it!
+        stx .animationdelay
+++      +CheckTimer .animationdelay
+        rts

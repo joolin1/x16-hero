@@ -49,7 +49,7 @@ EXPLOSIVE_STUBTHREAD_TIME = 60
 EXPLOSIVE_FRAMEDELAY = 4
 EXPLOSIVE_YOFFSET         = 4   ;explosives are placed at player's feet
 EXPLOSIVE_XOFFSET         = 4
-EXPLOSIVE_SAFE_DISTANCE   = 32  ;player must be 3 tiles away to not be killed...
+EXPLOSIVE_SAFE_DISTANCE   = 48;32  ;player must be 4 tiles away to not be killed...
 
 EXPLOSIVE_NO             = 0
 EXPLOSIVE_PLACE          = 1     ;explosion mode, enumerable
@@ -252,8 +252,9 @@ RemoveWall:             ;check if there are any wall tiles in the vicinity of th
         sbc #2          ;start checking two rows up
         sta ZP4
         dec ZP6         ;start checking one col left
-        lda #3          ;check a square of 3x3 tiles
+        lda #4          ;check a rectangle of 4x3 tiles
         sta .tileycount
+        lda #3
         sta .tilexcount
         
 -       lda #<L0_MAP_ADDR

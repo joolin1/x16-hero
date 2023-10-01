@@ -40,11 +40,11 @@ DebugPrintError:
 
 DebugPrintInfo:
         +SetPrintParams 1,1,$01
-        +VPrintHex16Number _xpos_lo
+        lda _walkingspeed
+        jsr VPrintHexNumber 
         +SetPrintParams 2,1,$01
-        +VPrintHex16Number _camxpos_lo
-        ; +SetPrintParams 3,1, $01
-        ; +VPrintHex16Number _spr_xpos_lo
+        lda _flyingspeed
+        jsr VPrintHexNumber
         rts
 
 DebugChangeColor:

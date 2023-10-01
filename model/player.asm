@@ -1,14 +1,16 @@
 ;*** player.asm ************************************************************************************
 
-LIFE_COUNT    = 2   ;number of lives for player
-
-WALKINGSPEED  = 1 
+LIFE_COUNT    = 5   ;number of lives for player
 
 MIN_FLYINGSPEED   = 1
 MAX_FLYINGSPEED   = 2
 FLYINGTIME        = 45
 FLYINGSPEED_DELAY = 45
 TAKEOFF_DELAY     = 10
+
+MIN_WALKINGSPEED  = 1
+MAX_WALKINGSPEED  = 2
+WALKINGSPEED_DELAY = 30 
 
 MIN_FALLINGSPEED   = 1
 MAX_FALLINGSPEED   = 16
@@ -17,7 +19,8 @@ GRAVITY            = 1
 
 ;player properties
 _flyingspeed    !word 0         ;16 bit value for easier math
-_flyingtime     !byte 0         ;how long player is flying without boosting
+_flyingtime     !byte 0         ;how long player will continue to fly without boosting
+_walkingspeed   !word 0         ;16 bit value for easier math
 _fallingspeed   !word 0         ;16 bit value for easier math
 _isfalling      !byte 0         ;boolean, whether player is falling or not
 _istakingoff    !byte 0         ;boolean, whether player is taking off (= not yet flying)
@@ -86,6 +89,8 @@ InitPlayer:
         sta _flyingtime
         lda #MIN_FLYINGSPEED
         sta _flyingspeed
+        lda #MIN_WALKINGSPEED
+        sta _walkingspeed
         lda #MIN_FALLINGSPEED
         sta _fallingspeed
         lda #1                  ;start position is flying turning right
@@ -118,6 +123,8 @@ MovePlayerBack:
         sta _flyingtime
         lda #MIN_FLYINGSPEED
         sta _flyingspeed
+        lda #MIN_WALKINGSPEED
+        sta _walkingspeed
         lda #MIN_FALLINGSPEED
         sta _fallingspeed
         rts
@@ -220,6 +227,7 @@ PlayerTick:                     ;advance one frame
         bne +
         jsr .MoveLeft
         jsr .IncreaseFlyingSpeed
+        jsr .IncreaseWalkingSpeed
         rts
 
 +       lda _joy0        
@@ -227,6 +235,7 @@ PlayerTick:                     ;advance one frame
         bne .SetNotMoving
         jsr .MoveRight
         jsr .IncreaseFlyingSpeed
+        jsr .IncreaseWalkingSpeed
         rts
 
 .UpdateLaserAndExplosives:
@@ -252,6 +261,10 @@ PlayerTick:                     ;advance one frame
 .SetNotMoving:
         lda #MIN_FLYINGSPEED
         sta _flyingspeed
+        stz .flyingspeeddelay
+        lda #MIN_WALKINGSPEED
+        sta _walkingspeed
+        stz .walkingspeeddelay
         stz _ismoving
         rts
 
@@ -454,6 +467,8 @@ CheckLandingAndFalling:
         ;handle if tile below is a block
 ++      cmp #TILECAT_BLOCK
         beq +
+        cmp #TILECAT_WALL
+        beq +
         rts
 +       lda _isflying
         bne +
@@ -531,10 +546,18 @@ KeepClearOfWalls:                       ;when falling keep clear of walls to the
 GetCurrentSpeed:               ;OUT: .A = current speed
         lda _isflying
         bne +
-        lda #WALKINGSPEED
+        lda _walkingspeed
         rts
 +       lda _flyingspeed
         rts
+
+.IncreaseWalkingSpeed:
+        +CheckTimer .walkingspeeddelay, WALKINGSPEED_DELAY
+        beq +
+        +IncToLimit _walkingspeed, MAX_WALKINGSPEED
++       rts
+
+.walkingspeeddelay     !byte 0
 
 .IncreaseFallingSpeed:
         +CheckTimer .fallingspeeddelay, FALLINGSPEED_DELAY

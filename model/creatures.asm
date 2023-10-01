@@ -58,6 +58,8 @@ _creaturecount                  !byte 0         ;number of creatures/sprites in 
 _creaturetypetable              !fill MAX_SPRITE_COUNT,0        ;creature type, used to apply right movement pattern
 _creatureypostable              !fill MAX_SPRITE_COUNT*2,0      ;world coordinates (16 bit) for each sprite
 _creaturexpostable              !fill MAX_SPRITE_COUNT*2,0
+_creatureytiletable             !fill MAX_SPRITE_COUNT,0        ;tile cooridnates for each sprite
+_creaturextiletable             !fill MAX_SPRITE_COUNT,0
 _creaturelifetable              !fill MAX_SPRITE_COUNT,0        ;if creature is alive 0 = dead, 1 = alive, 2-5 = dying stages
 _creatureframetable             !fill MAX_SPRITE_COUNT,0        ;which animation frame each sprite is represented by
 _creatureoffsetindextable       !fill MAX_SPRITE_COUNT,0        ;each creatures index for movement table (only relevant for aliens and bats)
@@ -130,13 +132,16 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         stz map_row_h
         stx map_col_l
         stz map_col_h
+        ldy _creaturecount              ;store world coordinates for each sprite in tables
+        lda map_row_l                   ;store tilemap coordinates
+        sta _creatureytiletable,y
+        lda map_col_l
+        sta _creaturextiletable,y
+
         +MultiplyBy16 map_row_l         ;multiply by 16 (tile size) and add 8 (half tile) to get world coordinates
         +MultiplyBy16 map_col_l
         +Add16I map_row_l, 8
         +Add16I map_col_l, 8   
-
-        lda _creaturecount              ;store world coordinates for each sprite in tables
-        tay
 
         ;2 - mark creature as alive, set its type, and give it a random frame and a random movement index 
         lda #CREATURE_ALIVE
@@ -149,7 +154,7 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         sta _creatureframetable,y
 
         ;3 - store world coordinates for each sprite in tables
-        tya
+        tya 
         asl
         tay 
         lda map_row_l

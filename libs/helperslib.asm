@@ -96,7 +96,7 @@
         sta ZP1                 ;now ZP0 and ZP1 = address to element, NOTE! carry is set if overflow
 }
 
-!macro CheckTimer .counter, .limit {        ;IN: address of counter, limit as immediate value. OUT: .A = true if counter has reached its goal otherwise false 
+!macro CheckTimer .counter, .limit {    ;IN: address of counter, limit as immediate value. OUT: .A = true if counter has reached its goal otherwise false 
         inc .counter
         lda .counter
         cmp #.limit
@@ -106,6 +106,19 @@
         bra ++
 +       lda #0
 ++
+}
+
+!macro CheckTimer .counter {   ;IN: address of counter, .A = limit. OUT: .A = true if counter has reached its goal otherwise false 
+        sta ZP0
+        inc .counter
+        lda .counter
+        cmp ZP0
+        bne +
+        stz .counter
+        lda #1
+        bra ++
++       lda #0
+++        
 }
 
 !macro Copy16 .src_lo, .dst_lo {
