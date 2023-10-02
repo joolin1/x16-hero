@@ -525,22 +525,20 @@ NO_POSITION  = 26
 !scr "         "
 !byte 114,115, 98,99, 118,119, 82,83, 168, 134,135, 82,83, 138,139, 74,75, 146,147, 82,83, 0
 !scr 0
-!scr "      inspired by the game h.e.r.o.",0
-!scr 0
-!scr "       for atari and commodore 64",0
-!scr 0
-!scr "         original by john rizen",0
-!scr 0
-!scr 0
-!scr "             copyright 2023",0
 !scr 0
 !scr "          by johan k;rlin and",0
 !scr 0
 !scr "        clergy games productions",0
 !scr 0
-!scr "          all rights reserved",0
+!scr "         using zsound for music",0
 !scr 0
-!scr "              version 0.5",0
+!scr 0
+!scr "      inspired by the game h.e.r.o.",0
+!scr 0
+!scr "       for atari and commodore 64",0
+!scr 0
+!scr 0
+!scr "              version 0.9",0
 
 CREDITSCREEN_ROW_COUNT = 19
 CREDITSCREEN_START_ROW = 5

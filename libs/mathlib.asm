@@ -168,6 +168,8 @@
         eor #$ff
         inc
         sta .address_lo
+        bne +
+        inc .address_lo+1
 +
 }
 

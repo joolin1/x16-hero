@@ -1,8 +1,8 @@
 ;*** board.asm - board displayed when race is finished *********************************************
 
-BOARD_COLORS            = $c1     ;bg color = grey, fg color = white 
-BOARD_SELECTED          = $c1     ;bg color = grey, fg color = white           
-BOARD_UNSELECTED        = $cb     ;bg color = grey, fg color = black
+BOARD_COLORS            = $91     ;bg color = grey, fg color = white 
+BOARD_SELECTED          = $91     ;bg color = grey, fg color = white           
+BOARD_UNSELECTED        = $9b     ;bg color = grey, fg color = black
 
 ;Special characters used for board shadow effect
 BOTTOM_RIGHT_BORDER = 27

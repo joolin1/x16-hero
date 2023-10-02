@@ -58,8 +58,8 @@ _creaturecount                  !byte 0         ;number of creatures/sprites in 
 _creaturetypetable              !fill MAX_SPRITE_COUNT,0        ;creature type, used to apply right movement pattern
 _creatureypostable              !fill MAX_SPRITE_COUNT*2,0      ;world coordinates (16 bit) for each sprite
 _creaturexpostable              !fill MAX_SPRITE_COUNT*2,0
-_creatureytiletable             !fill MAX_SPRITE_COUNT,0        ;tile cooridnates for each sprite
-_creaturextiletable             !fill MAX_SPRITE_COUNT,0
+; _creatureytiletable             !fill MAX_SPRITE_COUNT,0        ;tile cooridnates for each sprite
+; _creaturextiletable             !fill MAX_SPRITE_COUNT,0
 _creaturelifetable              !fill MAX_SPRITE_COUNT,0        ;if creature is alive 0 = dead, 1 = alive, 2-5 = dying stages
 _creatureframetable             !fill MAX_SPRITE_COUNT,0        ;which animation frame each sprite is represented by
 _creatureoffsetindextable       !fill MAX_SPRITE_COUNT,0        ;each creatures index for movement table (only relevant for aliens and bats)
@@ -133,10 +133,10 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         stx map_col_l
         stz map_col_h
         ldy _creaturecount              ;store world coordinates for each sprite in tables
-        lda map_row_l                   ;store tilemap coordinates
-        sta _creatureytiletable,y
-        lda map_col_l
-        sta _creaturextiletable,y
+        ; lda map_row_l                   ;store tilemap coordinates
+        ; sta _creatureytiletable,y
+        ; lda map_col_l
+        ; sta _creaturextiletable,y
 
         +MultiplyBy16 map_row_l         ;multiply by 16 (tile size) and add 8 (half tile) to get world coordinates
         +MultiplyBy16 map_col_l
@@ -196,8 +196,12 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         ora #Z_DEPTH                            ;set Z-depth
         ora spr_coll_mask                       ;set collision mask
         sta VERA_DATA1                          ;set collision mask, z-depth and flips
-        lda #%01010010                          ;height  and width = 16, palette offset = 2
-        sta VERA_DATA1
+        lda _level
+        bne +
+        lda #%01010000 + CREATURE_PALETTE_INDEX
+        bra ++        
++       lda #%01010000 + BLACK_PALETTE_INDEX    ;set height and width (16) and black palette index
+++      sta VERA_DATA1
         stz VERA_CTRL                           ;switch back to data port 0
         
         ;7 - point to next sprite
@@ -516,12 +520,48 @@ UpdateCreatures:                                ;called at VBLANK to update spri
         and #MOVEMENT_COUNT-1
         sta _creatureoffsetindextable,y
 
-        +Add16I VERA_ADDR_L, 2                  ;add 2 to get address for x pos of next sprite       
+        +Inc16 VERA_ADDR_L                      ;step forward to last sprite attribute
+        jsr .LightUpCreature                    ;light up creature if in vicinity
+     
         iny
         cpy _creaturecount
         beq +
         jmp .CreatureLoop        
 +       rts
+
+.LightUpCreature:
+        tya
+        asl
+        tax
+        lda _xpos_lo
+        sta ZP2
+        lda _xpos_hi
+        sta ZP3
+        lda _creaturexpostable,x
+        sta ZP4
+        lda _creaturexpostable+1,X
+        sta ZP5
+        +Sub16 ZP2, ZP4          ;calculate distance between sprite and player
+        +Abs16 ZP2
+        +Cmp16I ZP2, (LIGHT_COLS_LENGTH+1)/2*16-8
+        bcs +
+        lda _ypos_lo
+        sta ZP2
+        lda _ypos_hi
+        sta ZP3
+        lda _creatureypostable,x
+        sta ZP4
+        lda _creatureypostable+1,X
+        sta ZP5
+        +Sub16 ZP2, ZP4
+        +Abs16 ZP2
+        +Cmp16I ZP2, (LIGHT_ROWS_LENGTH+1)/2*16-8
+        bcs +
+        lda #%01010000 + CREATURE_PALETTE_INDEX ;light up creature if in players vicinity
+        sta VERA_DATA0
+        rts
++       +Inc16 VERA_ADDR_L                      ;keep creature dark
+        rts
 
 .GetHorizontalSpritePosition:   ;OUT: ZP0,ZP1 = x pos. x pos = 512 if not visible
         +PositionSprite .pos_lo, .pos_hi, _camxpos_lo, _camxpos_hi, SCREENWIDTH/2, 16

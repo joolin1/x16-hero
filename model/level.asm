@@ -32,8 +32,6 @@ _tilecategorytable      !byte 1,1,1,1 ; 0- 3 (creatures = block, but unimportant
                         !byte 1,1,1,1 ;84-87
 
 LEVEL_COUNT             = 3   ;number of levels in game
-BLACK_PALETTE_INDEX     = 3
-TILE_PALETTE_INDEX      = 4
 
 _levelstarttable        !byte 2,3        ;start row and col for level 1
                         !byte 2,3        ;level 2
@@ -163,7 +161,7 @@ GetSavedMinersCount:            ;OUT: .A = number of saved miners (example: game
         bne --
         rts
 
-LIGHT_ROWS_LENGTH = 7;11
+LIGHT_ROWS_LENGTH = 7
 LIGHT_COLS_LENGTH = 11               
 .light_row = ZP4        
 .light_col = ZP6
