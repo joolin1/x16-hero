@@ -7,39 +7,42 @@ TILECAT_WALL    = 2     ;tiles that can be blasted
 TILECAT_DEATH   = 3     ;tiles that kills the player
 TILECAT_MINER   = 4
 
-;table for mapping tile and category (tiles for creatures will be replaced with a tile of category SPACE)
+;table for mapping tile (max 128!) and category (tiles for creatures will be replaced with a tile of category SPACE)
 _tilecategorytable      !byte 1,1,1,1 ; 0- 3 (creatures = block, but unimportant because it is exchanged)
-                        !byte 1,1,4,0 ; 4- 7 
+                        !byte 1,1,1,4 ; 4- 7 
                         !byte 0,0,0,0 ; 8-11
                         !byte 0,0,0,0 ;12-15
-                        !byte 0,1,1,1 ;16-19
+                        !byte 0,0,1,1 ;16-19
                         !byte 1,1,1,1 ;20-23
                         !byte 1,1,1,1 ;24-27
                         !byte 1,1,1,1 ;28-31
                         !byte 1,1,1,1 ;32-35
-                        !byte 3,3,2,2 ;36-39
-                        !byte 2,1,1,1 ;40-43
+                        !byte 1,3,3,2 ;36-39
+                        !byte 2,2,1,1 ;40-43
                         !byte 1,1,1,1 ;44-47
                         !byte 1,1,1,1 ;48-51
-                        !byte 1,3,0,0 ;52-55
-                        !byte 0,0,2,2 ;56-59
-                        !byte 3,0,0,1 ;60-63
-                        !byte 1,1,1,0 ;64-67
+                        !byte 1,1,3,0 ;52-55
+                        !byte 0,0,0,2 ;56-59
+                        !byte 2,3,0,0 ;60-63
+                        !byte 1,1,1,1 ;64-67
                         !byte 0,0,0,0 ;68-71
-                        !byte 0,1,1,1 ;72-75
-                        !byte 1,3,0,0 ;76-79
+                        !byte 0,0,1,1 ;72-75
+                        !byte 1,1,3,0 ;76-79
                         !byte 0,0,0,0 ;80-83
-                        !byte 1,1,1,1 ;84-87
+                        !byte 0,1,1,1 ;84-87
+                        !byte 1       ;88
 
-LEVEL_COUNT             = 3   ;number of levels in game
+LEVEL_COUNT             = 4   ;number of levels in game
 
-_levelstarttable        !byte 2,3        ;start row and col for level 1
-                        !byte 2,3        ;level 2
-                        !byte 2,30
+_levelstarttable        !byte 2,3       ;start row and col for level 1
+                        !byte 2,3       ;2
+                        !byte 2,30      ;3
+                        !byte 4,3       ;4
 
 ;table for size of levels (0 = 32 tiles, 1 = 64, 2 = 128 and 3 = 256)
 _levelsizetable         !byte 0,1       ;level 0 is only used as background when displaying menu, high score table and credits
                         !byte 0,0       ;height and width in VERA tilemap notation 
+                        !byte 0,0
                         !byte 0,0
                         !byte 0,0
 

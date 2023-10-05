@@ -1,16 +1,17 @@
 ;*** creatures.asm *********************************************************************************
 
 ;creature tiles that are replaced with sprites
-TILE_SPACE              = 7     ;used for replacing sprite tiles and blasted walls
+TILE_SPACE              = 8     ;used for replacing sprite tiles and blasted walls
 TILE_FIRST_CREATURE     = 0
 TILE_SPIDER             = 0
 TILE_CLAW               = 1
 TILE_ALIEN              = 2
-TILE_BAT                = 3
-TILE_PLANT              = 4
-TILE_LAMP               = 5
-TILE_MINER              = 6
-TILE_LAST_CREATURE      = 6
+TILE_BAT_RIGHT          = 3
+TILE_BAT_DOWN           = 4
+TILE_PLANT              = 5
+TILE_LAMP               = 6
+TILE_MINER              = 7
+TILE_LAST_CREATURE      = 7
 
 ;addresses for sprite attributes of first creature that has sprite index 5
 CREATURE_ADDR_L       = $FC28
@@ -26,7 +27,7 @@ CREATURE_ATTR_1       = $FC2F
 SPIDER_ADDR = CREATURE_SPRITES_ADDR >> 5
 CLAW_ADDR   = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE *  8) >> 5
 ALIEN_ADDR  = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 16) >> 5
-BAT_ADDR    = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 24) >> 5
+BAT_ADDR    = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 24) >> 5 ;(same sprite for both bats)
 PLANT_ADDR  = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 32) >> 5
 LAMP_ADDR   = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 40) >> 5
 DIE_ADDR    = (CREATURE_SPRITES_ADDR + CREATURE_SPRITES_SIZE * 52) >> 5 ;animation when creature dies
@@ -44,12 +45,13 @@ Z_DEPTH = 8     ;place sprites between layers
 TYPE_SPIDER     = 0
 TYPE_CLAW       = 1
 TYPE_ALIEN      = 2
-TYPE_BAT        = 3
-TYPE_PLANT      = 4
-TYPE_LAMP       = 5     ;lamps are represented by sprites to allow pixel perfect collisions with player
-TYPE_MINER      = 6     ;miners are sprites to share palette with other sprites instead of tiles
+TYPE_BAT_RIGHT  = 3
+TYPE_BAT_DOWN   = 4
+TYPE_PLANT      = 5
+TYPE_LAMP       = 6     ;lamps are represented by sprites to allow pixel perfect collisions with player
+TYPE_MINER      = 7     ;miners are sprites to share palette with other sprites instead of tiles
 
-_creatureaddrtable      !word SPIDER_ADDR, CLAW_ADDR, ALIEN_ADDR, BAT_ADDR, PLANT_ADDR, LAMP_ADDR, MINER_ADDR  ;used to translate type to address
+_creatureaddrtable      !word SPIDER_ADDR, CLAW_ADDR, ALIEN_ADDR, BAT_ADDR, BAT_ADDR, PLANT_ADDR, LAMP_ADDR, MINER_ADDR  ;used to translate type to address
 
 MAX_SPRITE_COUNT = 64                           ;maximum number of creatures allowed in a tilemap
 _creaturecount                  !byte 0         ;number of creatures/sprites in the tilemap
@@ -58,8 +60,6 @@ _creaturecount                  !byte 0         ;number of creatures/sprites in 
 _creaturetypetable              !fill MAX_SPRITE_COUNT,0        ;creature type, used to apply right movement pattern
 _creatureypostable              !fill MAX_SPRITE_COUNT*2,0      ;world coordinates (16 bit) for each sprite
 _creaturexpostable              !fill MAX_SPRITE_COUNT*2,0
-; _creatureytiletable             !fill MAX_SPRITE_COUNT,0        ;tile cooridnates for each sprite
-; _creaturextiletable             !fill MAX_SPRITE_COUNT,0
 _creaturelifetable              !fill MAX_SPRITE_COUNT,0        ;if creature is alive 0 = dead, 1 = alive, 2-5 = dying stages
 _creatureframetable             !fill MAX_SPRITE_COUNT,0        ;which animation frame each sprite is represented by
 _creatureoffsetindextable       !fill MAX_SPRITE_COUNT,0        ;each creatures index for movement table (only relevant for aliens and bats)
@@ -132,11 +132,8 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         stz map_row_h
         stx map_col_l
         stz map_col_h
-        ldy _creaturecount              ;store world coordinates for each sprite in tables
-        ; lda map_row_l                   ;store tilemap coordinates
-        ; sta _creatureytiletable,y
-        ; lda map_col_l
-        ; sta _creaturextiletable,y
+
+        ldy _creaturecount
 
         +MultiplyBy16 map_row_l         ;multiply by 16 (tile size) and add 8 (half tile) to get world coordinates
         +MultiplyBy16 map_col_l
@@ -263,9 +260,20 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         lda #CREATURE_COLLISION_MASK
         sta spr_coll_mask
         rts
-+       cmp #TILE_BAT
++       cmp #TILE_BAT_RIGHT
         bne +
-        lda #TYPE_BAT
+        lda #TYPE_BAT_RIGHT
+        sta _creaturetypetable,y
+        lda #<BAT_ADDR
+        sta spr_def_addr_l
+        lda #>BAT_ADDR
+        sta spr_def_addr_h
+        lda #CREATURE_COLLISION_MASK
+        sta spr_coll_mask
+        rts
++       cmp #TILE_BAT_DOWN
+        bne +
+        lda #TYPE_BAT_DOWN
         sta _creaturetypetable,y
         lda #<BAT_ADDR
         sta spr_def_addr_l
@@ -342,8 +350,8 @@ MOVEMENT_COUNT                  = 64    ;how many offset positions used for maki
                         !word   0, -2, -3, -5, -6, -8, -9,-10,-11,-12,-13,-14,-15,-15,-16,-16 ;sin angles 180-
                         !word -16,-16,-16,-15,-15,-14,-13,-12,-11,-10, -9, -8, -6, -5, -3, -2 ;sin angles 270-
 
-;movement pattern for bat, move horizontally back and forth slightly slower when turning
-.batxoffsettable        !word   2,  3,  4,  6,  8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30
+;movement pattern for first bat, move horizontally to the right and then back again slightly slower when turning
+.batoffsettable         !word   2,  3,  4,  6,  8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30
                         !word  32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 61
                         !word  62, 61, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 40, 38, 36, 34
                         !word  32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10,  8,  6,  4,  3
@@ -584,14 +592,14 @@ UpdateCreatures:                                ;called at VBLANK to update spri
         sta ZP3
         +Add16 ZP0, ZP2
         rts
-+       cmp #TYPE_BAT
++       cmp #TYPE_BAT_RIGHT
         bne +
         lda _creatureoffsetindextable,y
         asl
         tax
-        lda .batxoffsettable,x
+        lda .batoffsettable,x
         sta ZP2
-        lda .batxoffsettable+1,x
+        lda .batoffsettable+1,x
         sta ZP3
         +Add16 ZP0, ZP2
 +       rts
@@ -599,9 +607,8 @@ UpdateCreatures:                                ;called at VBLANK to update spri
 .AddVerticalOffset:             ;IN: ZP0,ZP1 = current position. OUT: ZP0,ZP1 = new position
         lda _creaturetypetable,y
         cmp #TYPE_ALIEN
-        beq +
-        rts
-+       lda _creatureoffsetindextable,y
+        bne +
+        lda _creatureoffsetindextable,y
         asl
         tax
         lda .alienyoffsettable,x
@@ -610,3 +617,14 @@ UpdateCreatures:                                ;called at VBLANK to update spri
         sta ZP3
         +Add16 ZP0, ZP2
         rts
++       cmp #TYPE_BAT_DOWN
+        bne +
+        lda _creatureoffsetindextable,y
+        asl
+        tax
+        lda .batoffsettable,x
+        sta ZP2
+        lda .batoffsettable+1,x
+        sta ZP3
+        +Add16 ZP0, ZP2        
++       rts
