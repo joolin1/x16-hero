@@ -134,6 +134,7 @@ GetSavedMinersCount:            ;OUT: .A = number of saved miners (example: game
         rts
 
 .BlackOutLevel:
+        rts
         stz VERA_CTRL
         lda #<(L0_MAP_ADDR+1)   ;set first pointer to first tile, second byte that contains the palette index
         sta VERA_ADDR_L
@@ -164,8 +165,8 @@ GetSavedMinersCount:            ;OUT: .A = number of saved miners (example: game
         bne --
         rts
 
-LIGHT_ROWS_LENGTH = 7
-LIGHT_COLS_LENGTH = 11               
+LIGHT_ROWS_LENGTH = 9
+LIGHT_COLS_LENGTH = 9               
 .light_row = ZP4        
 .light_col = ZP6
 .light_rows_count = ZP8
