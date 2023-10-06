@@ -44,10 +44,10 @@ _currenttilebelow       !byte 0
 _lasttilebelow          !byte 0
 
 ;definition of collision box (for example: add Q1_X and Q1_Y to player's position to get top right corner of box)
-COLLBOX_Q1_X =  6
-COLLBOX_Q2_X = -7
-COLLBOX_Q3_X = -7
-COLLBOX_Q4_X =  6
+COLLBOX_Q1_X =  5;6
+COLLBOX_Q2_X =  -6;-7
+COLLBOX_Q3_X =  -6;-7
+COLLBOX_Q4_X =  5;6
 
 COLLBOX_Q1_Y = -13
 COLLBOX_Q2_Y = -13
@@ -489,6 +489,8 @@ CheckLandingAndFalling:
         sta _flyingspeed
         lda #MIN_FALLINGSPEED
         sta _fallingspeed
+        lda #MIN_WALKINGSPEED
+        sta _walkingspeed
         stz _isfalling
         stz _isflying
         stz _ismoving

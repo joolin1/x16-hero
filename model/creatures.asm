@@ -197,7 +197,7 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         bne +
         lda #%01010000 + CREATURE_PALETTE_INDEX
         bra ++        
-+       lda #%01010000 + BLACK_PALETTE_INDEX    ;set height and width (16) and black palette index
++       lda #%01010000 + BLACK_CREATURE_PALETTE_INDEX    ;set height and width (16) and black palette index
 ++      sta VERA_DATA1
         stz VERA_CTRL                           ;switch back to data port 0
         

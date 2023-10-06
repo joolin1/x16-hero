@@ -155,8 +155,8 @@ GetSavedMinersCount:            ;OUT: .A = number of saved miners (example: game
         ldy _levelheight       
 --      ldx _levelwidth
 -       lda VERA_DATA0
-        and #$0f                        ;clear higher bits
-        ora #(BLACK_PALETTE_INDEX<<4)   ;set new palette index and keep the lower bits unchanged
+        and #$0f                                                ;clear higher bits
+        ora #(BLACK_TILE_PALETTE_INDEX<<4)       ;set new palette index and keep the lower bits unchanged
         sta VERA_DATA1
         dex
         bne -
