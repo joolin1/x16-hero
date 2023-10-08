@@ -34,9 +34,10 @@ _tilecategorytable      !byte 1,1,1,1 ; 0- 3 (creatures = block, but unimportant
 
 LEVEL_COUNT             = 4   ;number of levels in game
 
-_levelstarttable        !byte 2,3       ;start row and col for level 1
-                        !byte 2,3       ;2
-                        !byte 2,30      ;3
+;table for start row and col for levles
+_levelstarttable        !byte 1,3       ;start row and col for level 1
+                        !byte 1,4       ;2
+                        !byte 0,30      ;3
                         !byte 4,3       ;4
 
 ;table for size of levels (0 = 32 tiles, 1 = 64, 2 = 128 and 3 = 256)
@@ -45,6 +46,8 @@ _levelsizetable         !byte 0,1       ;level 0 is only used as background when
                         !byte 0,0
                         !byte 0,0
                         !byte 0,0
+
+_leveldarktable         !byte 0,0,0,1,0 ;whether a level should be dark from the beginning
 
 _startlevel             !byte 1         ;which level game starts on, default is 1
 _level                  !byte 0         ;current level (zero-indexed)
@@ -134,8 +137,11 @@ GetSavedMinersCount:            ;OUT: .A = number of saved miners (example: game
         rts
 
 .BlackOutLevel:
+        ldy _level
+        lda _leveldarktable,y
+        bne +
         rts
-        stz VERA_CTRL
++       stz VERA_CTRL
         lda #<(L0_MAP_ADDR+1)   ;set first pointer to first tile, second byte that contains the palette index
         sta VERA_ADDR_L
         lda #>(L0_MAP_ADDR+1)
@@ -165,8 +171,8 @@ GetSavedMinersCount:            ;OUT: .A = number of saved miners (example: game
         bne --
         rts
 
-LIGHT_ROWS_LENGTH = 9
-LIGHT_COLS_LENGTH = 9               
+LIGHT_ROWS_LENGTH = 5
+LIGHT_COLS_LENGTH = 5               
 .light_row = ZP4        
 .light_col = ZP6
 .light_rows_count = ZP8

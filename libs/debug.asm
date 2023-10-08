@@ -39,12 +39,12 @@ DebugPrintError:
 .errormessage    !scr "error ",0
 
 DebugPrintInfo:
-        +SetPrintParams 1,1,$01
-        lda _walkingspeed
-        jsr VPrintHexNumber 
-        +SetPrintParams 2,1,$01
-        lda _flyingspeed
-        jsr VPrintHexNumber
+        ; +SetPrintParams 1,1,$01
+        ; lda .sprcolinfo
+        ; jsr VPrintHexNumber 
+        ; +SetPrintParams 2,1,$01
+        ; lda _flyingspeed
+        ; jsr VPrintHexNumber
         rts
 
 DebugChangeColor:

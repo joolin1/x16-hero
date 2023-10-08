@@ -45,14 +45,6 @@ _joy_playback   !byte 0 ;boolean - turn on or off whether recorded data or actua
 ;*** Public functions **********************************************************
 
 InitJoysticks:
-
-        ;*** TEMP ****
-        stz .joy0mapping
-        lda #1
-        sta .joy1mapping
-        rts
-        ;*** END TEMP ****
-
         jsr joystick_scan
         lda #1
         sta .joystick_count     ;keyboard joystick is always present

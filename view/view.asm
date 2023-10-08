@@ -17,7 +17,6 @@ _camypos_hi     !byte 0
 
 UpdateView:    ;Called at vertical blank to update level, text and sprites.
         jsr UpdateTilemap
-        jsr UpdateTileColors
         ; jsr UpdateCreatures      
         ; jsr UpdatePlayerSprite 
         ; jsr UpdateLight

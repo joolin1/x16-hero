@@ -351,10 +351,15 @@ MOVEMENT_COUNT                  = 64    ;how many offset positions used for maki
                         !word -16,-16,-16,-15,-15,-14,-13,-12,-11,-10, -9, -8, -6, -5, -3, -2 ;sin angles 270-
 
 ;movement pattern for first bat, move horizontally to the right and then back again slightly slower when turning
-.batoffsettable         !word   2,  3,  4,  6,  8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30
-                        !word  32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 61
-                        !word  62, 61, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 40, 38, 36, 34
-                        !word  32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10,  8,  6,  4,  3
+; .batoffsettable         !word   2,  3,  4,  6,  8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30
+;                         !word  32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 61
+;                         !word  62, 61, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 40, 38, 36, 34
+;                         !word  32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10,  8,  6,  4,  3
+
+.batoffsettable         !word -30,-29,-28,-26,-24,-22,-20,-18,-16,-14,-12,-10, -8, -6, -4, -2
+                        !word   0,  2,  4,  6,  8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 29
+                        !word  30, 29, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10,  8,  6,  4,  2
+                        !word   0, -2, -4, -6, -8,-10,-12,-14,-16,-18,-20,-22,-24,-26,-28,-29
 
 ;temp variables
 .pos_lo         = ZPA
@@ -537,6 +542,9 @@ UpdateCreatures:                                ;called at VBLANK to update spri
         jmp .CreatureLoop        
 +       rts
 
+LIGHT_CREATURE_ROWS_LENGTH = 5*16-8
+LIGHT_CREATURE_COLS_LENGTH = 5*16-8  
+
 .LightUpCreature:
         tya
         asl
@@ -551,7 +559,7 @@ UpdateCreatures:                                ;called at VBLANK to update spri
         sta ZP5
         +Sub16 ZP2, ZP4          ;calculate distance between sprite and player
         +Abs16 ZP2
-        +Cmp16I ZP2, (LIGHT_COLS_LENGTH+1)/2*16-8
+        +Cmp16I ZP2, LIGHT_CREATURE_COLS_LENGTH
         bcs +
         lda _ypos_lo
         sta ZP2
@@ -563,7 +571,7 @@ UpdateCreatures:                                ;called at VBLANK to update spri
         sta ZP5
         +Sub16 ZP2, ZP4
         +Abs16 ZP2
-        +Cmp16I ZP2, (LIGHT_ROWS_LENGTH+1)/2*16-8
+        +Cmp16I ZP2, LIGHT_CREATURE_ROWS_LENGTH
         bcs +
         lda #%01010000 + CREATURE_PALETTE_INDEX ;light up creature if in players vicinity
         sta VERA_DATA0

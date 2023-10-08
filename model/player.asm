@@ -81,6 +81,8 @@ InitPlayer:
         stz _xpos_hi
         +MultiplyBy16 _ypos_lo
         +MultiplyBy16 _xpos_lo
+        +Add16I _ypos_lo,8
+        +Add16I _xpos_lo,8
         lda #-1
         sta _lasttilebelow
 

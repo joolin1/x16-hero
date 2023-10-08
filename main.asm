@@ -85,9 +85,9 @@ ST_QUITGAME        = 22  ;quit game
 -       !byte $cb		        ;wait for an interrupt to trigger (ACME does not know the opcode WAI)
         lda .vsynctrigger               ;check if interrupt was triggered by on vertical blank
         beq -
-        ;jsr ChangeDebugColor
+        ;jsr DebugChangeColor
         jsr .GameTick
-        ;jsr RestoreDebugColor
+        ;jsr DebugRestoreColor
         stz .vsynctrigger     
         lda _gamestatus
         cmp #ST_QUITGAME 
@@ -226,15 +226,16 @@ _gamestatus             !byte 0
         jsr .CheckForPause              ;check for pause before starting to change the model for next frame
         bcc +
         rts
-+       jsr UpdateCreatures      
-        jsr UpdatePlayerSprite 
-        jsr UpdateLight
-        jsr UpdateStatusTime
-        jsr UpdateExplosion
-        jsr LightUpLevel
-        ;jsr DebugPrintInfo      ;TEMP
+; +       jsr UpdateTileColors
+;         jsr UpdateCreatures      
+;         jsr UpdatePlayerSprite 
+;         jsr UpdateLight
+;         jsr UpdateStatusTime
+;         jsr UpdateExplosion
+;         jsr LightUpLevel
+
         
-        lda .sprcolinfo
++       lda .sprcolinfo
         beq ++
         and #$f0                        ;only keep collision info
         
@@ -251,7 +252,6 @@ _gamestatus             !byte 0
         ;collision creature - creature
 +       cmp #$30
         bne +
-        stz .sprcolinfo
         bra ++
 
         ;collision player - creature        
@@ -262,29 +262,35 @@ _gamestatus             !byte 0
         jsr PlayPlayerKilledSound 
         lda #ST_DEATH_CREATURE
         sta _gamestatus
+        stz .sprcolinfo
         rts
 
         ;collision laserbeam - creature
 +       cmp #$20
         bne +
         jsr KillCreature
-        stz .sprcolinfo
         bra ++
 
         ;collision player - lamp
 +       cmp #$40
         bne ++
         jsr TurnOffLight                ;collision between player and a lamp has occurred, turn off light and set dark time counter
-        stz .sprcolinfo
 
-++      jsr PlayerTick                  ;move hero and take actions depending on new position
+++
+        jsr UpdateTileColors
+        jsr UpdateCreatures      
+        jsr UpdatePlayerSprite 
+        jsr UpdateLight
+        jsr UpdateStatusTime
+        jsr UpdateExplosion
+        jsr LightUpLevel
+
+        ;prepare next frame
+        jsr PlayerTick                  ;move hero and take actions depending on new position
         jsr UpdateCameraPosition        ;set camera in relation to where hero is
         jsr TimeTick
-        ; lda _levelcompleted
-        ; beq +
-        ; lda #ST_LEVELCOMPLETED
-        ; sta _gamestatus
-+       rts
+        stz .sprcolinfo                 ;accept new sprite collision interrupts
+        rts
 
 .InitStartScreen:                       ;init start screen
         ;*** SKIP IMAGE ***
@@ -420,6 +426,7 @@ _gamestatus             !byte 0
 .RestartLevel:
         jsr UpdateStatusBar
         jsr ShowPlayer
+        stz .sprcolinfo
         lda #ST_RUNNING
         sta _gamestatus
         rts       
@@ -430,6 +437,7 @@ _gamestatus             !byte 0
         beq +
         jsr PlayEngineSound
 +       jsr UpdateView
+        stz .sprcolinfo
         lda #ST_RUNNING
         sta _gamestatus
         rts
