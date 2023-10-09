@@ -85,6 +85,7 @@ ST_QUITGAME        = 22  ;quit game
 -       !byte $cb		        ;wait for an interrupt to trigger (ACME does not know the opcode WAI)
         lda .vsynctrigger               ;check if interrupt was triggered by on vertical blank
         beq -
+        
         ;jsr DebugChangeColor
         jsr .GameTick
         ;jsr DebugRestoreColor
@@ -107,33 +108,57 @@ _gamestatus             !byte 0
 	sta .defaulthandler_lo
 	lda IRQ_HANDLER_H
 	sta .defaulthandler_hi
-	lda #<.IrqHandler	        ;set custom IRQ handler
+	lda #<.IRQHandler	        ;set custom IRQ handler
 	sta IRQ_HANDLER_L
-	lda #>.IrqHandler
+	lda #>.IRQHandler
 	sta IRQ_HANDLER_H	
 	lda #5                          ;enable vertical blanking and sprite collision interrupts
 	sta VERA_IEN
 	cli
         rts
 
-.IrqHandler:
-        lda VERA_ISR
-        sta .current_vera_isr
-        bit #4                          ;sprite collision interrupt?
-        beq +
-        ldx .sprcolinfo
-        bne +
-        sta .sprcolinfo
-+       bit #1                          ;vertical blank interrupt?
-        beq +
-        sta .vsynctrigger
-        lda _gamestatus
-        cmp #ST_RUNNING
-        bne +
-        jsr UpdateView                  ;update screen when game is running
-+       lda .current_vera_isr
-        sta VERA_ISR
-        jmp (.defaulthandler_lo)     
+.IRQHandler:    pha
+                lda VERA_ISR
+                sta .current_vera_isr
+                bit #1                          ;Vertical blank interrupt?
+                bne +
+                lda .current_vera_isr
+                sta VERA_ISR
+                pla
+                rti 
++               sta .vsynctrigger
+                stz .sprcolinfo
+                bit #4                          ;Is there a sprite collision?
+                beq +
+                sta .sprcolinfo                 ;save info if player or laserbeam has collided with creature
++               lda _gamestatus
+                cmp #ST_RUNNING
+                bne .EndHandler
+                jsr UpdateView                  ;scroll tilemap here immediately because opcode wai causes a small delay
+  
+.EndHandler:    lda .current_vera_isr
+                sta VERA_ISR                    ;enable further interrupts
+                pla
+                jmp (.defaulthandler_lo)        ;continue to default handler when VB interrupt
+
+; .IrqHandler:
+;         lda VERA_ISR
+;         sta .current_vera_isr
+;         bit #4                          ;sprite collision interrupt?
+;         beq +
+;         ldx .sprcolinfo
+;         bne +
+;         sta .sprcolinfo
+; +       bit #1                          ;vertical blank interrupt?
+;         beq +
+;         sta .vsynctrigger
+;         lda _gamestatus
+;         cmp #ST_RUNNING
+;         bne +
+;         jsr UpdateView                  ;update screen when game is running
+; +       lda .current_vera_isr
+;         sta VERA_ISR
+;         jmp (.defaulthandler_lo)     
 
 .current_vera_isr       !byte 0
 
@@ -246,7 +271,7 @@ _gamestatus             !byte 0
         sta _levelcompleted
         lda #ST_LEVELCOMPLETED
         sta _gamestatus
-        stz .sprcolinfo
+        ;stz .sprcolinfo
         rts
 
         ;collision creature - creature
@@ -262,7 +287,7 @@ _gamestatus             !byte 0
         jsr PlayPlayerKilledSound 
         lda #ST_DEATH_CREATURE
         sta _gamestatus
-        stz .sprcolinfo
+        ;stz .sprcolinfo
         rts
 
         ;collision laserbeam - creature
@@ -289,7 +314,7 @@ _gamestatus             !byte 0
         jsr PlayerTick                  ;move hero and take actions depending on new position
         jsr UpdateCameraPosition        ;set camera in relation to where hero is
         jsr TimeTick
-        stz .sprcolinfo                 ;accept new sprite collision interrupts
+        ;stz .sprcolinfo                 ;accept new sprite collision interrupts
         rts
 
 .InitStartScreen:                       ;init start screen
@@ -418,7 +443,7 @@ _gamestatus             !byte 0
         jsr ShowPlayer
         jsr TurnOnLight
         jsr EnableLayer0
-        stz .sprcolinfo
+        ;stz .sprcolinfo
         lda #ST_RUNNING
         sta _gamestatus
         rts
@@ -426,7 +451,7 @@ _gamestatus             !byte 0
 .RestartLevel:
         jsr UpdateStatusBar
         jsr ShowPlayer
-        stz .sprcolinfo
+        ;stz .sprcolinfo
         lda #ST_RUNNING
         sta _gamestatus
         rts       
@@ -437,7 +462,7 @@ _gamestatus             !byte 0
         beq +
         jsr PlayEngineSound
 +       jsr UpdateView
-        stz .sprcolinfo
+        ;stz .sprcolinfo
         lda #ST_RUNNING
         sta _gamestatus
         rts
@@ -491,7 +516,7 @@ _gamestatus             !byte 0
         bne +
         jsr KillPlayerAndCreature               ;OUT: .Y = creature index
         jsr DisableCreatureSprite               ;player looses a life but at least the creature is killed/removed too ...
-        stz .sprcolinfo                         ;allow new collisions
+        ;stz .sprcolinfo                         ;allow new collisions
 +       cmp #ST_DEATH_LAVA
         bne +
         jsr MovePlayerBack                      ;move player to former position to avoid dying over and over again ...
@@ -593,7 +618,7 @@ GAME_OVER_DELAY = 300
 .RestartGame:                           ;help function
         jsr HidePlayer
         jsr HideCreatures
-        stz .sprcolinfo
+        ;stz .sprcolinfo
         jsr GetSavedMinersCount
         sta ZP0
         lda _minutes                    ;set back time to when last level was completed

@@ -39,12 +39,9 @@ DebugPrintError:
 .errormessage    !scr "error ",0
 
 DebugPrintInfo:
-        ; +SetPrintParams 1,1,$01
+        ; +SetPrintParams 4,4,$01
         ; lda .sprcolinfo
         ; jsr VPrintHexNumber 
-        ; +SetPrintParams 2,1,$01
-        ; lda _flyingspeed
-        ; jsr VPrintHexNumber
         rts
 
 DebugChangeColor:
