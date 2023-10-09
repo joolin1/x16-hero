@@ -119,14 +119,9 @@ _gamestatus             !byte 0
 
 .IRQHandler:    pha
                 lda VERA_ISR
-                sta .current_vera_isr
                 bit #1                          ;Vertical blank interrupt?
-                bne +
-                lda .current_vera_isr
-                sta VERA_ISR
-                pla
-                rti 
-+               sta .vsynctrigger
+                beq .EndHandler
+                sta .vsynctrigger
                 stz .sprcolinfo
                 bit #4                          ;Is there a sprite collision?
                 beq +
@@ -134,33 +129,11 @@ _gamestatus             !byte 0
 +               lda _gamestatus
                 cmp #ST_RUNNING
                 bne .EndHandler
-                jsr UpdateView                  ;scroll tilemap here immediately because opcode wai causes a small delay
-  
-.EndHandler:    lda .current_vera_isr
-                sta VERA_ISR                    ;enable further interrupts
+                jsr UpdateView                  ;scroll tilemap here immediately because opcode wai causes a small delay 
+.EndHandler:    lda #5                          ;enable further vertrical blanking and sprite collision interrupts 
+                sta VERA_ISR                    
                 pla
                 jmp (.defaulthandler_lo)        ;continue to default handler when VB interrupt
-
-; .IrqHandler:
-;         lda VERA_ISR
-;         sta .current_vera_isr
-;         bit #4                          ;sprite collision interrupt?
-;         beq +
-;         ldx .sprcolinfo
-;         bne +
-;         sta .sprcolinfo
-; +       bit #1                          ;vertical blank interrupt?
-;         beq +
-;         sta .vsynctrigger
-;         lda _gamestatus
-;         cmp #ST_RUNNING
-;         bne +
-;         jsr UpdateView                  ;update screen when game is running
-; +       lda .current_vera_isr
-;         sta VERA_ISR
-;         jmp (.defaulthandler_lo)     
-
-.current_vera_isr       !byte 0
 
 .QuitGame:                       
  	sei                             ;restore default irq handler

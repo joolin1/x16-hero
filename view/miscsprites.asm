@@ -36,7 +36,6 @@ LASER_STOP      = 63
 LASER_FIRE_TIME         = 30
 LASER_YOFFSET           = 8     ;laserbeam will radiate this many pixels down from the top of the player sprite
 
-
 _laser_xpos_lo      !byte 0 ;current laser position in pixels
 _laser_xpos_hi      !byte 0   
 _laser_ypos_lo      !byte 0
