@@ -33,7 +33,7 @@ EXPLOSIVE_STOP  = 51
 LASER_START     = 56
 LASER_STOP      = 63
 
-LASER_FIRE_TIME         = 30
+LASER_FIRE_TIME         = 45;30
 LASER_YOFFSET           = 8     ;laserbeam will radiate this many pixels down from the top of the player sprite
 
 _laser_xpos_lo      !byte 0 ;current laser position in pixels
@@ -325,8 +325,12 @@ SetExplosiveSpritePosition:
         rts
 
 FireLaser:
-        lda .laserenabled
+        lda .laserenabled       ;is laser loaded?
         bne +
+        rts
++       lda _laserpossible      ;is it possible to fire laser (= no tile is blocking)
+        bne +
+        jsr StopLaser
         rts
 
 +       lda .lasertime
@@ -385,12 +389,20 @@ FireLaser:
         jsr SetLaserSpritePosition
 
         ;set attributes
-        lda #LASER_COLLISION_MASK+8
-        clc
-        adc _ismovingleft
-        sta VERA_DATA0              ;set collision mask, enable sprite and flip laser horizontally if player is facing left
+;         cpx #1
+;         bne +
+;         lda _laserpossible
+;         cmp #1
+;         bne +
+;         lda #0                      ;if second sprite and only half length of fire possible, hide this sprite
+;         bra ++        
+; +       lda #LASER_COLLISION_MASK+8
+;         clc
+;         adc _ismovingleft
+        jsr GetLaserSpriteAttribute     ;OUT: .A = sprite attribute
+++      sta VERA_DATA0                  ;set collision mask, enable sprite and flip laser horizontally if player is facing left
         lda #%01010010                  
-        sta VERA_DATA0              ;set 16x16 and palette 2
+        sta VERA_DATA0                  ;set 16x16 and palette 2
 
         inx
         cpx #2
@@ -403,6 +415,33 @@ FireLaser:
         bne +
         jsr StopLaser
 +       rts
+
+GetLaserSpriteAttribute:                ;OUT: .A = sprite attribute
+        lda _laserpossible
+        cmp #2
+        bne +
+        lda #LASER_COLLISION_MASK+8     ;it is possible to fire full distance => display both laser sprites
+        clc
+        adc _ismovingleft
+        rts
++       lda _ismovingleft
+        bne ++
+
+        ;player is moving left
+        cpx #0
+        beq +
+        lda #0                          ;hide first sprite when moving left
+        rts
++       lda #LASER_COLLISION_MASK+8+1   ;display second sprite which is closest to the player when moving left
+        rts
+
+        ;player  is moving right
+++      cpx #0
+        beq +
+        lda #LASER_COLLISION_MASK+8     ;display first sprite which  is closest to the player when moving right
+        rts
++       lda #0                          ;hide second sprite when moving right
+        rts
 
 SetLaserSpritePosition:
         +PositionSprite _laser_xpos_lo, _laser_xpos_hi, _camxpos_lo, _camxpos_hi, SCREENWIDTH/2, 16

@@ -141,9 +141,11 @@ _gamestatus             !byte 0
 	sta IRQ_HANDLER_L
 	lda .defaulthandler_hi
 	sta IRQ_HANDLER_H
-	cli
         jsr RestoreScreenAndSprites
         jsr Z_stopmusic
+        lda #1
+        sta VERA_ISR
+        cli
         rts
 
 .GameTick:                              ;this subroutine is called every jiffy and advances the game one frame
@@ -224,14 +226,6 @@ _gamestatus             !byte 0
         jsr .CheckForPause              ;check for pause before starting to change the model for next frame
         bcc +
         rts
-; +       jsr UpdateTileColors
-;         jsr UpdateCreatures      
-;         jsr UpdatePlayerSprite 
-;         jsr UpdateLight
-;         jsr UpdateStatusTime
-;         jsr UpdateExplosion
-;         jsr LightUpLevel
-
         
 +       lda .sprcolinfo
         beq ++
@@ -244,7 +238,6 @@ _gamestatus             !byte 0
         sta _levelcompleted
         lda #ST_LEVELCOMPLETED
         sta _gamestatus
-        ;stz .sprcolinfo
         rts
 
         ;collision creature - creature
@@ -260,7 +253,6 @@ _gamestatus             !byte 0
         jsr PlayPlayerKilledSound 
         lda #ST_DEATH_CREATURE
         sta _gamestatus
-        ;stz .sprcolinfo
         rts
 
         ;collision laserbeam - creature
@@ -287,7 +279,7 @@ _gamestatus             !byte 0
         jsr PlayerTick                  ;move hero and take actions depending on new position
         jsr UpdateCameraPosition        ;set camera in relation to where hero is
         jsr TimeTick
-        ;stz .sprcolinfo                 ;accept new sprite collision interrupts
+        ;jsr DebugPrintInfo
         rts
 
 .InitStartScreen:                       ;init start screen
@@ -416,7 +408,6 @@ _gamestatus             !byte 0
         jsr ShowPlayer
         jsr TurnOnLight
         jsr EnableLayer0
-        ;stz .sprcolinfo
         lda #ST_RUNNING
         sta _gamestatus
         rts
@@ -424,7 +415,6 @@ _gamestatus             !byte 0
 .RestartLevel:
         jsr UpdateStatusBar
         jsr ShowPlayer
-        ;stz .sprcolinfo
         lda #ST_RUNNING
         sta _gamestatus
         rts       
@@ -435,7 +425,6 @@ _gamestatus             !byte 0
         beq +
         jsr PlayEngineSound
 +       jsr UpdateView
-        ;stz .sprcolinfo
         lda #ST_RUNNING
         sta _gamestatus
         rts
@@ -489,7 +478,6 @@ _gamestatus             !byte 0
         bne +
         jsr KillPlayerAndCreature               ;OUT: .Y = creature index
         jsr DisableCreatureSprite               ;player looses a life but at least the creature is killed/removed too ...
-        ;stz .sprcolinfo                         ;allow new collisions
 +       cmp #ST_DEATH_LAVA
         bne +
         jsr MovePlayerBack                      ;move player to former position to avoid dying over and over again ...
@@ -591,7 +579,6 @@ GAME_OVER_DELAY = 300
 .RestartGame:                           ;help function
         jsr HidePlayer
         jsr HideCreatures
-        ;stz .sprcolinfo
         jsr GetSavedMinersCount
         sta ZP0
         lda _minutes                    ;set back time to when last level was completed

@@ -43,6 +43,8 @@ _last_ypos_hi   !byte 0
 _currenttilebelow       !byte 0
 _lasttilebelow          !byte 0
 
+_laserpossible          !byte 0 ;0 = tile is blocking laser, 1 = laser can fire one tile, 2 = laser can fire two tiles
+
 ;definition of collision box (for example: add Q1_X and Q1_Y to player's position to get top right corner of box)
 COLLBOX_Q1_X =  5;6
 COLLBOX_Q2_X =  -6;-7
@@ -143,6 +145,7 @@ PlayerTick:                     ;advance one frame
 
         jsr .SetCollisionBox
         jsr .UpdatePlayerPosition
+        jsr CheckLaserPossible
         jsr .UpdateLaserAndExplosives
         jsr CheckLandingAndFalling
         lda _currenttilebelow
@@ -439,6 +442,50 @@ CheckTileStatus:                        ;IN: ZP4, ZP5 = y coordinate, ZP6, ZP7 =
         tay
         lda _tilecategorytable,y        ;read tile category
         rts                             ;OUT: .A = tile
+
+CheckLaserPossible:
+        lda _ismovingleft
+        bne +
+        lda #16
+        sta .tileoffset
+        stz .tileoffset+1
+        bra ++
++       lda #-16
+        sta .tileoffset
+        lda #-1
+        sta .tileoffset+1
+
+        ;check tile beside player
+++      +Copy16 _ypos_lo, ZP4
+        +Copy16 _xpos_lo, ZP6
+        +Sub16I ZP4, 8                 
+        +Add16 ZP6, .tileoffset
+        jsr CheckTileStatus             
+        cmp #TILECAT_BLOCK
+        beq +
+        cmp #TILECAT_WALL
+        beq +
+        lda #1
+        sta _laserpossible
+        bra ++
++       stz _laserpossible
+        rts
+
+        ;check the tile after that beside player
+++      +Copy16 _ypos_lo, ZP4
+        +Copy16 _xpos_lo, ZP6
+        +Sub16I ZP4, 8
+        +Add16 ZP6, .tileoffset
+        +Add16 ZP6, .tileoffset
+        jsr CheckTileStatus
+        cmp #TILECAT_BLOCK
+        beq +
+        cmp #TILECAT_WALL
+        beq +
+        inc _laserpossible
++       rts
+
+.tileoffset     !word 0
 
 CheckLandingAndFalling:
         +Copy16 _ypos_lo, ZP4

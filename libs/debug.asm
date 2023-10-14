@@ -39,9 +39,13 @@ DebugPrintError:
 .errormessage    !scr "error ",0
 
 DebugPrintInfo:
-        ; +SetPrintParams 4,4,$01
-        ; lda .sprcolinfo
-        ; jsr VPrintHexNumber 
+        +SetPrintParams 2,2,$01
+        lda _laserpossible
+        jsr VPrintHexNumber
+        +SetPrintParams 4,2
+        +VPrintHex16Number _ypos_lo
+        +SetPrintParams 5,2
+        +VPrintHex16Number _xpos_lo
         rts
 
 DebugChangeColor:
