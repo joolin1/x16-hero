@@ -56,7 +56,7 @@ LEVEL_REALLY_DARK   = 3 ;light around player just the closes vicinity
 LEVEL_LIMITED_DARK_COLS  = 32   ;how far the light will reach
 LEVEL_LIMITED_DARK_ROWs  = 7
 LEVEL_MODERATE_DARK_DIST = 9
-LEVEL_REALLY_DARK_DIST   = 4
+LEVEL_REALLY_DARK_DIST   = 5
 
 ;table deciding if a level should be dark from the beginning
 _leveldarktable         !byte 0                         ;level 0 consists of title screens, not dark of course
