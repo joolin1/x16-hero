@@ -176,6 +176,13 @@ BurnExplosive:
         sta _explosivemode
 +       rts
 
+AbortExplosion:
+        +VPokeI EXPLOSIVES_ATTR_0,0    ;disable sprite
+        jsr RestoreBackgrounColors
+        lda #EXPLOSIVE_NO
+        sta _explosivemode
+        rts
+
 SaveBackgroundColors:   ;save color 1 and 2 in tile palette
         lda #<TILES_PALETTES_ADDR+2
         sta VERA_ADDR_L

@@ -73,6 +73,7 @@ LASER_COLLISION  = 1
 .colltype       = ZPD   ;player or laser colliding
 
 KillPlayerAndCreature:                  ;OUT: .Y = index of creature that player collided with
+        jsr AbortExplosion
         jsr .GetPlayerPosition
         lda #PLAYER_COLLISION
         sta .colltype

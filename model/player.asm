@@ -276,7 +276,8 @@ PlayerTick:                     ;advance one frame
 KillPlayerLava:
         jsr ShowDeadPlayer
         jsr StopPlayerSounds
-        jsr PlayPlayerKilledSound 
+        jsr PlayPlayerKilledSound
+        jsr AbortExplosion 
         lda #ST_DEATH_LAVA
         sta _gamestatus
         rts
@@ -355,7 +356,7 @@ KillPlayerLava:
         bne ++
         +Sub16 _ypos_lo, _flyingspeed   ;both corners are open, move up
         rts                             
-+       lda .upperrightstatus            ;left is blocked, what about right?
++       lda .upperrightstatus           ;left is blocked, what about right?
         cmp #TILECAT_SPACE
         bne +
         +Add16I _xpos_lo, 1             ;left is blocked, right open, move player closer to the opening to the right

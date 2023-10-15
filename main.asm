@@ -250,7 +250,8 @@ _gamestatus             !byte 0
         bne +
         jsr ShowDeadPlayer
         jsr StopPlayerSounds
-        jsr PlayPlayerKilledSound 
+        jsr PlayPlayerKilledSound
+        jsr AbortExplosion 
         lda #ST_DEATH_CREATURE
         sta _gamestatus
         rts
@@ -469,7 +470,7 @@ _gamestatus             !byte 0
         sta _gamestatus
         rts
 
-.PlayerKilled:                  ;player killed by a creature, a too close explosion or touching lava
+.PlayerKilled:                  ;player killed by a creature, a too close to explosion or touching lava
         +CheckTimer2 .deaddelay, DEAD_DELAY     ;returns .A = true if timer ready  
         bne +
         rts 
@@ -477,7 +478,7 @@ _gamestatus             !byte 0
         cmp #ST_DEATH_CREATURE
         bne +
         jsr KillPlayerAndCreature               ;OUT: .Y = creature index
-        jsr DisableCreatureSprite               ;player looses a life but at least the creature is killed/removed too ...
+        jsr DisableCreatureSprite               ;player looses a life but at least the creature is killed/removed too ... 
 +       cmp #ST_DEATH_LAVA
         bne +
         jsr MovePlayerBack                      ;move player to former position to avoid dying over and over again ...
@@ -496,6 +497,7 @@ DEAD_DELAY = 120
 .LevelCompleted:                         ;level and maybe game completed step 1
         jsr StopPlayerSounds
         jsr StopLaser
+        jsr AbortExplosion
         lda _minutes
         sta _lastlevel_minutes
         lda _seconds
