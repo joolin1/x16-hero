@@ -6,7 +6,7 @@ MIN_FLYINGSPEED   = 1
 MAX_FLYINGSPEED   = 2
 FLYINGTIME        = 45
 FLYINGSPEED_DELAY = 45
-TAKEOFF_DELAY     = 10
+TAKEOFF_DELAY     = 0;10
 
 MIN_WALKINGSPEED  = 1
 MAX_WALKINGSPEED  = 2
@@ -321,22 +321,51 @@ KillPlayerLava:
         +Copy16 _collboxq2_x, ZP6
         jsr GetCurrentSpeed  ;returns speed in .A     
         +Sub16 ZP4           ;ZP4-.A          
-        +BreakIfTileIsBlocking
+        ;+BreakIfTileIsBlocking
+        jsr CheckTileStatus
+        sta .upperleftstatus
+        cmp #TILECAT_DEATH
+        bne +
+        jsr KillPlayerLava
+        rts
 
         ;check top right corner of collision box
-        +Copy16 _collboxq1_y, ZP4
++       +Copy16 _collboxq1_y, ZP4
         +Copy16 _collboxq1_x, ZP6
         jsr GetCurrentSpeed  ;returns speed in .A     
         +Sub16 ZP4           ;ZP4-.A          
-        +BreakIfTileIsBlocking
- 
+        ;+BreakIfTileIsBlocking
+        jsr CheckTileStatus
+        sta .upperrightstatus
+        cmp #TILECAT_DEATH
+        bne +
+        jsr KillPlayerLava
+        rts
+
 +       +Cmp16I _ypos_lo, 16            ;block player from flying too far up
         bcs +
         rts
-+       +Sub16 _ypos_lo, _flyingspeed
+
+        ;decide what to do depending on status of upper corners
++       lda .upperleftstatus
+        cmp #TILECAT_SPACE
+        bne +
+        lda .upperrightstatus
+        cmp #TILECAT_SPACE
+        bne ++
+        +Sub16 _ypos_lo, _flyingspeed   ;both corners are open, move up
+        rts                             
++       lda .upperrightstatus            ;left is blocked, what about right?
+        cmp #TILECAT_SPACE
+        bne +
+        +Add16I _xpos_lo, 1             ;left is blocked, right open, move player closer to the opening to the right
++       rts
+++      +Sub16I _xpos_lo, 1             ;left is open, right is blocked, move player closer to the opening to the left
         rts
 
 .takeoffdelay   !byte 0
+.upperleftstatus  !byte 0
+.upperrightstatus  !byte 0
 
 .MoveDown:
         lda _isflying
