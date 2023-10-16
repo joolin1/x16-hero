@@ -131,6 +131,8 @@ MovePlayerBack:
         sta _walkingspeed
         lda #MIN_FALLINGSPEED
         sta _fallingspeed
+
+        +Sub16I _ypos_lo, 1     ;player needs to be moved up an extra pixel when coming from above
         rts
 
 PlayerTick:                     ;advance one frame
@@ -495,6 +497,8 @@ CheckLaserPossible:
         beq +
         cmp #TILECAT_WALL
         beq +
+        cmp #TILECAT_DEATH
+        beq +
         lda #1
         sta _laserpossible
         bra ++
@@ -511,6 +515,8 @@ CheckLaserPossible:
         cmp #TILECAT_BLOCK
         beq +
         cmp #TILECAT_WALL
+        beq +
+        cmp #TILECAT_DEATH
         beq +
         inc _laserpossible
 +       rts
