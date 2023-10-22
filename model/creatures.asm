@@ -114,18 +114,50 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         sta currenttile_hi
 
         lda currenttile_lo
-        cmp #TILE_FIRST_CREATURE
-        bcc +
+        cmp #TILE_PLAYER1
+        bne +
+        jsr .SetStartLocation
+        bra ++
++       cmp #TILE_PLAYER2
+        bne +
+        jsr .SetStartLocation
+        bra ++
++       cmp #TILE_FIRST_CREATURE
+        bcc ++
         cmp #TILE_LAST_CREATURE + 1
-        bcs +
+        bcs ++
         jsr .AddCreature
-+       inx
+++      inx
         cpx _levelwidth
         bne -
         iny
         cpy _levelheight
         bne --
         rts      
+
+.SetStartLocation:
+        cmp #TILE_PLAYER2
+        beq +                           ;just delete second player tile, it just looks good when designing tilemaps
+
+        ;save start row and col
+        sty _levelstartrow
+        stx _levelstartcol
+        lda currenttile_hi
+        and #$04                        ;just keep horizontal flip bit
+        lsr
+        lsr                             
+        sta _levelstartdirection        ;set 1 (= true) if moving left
+
+        ;delete player tile from tilemap
++       +Dec24 VERA_ADDR_L
+        +Dec24 VERA_ADDR_L
+        lda #TILE_SPACE
+        sta VERA_DATA0                  
+        lda currenttile_hi
+        and #$03                        ;just keep high index bits
+        ora #(TILE_PALETTE_INDEX<<4)    ;set tile palette
+        sta VERA_DATA0 
+        rts
 
 .AddCreature:           ;add creature to current position in tilemap
         phy
@@ -214,7 +246,8 @@ InitCreatures:                          ;traverse whole tilemap and build tables
         lda #TILE_SPACE
         sta VERA_DATA0                  
         lda currenttile_hi
-        and #%11110011                  ;clear v-flip and h-flip if set
+        and #$03                        ;just keep high index bits
+        ora #(TILE_PALETTE_INDEX<<4)    ;set tile palette
         sta VERA_DATA0
 
         ply

@@ -70,20 +70,24 @@ _collboxq4_y    !word 0
 
 InitPlayer:
         ;set start position
-        lda _level
-        dec
-        asl
-        tay
-        lda _levelstarttable,y
+        ; lda _level
+        ; dec
+        ; asl
+        ; tay
+        ;lda _levelstarttable,y
+        lda _levelstartdirection
+        sta _ismovingleft
+        lda _levelstartrow
         sta _ypos_lo
         stz _ypos_hi
-        iny
-        lda _levelstarttable,y
+        ; iny
+        ; lda _levelstarttable,y
+        lda _levelstartcol
         sta _xpos_lo
         stz _xpos_hi
         +MultiplyBy16 _ypos_lo
         +MultiplyBy16 _xpos_lo
-        +Add16I _ypos_lo,8
+        +Add16I _ypos_lo,16
         +Add16I _xpos_lo,8
         lda #-1
         sta _lasttilebelow
@@ -99,7 +103,7 @@ InitPlayer:
         sta _fallingspeed
         lda #1                  ;start position is flying turning right
         sta _isflying
-        stz _ismovingleft
+        ;stz _ismovingleft
         rts           
 
 MovePlayerBack:

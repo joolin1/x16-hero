@@ -402,9 +402,9 @@ _gamestatus             !byte 0
 .InitLevel:
         jsr DisableLayer0
         jsr ClearTextLayer
-        jsr InitLevel
-        jsr InitPlayer
-        jsr InitCreatures
+        jsr InitLevel           ;1 - load level
+        jsr InitCreatures       ;2 - then we can iterate level to find creatures, miner and player
+        jsr InitPlayer          ;3 - then we can init player
         jsr UpdateStatusBar
         jsr ShowPlayer
         jsr TurnOnLight

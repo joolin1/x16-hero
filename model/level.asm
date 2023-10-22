@@ -35,20 +35,12 @@ _tilecategorytable      !byte 1,1,1,1 ; 0- 3 (creatures = block, but unimportant
 ;*** LEVEL DATA - CHANGE WHEN LEVELS CHANGE! ******************************************************
 
 LEVEL_COUNT             = 10   ;number of levels in game
-_startlevel             !byte 9         ;which level game starts on, default is 1       
+_startlevel             !byte 1         ;which level game starts on, default is 1       
 
-;table for start row and col for levels
-_levelstarttable        !byte 1,13      ;start row and col for level 1
-                        !byte 1,4       ;2
-                        !byte 1,30      ;3
-                        !byte 28,4      ;4
-                        !byte 1,3       ;5
-                        !byte 1,29      ;6
-                        !byte 1,3       ;7
-                        !byte 28,30     ;8
-                        !byte 1,1       ;9
-                        !byte 1,3       ;10
-
+;is set when level has been loaded and tilemap is iterated to find creatures, miner and player
+_levelstartrow          !byte 0         ;where player starts
+_levelstartcol          !byte 0         ;where player starts
+_levelstartdirection    !byte 0         ;which direction player has, 0 = right, anything else = left
 
 ;table for size of levels (0 = 32 tiles, 1 = 64, 2 = 128 and 3 = 256)
 _levelsizetable         !byte 0,1       ;level 0 is only used as background when displaying menu, high score table and credits
