@@ -176,10 +176,10 @@ DisableLayer1:
 
 ;*** Palettes *****************************
 
-BLACK_CREATURE_PALETTE_INDEX    = 5
 CREATURE_PALETTE_INDEX          = 2
 BLACK_TILE_PALETTE_INDEX        = 3
 TILE_PALETTE_INDEX              = 4
+BLACK_CREATURE_PALETTE_INDEX    = 5
 
 _originalpalette:       ;0 - original colors used for restoring colors when quitting game
         !word $0000, $0fff, $0800, $0afe, $0c4c, $00c5, $000a, $0ee7, $0d85, $0640, $0f77, $0333, $0777, $0af6, $008f, $0bbb    

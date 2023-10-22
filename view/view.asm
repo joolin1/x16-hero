@@ -102,7 +102,7 @@ UpdateTileColors:
         bra -
 +       ldx _darkmode
         beq +
-        lda .darkredvalues,y
+        ;lda .darkredvalues,y
 +       +VPoke DEATH_COLOR_ADDR+1       ;set next value of color
         inc .redindex
         rts
@@ -111,7 +111,7 @@ DEATHCOLOR_DELAY = 6
 .reddelay       !byte 0
 .redindex       !byte 0
 .redvalues      !byte 7,7,7,8,8,9,10,10,11,11,11,10,10,9,8,8,0     ;0-terminated table
-.darkredvalues  !byte 1,1,1,1,1,1, 1, 1, 1, 1, 1, 1, 1,1,1,1,0     ;color when light is turned off
+.darkredvalues  !byte 1,1,1,2,2,3, 4, 4, 5, 5, 5, 4, 4,3,2,2,0     ;color when light is turned off
 
 UpdateExplosion:                ;change background color during an explosion
         lda _explosivemode

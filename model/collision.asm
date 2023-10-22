@@ -5,17 +5,18 @@ CREATURE_COLLISION_MASK = %00110000     ;creatures can collide with the player o
 LAMP_COLLISION_MASK     = %01000000
 LASER_COLLISION_MASK    = %00100000     ;laser can collide with creatures but not with player
 MINER_COLLISION_MASK    = %10000000     ;miner can collide with player, when this happens the miner is rescued!
-DARK_TIME = 600
 
-UpdateLight:            ;if dark light up after a certain amount of time
-        lda _darkmode
-        beq +
-        +Countdown16bit _darktimecount_lo
-        beq TurnOnLight
-+       rts
+SwapLight:
+        jsr .KillLamp                   ;disable collisions with this lamp, it won't affect anything in the future
+        lda _darkmode                   ;switch between light and darkness
+        bne +
+        jsr TurnOffLight
+        rts
++       jsr TurnOnLight
+        rts
 
 TurnOnLight: 
-        +CopyPalettesToVRAM _graphicpalettes, 1, 5      ;Restore 5 palettes (player, creatures, reserverd, tiles, tiles)
+        +CopyPalettesToVRAM _graphicpalettes, 1, 4      ;Restore 5 palettes (player, creatures, black tiles, tiles)
         stz _darkmode
         rts
 
@@ -48,12 +49,8 @@ TurnOffLight:
         ora ZP1         ;combine high and low nybble
         sta VERA_DATA0     
         iny
-        cpy #160        ;5 palettes * 16 colors * 2 bytes (player, creatures, reserved, tiles, tiles)             
+        cpy #127        ;4 palettes * 16 colors * 2 bytes and finally - 1 to not change lava color = 127             
         bne -
-        lda #<DARK_TIME
-        sta _darktimecount_lo
-        lda #>DARK_TIME
-        sta _darktimecount_hi
         lda #1
         sta _darkmode
         rts
@@ -63,6 +60,7 @@ DISTANCE_Y_LIMIT = 32
 
 PLAYER_COLLISION = 0
 LASER_COLLISION  = 1
+LAMP_COLLISION   = 2
 
 .spritexpos     = ZP2   ;position of centre of creature
 .spriteypos     = ZP4
@@ -89,8 +87,16 @@ KillCreature:
         sta .colltype
         jsr .GetClosestCreature
         lda #CREATURE_DYING_START
-        sta _creaturelifetable,y                ;this status will start dying animation and when over completely kill the creature = disable sprite
+        sta _creaturelifetable,y        ;this status will start dying animation and when over completely kill the creature = disable sprite
         jsr DisarmCreatureSprite
+        rts
+
+.KillLamp:                              ;lamps are treated as creatures, they die/goes dark when player hits them
+        jsr .GetPlayerPosition
+        lda #LAMP_COLLISION
+        sta .colltype
+        jsr .GetClosestCreature
+        jsr DisarmCreatureSprite        ;set collision mask to 0, this lamp won't affect anything anymore
         rts
 
 .GetPlayerPosition:                     ;OUT: .refxpos,  .refypos = player sprite position        
@@ -153,10 +159,13 @@ KillCreature:
         beq +
         +Add16I VERA_ADDR_L, 8          ;if dead skip to next                           
         jmp .NextClosestCreature
-+       lda _creaturetypetable,y
-        cmp #TYPE_LAMP
-        bne +
-        +Add16I VERA_ADDR_L, 8          ;if lamp skip to next                           
+
++       jsr .DecideIfSkipCreature
+        beq +                           
+        ; lda _creaturetypetable,y
+        ; cmp #TYPE_LAMP
+        ; bne +
+        +Add16I VERA_ADDR_L, 8          ;skip if .A = 1                           
         jmp .NextClosestCreature
 
         ;3 - get position for creature sprite
@@ -198,6 +207,8 @@ KillCreature:
         lda .colltype
         cmp #PLAYER_COLLISION
         beq +
+        cmp #LAMP_COLLISION
+        beq +
         lda .spriteypos                         
         cmp #9                                  ;if laser - creature collision, allow max 9 pixels vertical distance
         bcs .NextClosestCreature
@@ -221,4 +232,21 @@ KillCreature:
 +       ldy .closestindex
         rts
 
-
+.DecideIfSkipCreature:
+        lda _creaturetypetable,y
+        cmp #TYPE_LAMP
+        bne ++
+        lda .colltype
+        cmp #LAMP_COLLISION
+        bne +
+        lda #0                  ;type lamp and we are looking for lamps, do not skip
+        rts
++       lda #1                  ;type lamp but we are looking for creatures, skip
+        rts
+++      lda .colltype
+        cmp #LAMP_COLLISION
+        bne +
+        lda #1                  ;type creature but we are looking for lamps, skip
+        rts
++       lda #0                  ;type creature and we are looking for creatures,do not skip
+        rts

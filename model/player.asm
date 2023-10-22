@@ -4,7 +4,7 @@ LIFE_COUNT    = 5   ;number of lives for player
 
 MIN_FLYINGSPEED   = 1
 MAX_FLYINGSPEED   = 2
-FLYINGTIME        = 45
+FLYINGTIME        = 90;45
 FLYINGSPEED_DELAY = 45
 TAKEOFF_DELAY     = 0;10
 

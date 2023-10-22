@@ -32,22 +32,51 @@ _tilecategorytable      !byte 1,1,1,1 ; 0- 3 (creatures = block, but unimportant
                         !byte 0,1,1,1 ;84-87
                         !byte 1       ;88
 
-LEVEL_COUNT             = 5   ;number of levels in game
+;*** LEVEL DATA - CHANGE WHEN LEVELS CHANGE! ******************************************************
 
-;table for start row and col for levles
+LEVEL_COUNT             = 10   ;number of levels in game
+_startlevel             !byte 9         ;which level game starts on, default is 1       
+
+;table for start row and col for levels
 _levelstarttable        !byte 1,13      ;start row and col for level 1
                         !byte 1,4       ;2
-                        !byte 0,30      ;3
+                        !byte 1,30      ;3
                         !byte 28,4      ;4
-                        !byte 1,3
+                        !byte 1,3       ;5
+                        !byte 1,29      ;6
+                        !byte 1,3       ;7
+                        !byte 28,30     ;8
+                        !byte 1,1       ;9
+                        !byte 1,3       ;10
+
 
 ;table for size of levels (0 = 32 tiles, 1 = 64, 2 = 128 and 3 = 256)
 _levelsizetable         !byte 0,1       ;level 0 is only used as background when displaying menu, high score table and credits
                         !byte 0,0       ;height and width in VERA tilemap notation 
-                        !byte 0,0
-                        !byte 0,0
-                        !byte 0,0
-                        !byte 0,0
+                        !byte 0,0       ;2
+                        !byte 0,0       ;3
+                        !byte 0,0       ;4
+                        !byte 0,0       ;5
+                        !byte 0,0       ;6
+                        !byte 0,0       ;7
+                        !byte 0,0       ;8
+                        !byte 0,0       ;9
+                        !byte 0,0       ;10                       
+
+;table deciding if a level should be dark from the beginning
+_leveldarktable         !byte 0                         ;level 0 consists of title screens, not dark of course
+                        !byte 0                         ;1
+                        !byte 0                         ;2
+                        !byte LEVEL_REALLY_DARK         ;3
+                        !byte 0                         ;4
+                        !byte 0                         ;5
+                        !byte 0                         ;6
+                        !byte 0                         ;7
+                        !byte LEVEL_REALLY_DARK         ;8
+                        !byte 0                         ;9
+                        !byte 0                         ;10
+
+;**************************************************************************************************
 
 LEVEL_LIMITED_DARK  = 1 ;current floor light, floors below dark         
 LEVEL_MODERATE_DARK = 2 ;light around player quite far
@@ -58,16 +87,6 @@ LEVEL_LIMITED_DARK_ROWs  = 7
 LEVEL_MODERATE_DARK_DIST = 9
 LEVEL_REALLY_DARK_DIST   = 5
 
-;table deciding if a level should be dark from the beginning
-_leveldarktable         !byte 0                         ;level 0 consists of title screens, not dark of course
-                        !byte 0                         ;1
-                        !byte 0                         ;2
-                        !byte LEVEL_REALLY_DARK         ;3
-                        !byte 0                         ;4
-                        !byte 0                         ;5
-                        
-        
-_startlevel             !byte 1         ;which level game starts on, default is 1
 _level                  !byte 0         ;current level (zero-indexed)
 _levelcompleted         !byte 0         ;flag
 

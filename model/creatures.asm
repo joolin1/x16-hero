@@ -2,6 +2,9 @@
 
 ;creature tiles that are replaced with sprites
 TILE_SPACE              = 8     ;used for replacing sprite tiles and blasted walls
+TILE_PLAYER1            = 89
+TILE_PLAYER2            = 90
+
 TILE_FIRST_CREATURE     = 0
 TILE_SPIDER             = 0
 TILE_CLAW               = 1
@@ -374,11 +377,10 @@ DisableCreatureSprite:                          ;IN: .Y = index of creature spri
         sta ZP0
         lda #>CREATURE_ATTR_0
         sta ZP1
-        tya                                     ;take index * 8
-        asl
-        asl
-        asl
-        +Add16 ZP0                              ;add result to base address to get attribute address for right sprite
+        sty ZP2                                 ;convert index to 16 bit and multiply by 8 to get offset
+        stz ZP3
+        +MultiplyBy8 ZP2                        
+        +Add16 ZP0, ZP2                         ;add result to base address to get attribute address for right sprite                       
         lda #0
         +VPokeIndirect ZP0                      ;disable sprite
         rts
@@ -388,12 +390,13 @@ DisarmCreatureSprite:                           ;IN: .Y = index of creature spri
         sta ZP0
         lda #>CREATURE_ATTR_0
         sta ZP1
-        tya                                     ;take index * 8
-        asl
-        asl
-        asl
-        +Add16 ZP0                              ;add result to base address to get attribute address for right sprite
-        lda #Z_DEPTH
+        sty ZP2                                 ;convert index to 16 bit and multiply by 8 to get offset
+        stz ZP3
+        +MultiplyBy8 ZP2                        
+        +Add16 ZP0, ZP2                         ;add result to base address to get attribute address for right sprite                       
+        sec
+        +VPeek ZP0
+        and #$0f                                ;clear collision mask, keep z-depth and flips       
         +VPokeIndirect ZP0                      ;clear collision mask, keep Z-depth
         rts
 

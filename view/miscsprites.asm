@@ -179,6 +179,7 @@ BurnExplosive:
 AbortExplosion:
         +VPokeI EXPLOSIVES_ATTR_0,0    ;disable sprite
         jsr RestoreBackgrounColors
+        stz _stubthreadtime
         lda #EXPLOSIVE_NO
         sta _explosivemode
         rts

@@ -558,7 +558,8 @@ CREDITSCREEN_START_ROW = 5
 !scr 0
 !scr "quit game           ",0	;add extra spaces to overwrite confirmation question if user says no
 !scr 0,0
-!scr "  < switch screen >",0
+;!scr "  < switch screen >",0
+!scr "       ",212,213,214,215,216,217,218,0
 
 MENU_COL = 9	;which column menu should be printed at
 

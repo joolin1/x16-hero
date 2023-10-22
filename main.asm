@@ -228,7 +228,7 @@ _gamestatus             !byte 0
         rts
         
 +       lda .sprcolinfo
-        beq ++
+        beq .LevelTick2
         and #$f0                        ;only keep collision info
         
         ;collision player - miner
@@ -240,10 +240,10 @@ _gamestatus             !byte 0
         sta _gamestatus
         rts
 
-        ;collision creature - creature
-+       cmp #$30
-        bne +
-        bra ++
+;         ;collision creature - creature
+; +       cmp #$30
+;         bne +
+;         bra ++
 
         ;collision player - creature        
 +       cmp #$10
@@ -260,18 +260,18 @@ _gamestatus             !byte 0
 +       cmp #$20
         bne +
         jsr KillCreature
-        bra ++
+        bra .LevelTick2
 
         ;collision player - lamp
 +       cmp #$40
-        bne ++
-        jsr TurnOffLight                ;collision between player and a lamp has occurred, turn off light and set dark time counter
+        bne .LevelTick2    
+        jsr SwapLight                   ;collision between player and a lamp has occurred
 
-++
+.LevelTick2:
         jsr UpdateTileColors
         jsr UpdateCreatures      
         jsr UpdatePlayerSprite 
-        jsr UpdateLight
+        ;jsr UpdateLight
         jsr UpdateStatusTime
         jsr UpdateExplosion
         jsr LightUpLevel
