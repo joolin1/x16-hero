@@ -35,7 +35,7 @@ _tilecategorytable      !byte 1,1,1,1 ; 0- 3 (creatures = block, but unimportant
 ;*** LEVEL DATA - CHANGE WHEN LEVELS CHANGE! ******************************************************
 
 LEVEL_COUNT             = 10            ;number of levels in game
-_startlevel             !byte 6         ;which level game starts on, default is 1       
+_startlevel             !byte 1         ;which level game starts on, default is 1       
 
 ;is set when level has been loaded and tilemap is iterated to find creatures, miner and player
 _levelstartrow          !byte 0         ;where player starts
