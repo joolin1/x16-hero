@@ -271,7 +271,6 @@ _gamestatus             !byte 0
         jsr UpdateTileColors
         jsr UpdateCreatures      
         jsr UpdatePlayerSprite 
-        ;jsr UpdateLight
         jsr UpdateStatusTime
         jsr UpdateExplosion
         jsr LightUpLevel

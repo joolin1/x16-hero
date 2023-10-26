@@ -526,21 +526,24 @@ NO_POSITION  = 26
 !byte 114,115, 98,99, 118,119, 82,83, 168, 134,135, 82,83, 138,139, 74,75, 146,147, 82,83, 0
 !scr 0
 !scr 0
-!scr "          by johan k;rlin and",0
+!scr "            by johan k;rlin",0
 !scr 0
-!scr "        clergy games productions",0
+!scr "      music from street figher ii      ",0
 !scr 0
-!scr "         using zsound for music",0
+!scr "         composed by isao abe          ",0
+!scr 0
+!scr "          and yoko shimomura           ",0
+!scr 0
+!scr "    zsound is used for playing music   ",0
+!scr 0
+!scr "       inspired by h.e.r.o. for        ",0
+!scr 0
+!scr "      for atari and commodore 64       ",0
 !scr 0
 !scr 0
-!scr "      inspired by the game h.e.r.o.",0
-!scr 0
-!scr "       for atari and commodore 64",0
-!scr 0
-!scr 0
-!scr "              version 0.9",0
+!scr "              version: 0.9             ",0
 
-CREDITSCREEN_ROW_COUNT = 19
+CREDITSCREEN_ROW_COUNT = 20
 CREDITSCREEN_START_ROW = 5
 
 .menutext
@@ -557,9 +560,10 @@ CREDITSCREEN_START_ROW = 5
 !scr "reset high scores   ",0	;add extra spaces to overwrite confirmation question if user says no
 !scr 0
 !scr "quit game           ",0	;add extra spaces to overwrite confirmation question if user says no
-!scr 0,0
-;!scr "  < switch screen >",0
-!scr "       ",212,213,214,215,216,217,218,0
+!scr 0
+!scr 0
+!scr "       ",212,213,214,215,216,217,218,219,0	;"<-switch screen->" in small font
+!scr 0
 
 MENU_COL = 9	;which column menu should be printed at
 
@@ -595,7 +599,7 @@ MENU_ITEMS_COUNT = 4
 quitgame		!byte MENU_WHITE
 				!byte MENU_BLACK
 				!byte MENU_BLACK
-				!byte MENU_TITLE_COLOR
+				!byte MENU_BLACK
 
 MENU_ROW_COUNT = 19
 

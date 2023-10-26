@@ -446,9 +446,9 @@ _leaderboard_start_high !byte 0                                         ;highest
                         !scr "giana      ",0
                         !scr "monty mole ",0
 
-                        !byte 10,9,8,7,5,5,4,3,2,1              ;saved miners
+                        !byte 10,9,8,7,6,5,4,3,2,1              ;saved miners
                         !byte 20,0, 18,0, 16,0, 14,0, 12,0      ;times
-                        !byte 10,0,  8,0,  6,0,  4,0,  2,0
+                        !byte 10,0, 8,0, 6,0,  4,0,  2,0
                         !byte 1,2,3,4,5,6,7,8,9,10              ;start levels
 
                         !byte 1                                 ;highest allowed start level

@@ -69,19 +69,18 @@ _collboxq4_x    !word 0
 _collboxq4_y    !word 0
 
 InitPlayer:
+        lda _lives
+        cmp #LIFE_COUNT
+        bcs +
+        inc _lives              ;get one extra life for each level, but not more than you start the game with
+
         ;set start position
-        ; lda _level
-        ; dec
-        ; asl
-        ; tay
-        ;lda _levelstarttable,y
-        lda _levelstartdirection
++       lda _levelstartdirection
         sta _ismovingleft
         lda _levelstartrow
         sta _ypos_lo
         stz _ypos_hi
-        ; iny
-        ; lda _levelstarttable,y
+
         lda _levelstartcol
         sta _xpos_lo
         stz _xpos_hi
@@ -103,7 +102,6 @@ InitPlayer:
         sta _fallingspeed
         lda #1                  ;start position is flying turning right
         sta _isflying
-        ;stz _ismovingleft
         rts           
 
 MovePlayerBack:

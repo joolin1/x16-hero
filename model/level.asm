@@ -34,8 +34,8 @@ _tilecategorytable      !byte 1,1,1,1 ; 0- 3 (creatures = block, but unimportant
 
 ;*** LEVEL DATA - CHANGE WHEN LEVELS CHANGE! ******************************************************
 
-LEVEL_COUNT             = 10   ;number of levels in game
-_startlevel             !byte 1         ;which level game starts on, default is 1       
+LEVEL_COUNT             = 10            ;number of levels in game
+_startlevel             !byte 6         ;which level game starts on, default is 1       
 
 ;is set when level has been loaded and tilemap is iterated to find creatures, miner and player
 _levelstartrow          !byte 0         ;where player starts
@@ -59,14 +59,14 @@ _levelsizetable         !byte 0,1       ;level 0 is only used as background when
 _leveldarktable         !byte 0                         ;level 0 consists of title screens, not dark of course
                         !byte 0                         ;1
                         !byte 0                         ;2
-                        !byte LEVEL_REALLY_DARK         ;3
+                        !byte 0                         ;3
                         !byte 0                         ;4
                         !byte 0                         ;5
                         !byte 0                         ;6
                         !byte 0                         ;7
                         !byte LEVEL_REALLY_DARK         ;8
                         !byte 0                         ;9
-                        !byte 0                         ;10
+                        !byte LEVEL_REALLY_DARK         ;10
 
 ;**************************************************************************************************
 
@@ -77,7 +77,7 @@ LEVEL_REALLY_DARK   = 3 ;light around player just the closes vicinity
 LEVEL_LIMITED_DARK_COLS  = 32   ;how far the light will reach
 LEVEL_LIMITED_DARK_ROWs  = 7
 LEVEL_MODERATE_DARK_DIST = 9
-LEVEL_REALLY_DARK_DIST   = 5
+LEVEL_REALLY_DARK_DIST   = 7;5
 
 _level                  !byte 0         ;current level (zero-indexed)
 _levelcompleted         !byte 0         ;flag
@@ -93,10 +93,8 @@ InitLevel:
         stz _levelcompleted
         jsr LoadLevel
         jsr .SetLevelProperties
-        lda _level
-        beq +
         jsr .BlackOutLevel
-+       rts
+        rts
 
 .SetLevelProperties:
         ;get size of current level
@@ -233,7 +231,11 @@ GetSavedMinersCount:            ;OUT: .A = number of saved miners (example: game
 .light_cols_length      !byte 0
 
 LightUpLevel:
-        lda .light_rows_length          ;start to assume that we are as far from level borders that we can light all tiles
+        ldy _level
+        lda _leveldarktable,y
+        bne +
+        rts
++       lda .light_rows_length          ;start to assume that we are as far from level borders that we can light all tiles
         bne +                           ;if length = 0 this level is not dark
         rts
 +       sta .light_rows_count
