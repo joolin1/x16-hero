@@ -13,7 +13,7 @@
 CREATURE_SPRITES_SIZE = 128
 
 ;RAM Memory layout
-;              $0810: ZSoun
+;              $0810: ZSound
 ;                   : Game Code
 ;              $A000: RAM banks
 
@@ -101,9 +101,9 @@ LoadResources:
         +LoadResource .creaturesname   , CREATURE_SPRITES_ADDR , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
         +LoadResource .fontname        , NEW_CHAR_ADDR         , LOAD_TO_VRAM_BANK0, FILE_HAS_NO_HEADER
         +LoadResource .palettename     , PALETTE               , LOAD_TO_VRAM_BANK1, FILE_HAS_HEADER
-        lda #ZSM_TITLE_BANK
-        sta RAM_BANK
-        +LoadResource .zsmtitle        , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
+        ; lda #ZSM_TITLE_BANK
+        ; sta RAM_BANK
+        ; +LoadResource .zsmtitle        , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
         lda #ZSM_KILLED_BANK
         sta RAM_BANK
         +LoadResource .zsmkilled       , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
@@ -113,12 +113,12 @@ LoadResources:
         lda #ZSM_LEVELCOMPLETE_BANK
         sta RAM_BANK
         +LoadResource .zsmlevelcomplete, BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
-        lda #ZSM_GAMECOMPLETE_BANK
-        sta RAM_BANK
-        +LoadResource .zsmgamecomplete , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
-        lda #ZSM_HIGHSCORE_BANK
-        sta RAM_BANK
-        +LoadResource .zsmhighscore    , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
+        ; lda #ZSM_GAMECOMPLETE_BANK
+        ; sta RAM_BANK
+        ; +LoadResource .zsmgamecomplete , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
+        ; lda #ZSM_HIGHSCORE_BANK
+        ; sta RAM_BANK
+        ; +LoadResource .zsmhighscore    , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
 
         lda _fileerrorflag
         beq +

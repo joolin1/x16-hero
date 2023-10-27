@@ -378,8 +378,8 @@ _gamestatus             !byte 0
 	stz _camypos_hi
         jsr UpdateTilemap
         jsr Z_stopmusic
-        lda #ZSM_TITLE_BANK
-        jsr StartMusic
+        ; lda #ZSM_TITLE_BANK
+        ; jsr StartMusic
 	rts
 
 .ShowMenu:      
@@ -589,8 +589,8 @@ GAME_OVER_DELAY = 300
         jsr GetHighScoreRank
         cmp #LB_ENTRIES_COUNT
         bcs +
-        lda #ZSM_HIGHSCORE_BANK
-        jsr StartMusic
+        ; lda #ZSM_HIGHSCORE_BANK
+        ; jsr StartMusic
         jsr InitHighScoreInput
         lda _level
         pha

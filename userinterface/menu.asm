@@ -526,24 +526,22 @@ NO_POSITION  = 26
 !byte 114,115, 98,99, 118,119, 82,83, 168, 134,135, 82,83, 138,139, 74,75, 146,147, 82,83, 0
 !scr 0
 !scr 0
-!scr "            by johan k;rlin",0
+!scr "          by johan k;rlin and",0
 !scr 0
-!scr "      music from street figher ii      ",0
-!scr 0
-!scr "         composed by isao abe          ",0
-!scr 0
-!scr "          and yoko shimomura           ",0
-!scr 0
-!scr "    zsound is used for playing music   ",0
-!scr 0
-!scr "       inspired by h.e.r.o. for        ",0
-!scr 0
-!scr "      for atari and commodore 64       ",0
+!scr "        clergy games productions",0
 !scr 0
 !scr 0
-!scr "              version: 0.9             ",0
+!scr "         inspired by h.e.r.o.",0
+!scr 0
+!scr "       for atari and commodore 64",0
+!scr 0
+!scr 0
+!scr "    zsound is used for sound effects",0
+!scr 0
+!scr 0
+!scr "              version: 0.9",0
 
-CREDITSCREEN_ROW_COUNT = 20
+CREDITSCREEN_ROW_COUNT = 19
 CREDITSCREEN_START_ROW = 5
 
 .menutext
