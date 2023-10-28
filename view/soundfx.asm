@@ -168,12 +168,7 @@ StopLaserSound:
 
 PlayPlayerKilledSound:
         lda #ZSM_KILLED_BANK
-        jsr StartMusicNoLoop
-        ; ldy #PLAYING_PLAYERDEAD
-        ; lda #1
-        ; sta _playingtable,y
-        ; stz .playerdead_index
-        ; stz .playerdead_delay
+        jsr PlayMusic
         rts
 
 .playerdead_index           !byte 0
@@ -210,21 +205,21 @@ PlayExplosionSound:
 
 PlayLevelCompleteSound:
         lda #ZSM_LEVELCOMPLETE_BANK
-        jsr StartMusicNoLoop
+        jsr PlayMusic
         rts
 
 ;*** Game over **********************************
 
 PlayGameOverSound:
         lda #ZSM_GAMEOVER_BANK
-        jsr StartMusicNoLoop
+        jsr PlayMusic
         rts
 
 ;*** Game completed *****************************
 
 PlayGameCompleteSound:
-        ; lda #ZSM_GAMECOMPLETE_BANK
-        ; jsr StartMusic
+        lda #ZSM_GAMECOMPLETE_BANK
+        jsr PlayMusic
         rts
 
 .finished1_index           !byte 0

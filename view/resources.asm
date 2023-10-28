@@ -29,21 +29,7 @@ ZSM_LEVELCOMPLETE_BANK  = 6
 ZSM_GAMECOMPLETE_BANK   = 7   
 ZSM_HIGHSCORE_BANK      = 8
 SAVEDGAME_BANK          = 9
-
-StartMusic:              ;IN: .A = ram bank
-	ldx #<BANK_ADDR
-	ldy #>BANK_ADDR
-	jsr Z_startmusic
-      	lda #0
-	jsr Z_force_loop
-        rts
-
-StartMusicNoLoop:       ;IN: .A = ram bank
-	ldx #<BANK_ADDR
-	ldy #>BANK_ADDR
-	jsr Z_startmusic
-        jsr Z_disable_loop
-        rts
+ZSMKIT_BANK             = 10
 
 ;Graphic resources to load
 ;.imagename      !text "IMAGE.BIN",0
@@ -64,7 +50,7 @@ StartMusicNoLoop:       ;IN: .A = ram bank
 .leveldecimal   !word 0         ;current level in decimal form
 
 ;Sound resources to load
-.zsmtitle               !text "TITLE.ZSM",0
+.zsmtitle               !text "TITLE.ZSM",0;"TITLE.ZSM",0
 .zsmkilled              !text "KILLED.ZSM",0
 .zsmgameover            !text "GAMEOVER.ZSM",0
 .zsmlevelcomplete       !text "LEVELCOMPLETE.ZSM",0
@@ -94,6 +80,33 @@ _fileerrorflag  !byte   0   ;at least one i/o error has occurred if set
 +
 }
 
+PlayMusic:                      ;IN: .A = memory bank where music is loaded
+        
+        ;TEMP
+        cmp #ZSM_TITLE_BANK             ;skip these for now
+        bne +
+        cmp #ZSM_HIGHSCORE_BANK
+        bne +
+        cmp #ZSM_GAMECOMPLETE_BANK
+        bne +
+        rts
++       
+        ;END TEMP
+
+        sta RAM_BANK
+        ldx #0                  ;priority = 0
+        lda #<BANK_ADDR
+        ldy #>BANK_ADDR
+        jsr zsm_setmem
+        ldx #0
+        jsr zsm_play   
+        rts
+
+StopMusic:
+        ldx #0
+        jsr zsm_stop
+        rts
+
 LoadResources:
         stz _fileerrorflag
         +LoadResource .tilesname       , TILES_ADDR            , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
@@ -101,6 +114,7 @@ LoadResources:
         +LoadResource .creaturesname   , CREATURE_SPRITES_ADDR , LOAD_TO_VRAM_BANK0, FILE_HAS_HEADER
         +LoadResource .fontname        , NEW_CHAR_ADDR         , LOAD_TO_VRAM_BANK0, FILE_HAS_NO_HEADER
         +LoadResource .palettename     , PALETTE               , LOAD_TO_VRAM_BANK1, FILE_HAS_HEADER
+        
         ; lda #ZSM_TITLE_BANK
         ; sta RAM_BANK
         ; +LoadResource .zsmtitle        , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER

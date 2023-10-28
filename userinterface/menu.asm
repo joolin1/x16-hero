@@ -536,7 +536,7 @@ NO_POSITION  = 26
 !scr "       for atari and commodore 64",0
 !scr 0
 !scr 0
-!scr "    zsound is used for sound effects",0
+!scr "      using zsmkit by mooinglemur",0
 !scr 0
 !scr 0
 !scr "              version: 0.9",0

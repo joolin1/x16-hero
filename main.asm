@@ -2,9 +2,8 @@
 
 !cpu 65c02
 !to "mine.prg", cbm
-;!sl "hero.sym"
 !src "includes/x16.asm"
-!src "includes/zsound.asm"
+!src "includes/zsmkit8010.asm"
 
 !macro CheckTimer2 .counter, .limit {        ;IN: address of counter, limit as immediate value. OUT: .A = true if counter has reached its goal otherwise false 
         inc .counter
@@ -28,16 +27,12 @@ BASIC:	!BYTE $0B,$08,$01,$00,$9E,$32,$30,$36,$31,$00,$00,$00   ;Adds BASIC line:
 
         jmp .StartGame
 
-;It is required that zsound load in at $0810, because it is
+;It is required that zsmkit load in at $0810, because it is
 ;a pre-built binary compiled from C.  So, the binary is
 ;placed here in the source code, and as you can see there
 ;is a JMP command right before it to bypass it.  
 
-!BINARY "ZSOUND.BIN"		;ZSsound program binary.
-
-;pad 47 bytes for zsound variable space.
-!BYTE	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-!BYTE	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+!BINARY "zsmkit-0810.bin"
 
 ;*** Game globals **********************************************************************************
 
@@ -70,6 +65,8 @@ ST_QUITGAME        = 22  ;quit game
 
 .StartGame:
         ;init everything
+        lda #ZSMKIT_BANK
+        jsr zsm_init_engine
         jsr LoadLeaderboard             ;load leaderboard, if not successful a new file will be created       
         jsr LoadResources               ;load all resources (graphics, music ...)
         bcc +
@@ -78,7 +75,6 @@ ST_QUITGAME        = 22  ;quit game
         sta _gamestatus
         jsr InitScreenAndSprites
         jsr InitJoysticks               ;check which type of joysticks (game controllers) are being used 
-        jsr Z_init_player
         jsr .SetupIrqHandler
 
         ;main loop
@@ -135,14 +131,14 @@ _gamestatus             !byte 0
                 pla
                 jmp (.defaulthandler_lo)        ;continue to default handler when VB interrupt
 
-.QuitGame:                       
+.QuitGame:
+        jsr StopMusic                   
+        jsr RestoreScreenAndSprites
  	sei                             ;restore default irq handler
 	lda .defaulthandler_lo
 	sta IRQ_HANDLER_L
 	lda .defaulthandler_hi
 	sta IRQ_HANDLER_H
-        jsr RestoreScreenAndSprites
-        jsr Z_stopmusic
         lda #1
         sta VERA_ISR
         cli
@@ -157,7 +153,8 @@ _gamestatus             !byte 0
         jmp .HandlePause
 
 +       jsr SfxTick                     ;update all sound effects that are currently playing
-        jsr Z_playmusic                 ;continue to play music if something is currently playing
+        lda #0
+        jsr zsm_tick                    ;continue to play music if something is playing
 
         lda _gamestatus
         cmp #ST_RUNNING                 ;gameplay is running
@@ -310,9 +307,8 @@ _gamestatus             !byte 0
 .InitMenu:
         lda .fromstartscreenflag
         bne +
-        jsr Z_stopmusic
         lda #ZSM_TITLE_BANK
-        jsr StartMusic
+        jsr PlayMusic
         stz .fromstartscreenflag
 +       jsr .InitMenuBackground
         jsr ClearTextLayer
@@ -377,9 +373,8 @@ _gamestatus             !byte 0
 	sta _camypos_lo
 	stz _camypos_hi
         jsr UpdateTilemap
-        jsr Z_stopmusic
-        ; lda #ZSM_TITLE_BANK
-        ; jsr StartMusic
+        lda #ZSM_TITLE_BANK
+        jsr PlayMusic
 	rts
 
 .ShowMenu:      
@@ -388,7 +383,7 @@ _gamestatus             !byte 0
         rts
 
 .InitGame:
-        jsr Z_stopmusic
+        jsr StopMusic
         lda #LIFE_COUNT                 ;init game
         sta _lives
         lda _startlevel
@@ -589,8 +584,8 @@ GAME_OVER_DELAY = 300
         jsr GetHighScoreRank
         cmp #LB_ENTRIES_COUNT
         bcs +
-        ; lda #ZSM_HIGHSCORE_BANK
-        ; jsr StartMusic
+        lda #ZSM_HIGHSCORE_BANK
+        jsr PlayMusic
         jsr InitHighScoreInput
         lda _level
         pha
