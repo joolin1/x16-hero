@@ -83,14 +83,14 @@ _fileerrorflag  !byte   0   ;at least one i/o error has occurred if set
 PlayMusic:                      ;IN: .A = memory bank where music is loaded
         
         ;TEMP
-        cmp #ZSM_TITLE_BANK             ;skip these for now
-        bne +
-        cmp #ZSM_HIGHSCORE_BANK
-        bne +
-        cmp #ZSM_GAMECOMPLETE_BANK
-        bne +
-        rts
-+       
+;         cmp #ZSM_TITLE_BANK             ;skip these for now
+;         bne +
+;         cmp #ZSM_HIGHSCORE_BANK
+;         bne +
+;         cmp #ZSM_GAMECOMPLETE_BANK
+;         bne +
+;         rts
+; +       
         ;END TEMP
 
         sta RAM_BANK
@@ -115,9 +115,16 @@ LoadResources:
         +LoadResource .fontname        , NEW_CHAR_ADDR         , LOAD_TO_VRAM_BANK0, FILE_HAS_NO_HEADER
         +LoadResource .palettename     , PALETTE               , LOAD_TO_VRAM_BANK1, FILE_HAS_HEADER
         
-        ; lda #ZSM_TITLE_BANK
-        ; sta RAM_BANK
-        ; +LoadResource .zsmtitle        , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
+        lda #ZSM_TITLE_BANK
+        sta RAM_BANK
+        +LoadResource .zsmtitle        , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
+        lda #ZSM_GAMECOMPLETE_BANK
+        sta RAM_BANK
+        +LoadResource .zsmgamecomplete , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
+        lda #ZSM_HIGHSCORE_BANK
+        sta RAM_BANK
+        +LoadResource .zsmhighscore    , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
+
         lda #ZSM_KILLED_BANK
         sta RAM_BANK
         +LoadResource .zsmkilled       , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
@@ -127,12 +134,6 @@ LoadResources:
         lda #ZSM_LEVELCOMPLETE_BANK
         sta RAM_BANK
         +LoadResource .zsmlevelcomplete, BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
-        ; lda #ZSM_GAMECOMPLETE_BANK
-        ; sta RAM_BANK
-        ; +LoadResource .zsmgamecomplete , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
-        ; lda #ZSM_HIGHSCORE_BANK
-        ; sta RAM_BANK
-        ; +LoadResource .zsmhighscore    , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
 
         lda _fileerrorflag
         beq +
