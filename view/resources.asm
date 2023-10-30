@@ -22,14 +22,14 @@ CREATURE_SPRITES_SIZE = 128
 
 ;RAM banks
 FIRST_BANK              = 1
-ZSM_TITLE_BANK          = 1     ;NOTE: if tune more than 8 KB it needs several banks
+SAVEDGAME_BANK          = 2             ;not implemented
+ZSMKIT_BANK             = 3
 ZSM_KILLED_BANK         = 4
 ZSM_GAMEOVER_BANK       = 5
-ZSM_LEVELCOMPLETE_BANK  = 6
-ZSM_GAMECOMPLETE_BANK   = 7   
-ZSM_HIGHSCORE_BANK      = 8
-SAVEDGAME_BANK          = 9
-ZSMKIT_BANK             = 10
+ZSM_LEVELCOMPLETE_BANK  = 6             ;33 KB
+ZSM_GAMECOMPLETE_BANK   = 11   
+ZSM_TITLE_BANK          = 12            ;121 KB
+ZSM_HIGHSCORE_BANK      = 28            ;70 KB
 
 ;Graphic resources to load
 ;.imagename      !text "IMAGE.BIN",0
@@ -80,19 +80,7 @@ _fileerrorflag  !byte   0   ;at least one i/o error has occurred if set
 +
 }
 
-PlayMusic:                      ;IN: .A = memory bank where music is loaded
-        
-        ;TEMP
-;         cmp #ZSM_TITLE_BANK             ;skip these for now
-;         bne +
-;         cmp #ZSM_HIGHSCORE_BANK
-;         bne +
-;         cmp #ZSM_GAMECOMPLETE_BANK
-;         bne +
-;         rts
-; +       
-        ;END TEMP
-
+PlayMusic:                      ;IN: .A = memory bank where music is loaded     
         sta RAM_BANK
         ldx #0                  ;priority = 0
         lda #<BANK_ADDR
@@ -106,6 +94,24 @@ StopMusic:
         ldx #0
         jsr zsm_stop
         rts
+
+StartFadeOutMusic:
+        lda #0
+        sta .attenuation
+        jsr FadeOutMusic
+        rts
+
+FadeOutMusic:
+        ldx #0
+        lda .attenuation
+        jsr zsm_setatten
+        dec .attenuation
+        lda .attenuation
+        bne + 
+
++       rts
+
+.attenuation    !byte 0
 
 LoadResources:
         stz _fileerrorflag

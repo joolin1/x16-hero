@@ -3,7 +3,7 @@
 !cpu 65c02
 !to "mine.prg", cbm
 !src "includes/x16.asm"
-!src "includes/zsmkit8010.asm"
+!src "includes/zsmkit.asm"
 
 !macro CheckTimer2 .counter, .limit {        ;IN: address of counter, limit as immediate value. OUT: .A = true if counter has reached its goal otherwise false 
         inc .counter
@@ -32,7 +32,7 @@ BASIC:	!BYTE $0B,$08,$01,$00,$9E,$32,$30,$36,$31,$00,$00,$00   ;Adds BASIC line:
 ;placed here in the source code, and as you can see there
 ;is a JMP command right before it to bypass it.  
 
-!BINARY "zsmkit-0810.bin"
+!BINARY "zsmkit.bin"
 
 ;*** Game globals **********************************************************************************
 
