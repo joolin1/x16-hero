@@ -28,8 +28,8 @@ ZSM_KILLED_BANK         = 4
 ZSM_GAMEOVER_BANK       = 5
 ZSM_LEVELCOMPLETE_BANK  = 6             ;33 KB
 ZSM_GAMECOMPLETE_BANK   = 11   
-ZSM_TITLE_BANK          = 12            ;121 KB
-ZSM_HIGHSCORE_BANK      = 28            ;70 KB
+ZSM_TITLE_BANK          = 12            ;65 KB
+ZSM_HIGHSCORE_BANK      = 21            ;70 KB
 
 ;Graphic resources to load
 ;.imagename      !text "IMAGE.BIN",0
@@ -124,9 +124,9 @@ LoadResources:
         lda #ZSM_TITLE_BANK
         sta RAM_BANK
         +LoadResource .zsmtitle        , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
-        lda #ZSM_GAMECOMPLETE_BANK
-        sta RAM_BANK
-        +LoadResource .zsmgamecomplete , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
+        ; lda #ZSM_GAMECOMPLETE_BANK
+        ; sta RAM_BANK
+        ; +LoadResource .zsmgamecomplete , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER
         lda #ZSM_HIGHSCORE_BANK
         sta RAM_BANK
         +LoadResource .zsmhighscore    , BANK_ADDR             , LOAD_TO_RAM       , FILE_HAS_NO_HEADER

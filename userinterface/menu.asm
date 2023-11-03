@@ -272,8 +272,6 @@ _menumode				!byte 0
 
 +   cmp #SET_START_LEVEL
 	bne +
-	lda .levelconfirmationflag
-	bne +
 	jsr .HandleSetStartLevel
 	rts
 
@@ -289,7 +287,7 @@ _menumode				!byte 0
 
 .CloseMainMenu:
 	lda #M_SHOW_MENU_SCREEN
-	sta _menumode			;prepare for the next time the menu handler will be called, then we skip start screen and go directly to the main menu
+	sta _menumode			;prepare for the next time the menu handler will be called
 	lda #ST_INITGAME
 	sta _gamestatus         ;update game status to start game, the menu handler will no longer be called
 	rts
@@ -324,8 +322,9 @@ _menumode				!byte 0
 	jsr ResetLeaderboard
 	jsr SaveLeaderboard
 	jsr .ShowHighScoreScreen
+	stz .resetconfirmationflag
 	lda #1
-	sta .resetconfirmationflag
+	; sta .resetconfirmationflag
 	sta .highscorewait	;wait for player to release everything to prevent immediate shift from high score table to menu 
 	lda #M_SHOW_HIGHSCORE_SCREEN
 	sta _menumode
@@ -539,7 +538,7 @@ NO_POSITION  = 26
 !scr 0
 !scr 0
 !scr 0
-!scr "              version: 0.9",0
+!scr "              version 0.95",0
 
 CREDITSCREEN_ROW_COUNT = 19
 CREDITSCREEN_START_ROW = 5

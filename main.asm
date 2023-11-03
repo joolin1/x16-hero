@@ -553,7 +553,7 @@ GAME_COMPLETED_DELAY    = 240
         rts
 
 .GameOver2:                             ;game over step 2 - just add waiting time
-        +CheckTimer2 .gameoverdelay, GAME_OVER_DELAY/2
+        +CheckTimer2 .gameoverdelay, GAME_OVER_DELAY/3
         beq +
         lda #ST_GAMEOVER3
         sta _gamestatus

@@ -218,8 +218,11 @@ PlayGameOverSound:
 ;*** Game completed *****************************
 
 PlayGameCompleteSound:
-        lda #ZSM_GAMECOMPLETE_BANK
+
+        lda #ZSM_HIGHSCORE_BANK
         jsr PlayMusic
+        ; lda #ZSM_GAMECOMPLETE_BANK
+        ; jsr PlayMusic
         rts
 
 .finished1_index           !byte 0

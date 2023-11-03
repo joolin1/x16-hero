@@ -1,4 +1,4 @@
-;*** board.asm - board displayed when race is finished *********************************************
+;*** board.asm - **********************************************************************************
 
 BOARD_COLORS            = $91     ;bg color = grey, fg color = white 
 BOARD_SELECTED          = $91     ;bg color = grey, fg color = white           
