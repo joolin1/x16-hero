@@ -401,8 +401,10 @@ _gamestatus             !byte 0
         jsr InitPlayer          ;3 - then we can init player
         jsr UpdateStatusBar
         jsr ShowPlayer
+        jsr StopLaser           ;don't fire laser just because player has pressed "start game"
         jsr TurnOnLight
         jsr EnableLayer0
+        stz .sprcolinfo
         lda #ST_RUNNING
         sta _gamestatus
         rts
@@ -522,7 +524,7 @@ _lastlevel_seconds      !byte 0
         sta _gamestatus                 ;short delay before going to next level
         rts
 
-LEVEL_COMPLETED_DELAY    = 240
+LEVEL_COMPLETED_DELAY    = 180
 .levelcompleteddelay     !byte 0
 
 .GameCompleted:

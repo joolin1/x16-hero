@@ -69,7 +69,7 @@ _collboxq4_x    !word 0
 _collboxq4_y    !word 0
 
 InitPlayer:
-        lda _lives
+        lda _lives            
         cmp #LIFE_COUNT
         bcs +
         inc _lives              ;get one extra life for each level, but not more than you start the game with

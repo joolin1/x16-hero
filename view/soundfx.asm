@@ -235,7 +235,7 @@ PlayGameCompleteSound:
 SfxTick:
                 ;sound fx              voice                 length            repeat? data          
         +SfxPlay PLAYING_ENGINE,       ENGINE_VOICE,         ENGINE_LENGTH,       1,   .enginefx,       .engine_index,       .engine_delay
-        +SfxPlay PLAYING_LASER,        LASER_VOICE,          LASER_LENGTH,        0,   .laserfx,        .laser_index,        .laser_delay
+        +SfxPlay PLAYING_LASER,        LASER_VOICE,          LASER_LENGTH,        1,   .laserfx,        .laser_index,        .laser_delay
         +SfxPlay PLAYING_CREATUREDEAD, CREATUREDEAD_VOICE,   CREATUREDEAD_LENGTH, 0,   .creaturedeadfx, .creaturedead_index, .creaturedead_delay
         +SfxPlay PLAYING_EXPLOSION,    EXPLOSION_VOICE,      EXPLOSION_LENGTH,    0,   .explosionfx,    .explosion_index,    .explosion_delay
         +SfxPlay PLAYING_PLAYERDEAD,   PLAYERDEAD_VOICE,     PLAYERDEAD_LENGTH,   0,   .playerdeadfx,   .playerdead_index,   .playerdead_delay

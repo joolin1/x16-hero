@@ -336,10 +336,6 @@ FireLaser:
         lda .laserenabled       ;is laser loaded?
         bne +
         rts
-+       lda _laserpossible      ;is it possible to fire laser (= no tile is blocking)
-        bne +
-        jsr StopLaser
-        rts
 
 +       lda .lasertime
         bne +
@@ -426,7 +422,10 @@ FireLaser:
 
 GetLaserSpriteAttribute:                ;OUT: .A = sprite attribute
         lda _laserpossible
-        cmp #2
+        bne +
+        lda #LASER_COLLISION_MASK+0     ;disable laser sprites if wall is blocking
+        rts
++       cmp #2
         bne +
         lda #LASER_COLLISION_MASK+8     ;it is possible to fire full distance => display both laser sprites
         clc
