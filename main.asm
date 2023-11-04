@@ -577,7 +577,8 @@ GAME_OVER_DELAY = 300
 .RestartGame:                           ;help function
         jsr HidePlayer
         jsr HideCreatures
-        jsr GetSavedMinersCount
+        ;jsr GetSavedMinersCount
+        lda #10
         sta ZP0
         lda _minutes                    ;set back time to when last level was completed
         sta ZP1

@@ -204,14 +204,16 @@ SetNewHighScore:                               ;IN: .A = rank. ZP0-ZP1 = address
         jsr .MakeRoomInHighScoreTable
        
         ;set saved miners
-        +ConvertBinToDec .newminers, .newminers_dec
-        lda .newminers_dec
+        ;+ConvertBinToDec .newminers, .newminers_dec
+        ;lda .newminers_dec
+        lda .newminers ;TEMP
         ldy .newrank
         sta .leaderboard_saved,y
 
         ;set start level 
-        +ConvertBinToDec .newstart, .newstart_dec
-        lda .newstart_dec
+        ; +ConvertBinToDec .newstart, .newstart_dec
+        ; lda .newstart_dec
+        lda .newstart ;TEMP
         ldy .newrank
         sta .leaderboard_start,y
         
