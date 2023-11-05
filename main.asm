@@ -456,6 +456,8 @@ _gamestatus             !byte 0
         beq +
         jsr HidePlayer
         jsr HideCreatures
+        jsr StopPlayerSounds  ;NEW
+        jsr StopLaser         ;NEW
         lda #ST_INITMENU
         sta _gamestatus         ;quit game
         rts
@@ -577,8 +579,7 @@ GAME_OVER_DELAY = 300
 .RestartGame:                           ;help function
         jsr HidePlayer
         jsr HideCreatures
-        ;jsr GetSavedMinersCount
-        lda #10
+        jsr GetSavedMinersCount
         sta ZP0
         lda _minutes                    ;set back time to when last level was completed
         sta ZP1

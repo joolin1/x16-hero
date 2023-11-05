@@ -300,10 +300,11 @@ _menumode				!byte 0
 	sta .levelconfirmationflag
 	rts
 +	stz .levelconfirmationflag
-	lda .answer
-	beq +
-	sta _startlevel
-+	lda #M_HANDLE_INPUT
+	; lda .answer
+	; beq +
+	; sta _startlevel
+	;+	
+	lda #M_HANDLE_INPUT
 	sta _menumode
 	rts
 
@@ -538,7 +539,7 @@ NO_POSITION  = 26
 !scr 0
 !scr 0
 !scr 0
-!scr "              version 0.95",0
+!scr "              version: 1.0",0
 
 CREDITSCREEN_ROW_COUNT = 19
 CREDITSCREEN_START_ROW = 5
