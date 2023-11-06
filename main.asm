@@ -265,6 +265,7 @@ _gamestatus             !byte 0
         jsr SwapLight                   ;collision between player and a lamp has occurred
 
 .LevelTick2:
+        jsr UpdateTilemap
         jsr UpdateTileColors
         jsr UpdateCreatures      
         jsr UpdatePlayerSprite 
@@ -283,6 +284,7 @@ _gamestatus             !byte 0
         ;*** SKIP IMAGE ***
         lda #ST_INITMENU                ;skip image at least for now, it is rather crappy ... 
         sta _gamestatus
+        jsr SetLayer0ToTileMode
         bra .InitMenu
         ;*** END SKIP *****
         ; lda #ZSM_TITLE_BANK
@@ -321,7 +323,6 @@ _gamestatus             !byte 0
 
 .InitMenuBackground:
         jsr DisableLayer0
-        jsr SetLayer0ToTileMode
 	lda #0
         sta _level
 	jsr InitLevel			;init level 0 which is a demo level used as a background for the menu
@@ -334,7 +335,6 @@ _gamestatus             !byte 0
         jsr UpdateTilemap
 	jsr InitCreatures
         jsr HidePlayer
-        jsr TurnOnLight
         jsr EnableLayer0
         rts
 
@@ -377,9 +377,10 @@ _gamestatus             !byte 0
         jsr PlayMusic
 	rts
 
-.ShowMenu:      
+.ShowMenu:
         jsr MenuHandler                 ;all routines for the menu is in menu.asm
         jsr UpdateCreatures
+        jsr TurnOnLight
         rts
 
 .InitGame:
@@ -458,6 +459,7 @@ _gamestatus             !byte 0
         jsr HideCreatures
         jsr StopPlayerSounds  ;NEW
         jsr StopLaser         ;NEW
+        jsr AbortExplosion    ;NEW
         lda #ST_INITMENU
         sta _gamestatus         ;quit game
         rts

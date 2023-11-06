@@ -1,0 +1,40 @@
+Mine Rescue
+
+This is a platformer inspired by the game H.E.R.O for Commodore 64 and Atari. Your mission is to search a number of mines and find the miner that is trapped in each of them.  
+
+Equipment
+1. A backpack helicopter to make you fly. After a short while you will start to lose height if you don't accelerate upwards.
+2. An integrated helmet laser that will effectively kill every living thing that threatens your life. 
+3. Unlimited number of dynamite bars to blow certain rocks and walls up. Just move away fast to avoid getting killed in the blast.
+
+Dangers
+There are lots of creatures threatening to kill you: hunting bats, poisonous spiders, biting snakes, carnivorous plants, and alien creatures that no one knows what it really is. As if that wasn't enough, some rocks contain magma sediments. They glow red and must not be touched.
+
+Torches
+There are torches on the walls that illuminate the mines. If you touch one of them all torches go out leaving you in darkness. Touch another and all will be ignited again. 
+
+Controls
+
+When walking
+A Button (left CTRL) - Fire laser
+B Button (left ALT) - Place and ignite a bar of dynamite
+Up - Start flying
+Left,Right - walk in the indicated direction
+
+If you step over an edge to a shaft, you will fall down. It won't hurt you, but watch out where you land.
+
+When flying
+A Button (left CTRL) - Fire laser
+Up,  - Fly uppwards
+Left, Right, Down - Fly in the indicated direction
+
+You cannot crash, when you reach ground, your hero will just land.
+
+High-score Table and start level
+The High-score table is highly relevant. If you earn a spot, next time you play, you can choose to start at the level you reached (or one of the levels below). The drawback of starting at a higher level is that it reduces your chances to reach the high-score table again. You skip the easy saved miners on the lower levels.
+
+The number of saved miners matters the most when trying to earn a spot on the high-score table. Time is only relevant when it comes to distinguish between two players who have saved as many miners.
+
+Completing the game
+You have 5 lives. For each completed level you get one extra life if you have less than 5 left. There are ten levels in the game. Can you complete them all?
+

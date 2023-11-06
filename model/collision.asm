@@ -15,11 +15,14 @@ SwapLight:
 +       jsr TurnOnLight
         rts
 
-TurnOnLight: 
-        +CopyPalettesToVRAM _graphicpalettes, 1, 4      ;Restore 5 palettes (player, creatures, black tiles, tiles)
+TurnOnLight:
+        lda _darkmode
+        bne +
+        rts
++       +CopyPalettesToVRAM _graphicpalettes, 1, 4      ;Restore 5 palettes (player, creatures, black tiles, tiles)
         stz _darkmode
         rts
-
+ 
 TurnOffLight:
         lda #<GRAPHICS_PALETTES_ADDR
         sta VERA_ADDR_L
