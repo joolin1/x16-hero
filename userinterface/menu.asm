@@ -539,7 +539,7 @@ NO_POSITION  = 26
 !scr 0
 !scr 0
 !scr 0
-!scr "              version: 1.0",0
+!scr "             version: 1.01",0
 
 CREDITSCREEN_ROW_COUNT = 19
 CREDITSCREEN_START_ROW = 5

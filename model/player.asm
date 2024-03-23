@@ -9,7 +9,7 @@ FLYINGSPEED_DELAY = 45
 TAKEOFF_DELAY     = 0;10
 
 MIN_WALKINGSPEED  = 1
-MAX_WALKINGSPEED  = 2
+MAX_WALKINGSPEED  = 1   ;the feature of adding speed when walking a while did not work well. Removed in v 1.1
 WALKINGSPEED_DELAY = 45 
 
 MIN_FALLINGSPEED   = 1
