@@ -1,4 +1,4 @@
-# x16-hero
+# Mine Rescue (H.E.R.O.)
 
 A sequel to the classic game H.E.R.O. originally for Commodore 64 and Atari.
 
