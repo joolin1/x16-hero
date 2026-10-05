@@ -9,7 +9,7 @@ This version is for **Commander X16**. [Try it in a Commander X16 web emulator](
 The game is also available for the **Apple II VERA Platform**, thanks to **[anomixer](https://github.com/anomixer)**, who ported it to this platform.
 
 - [Visit anomixer's Apple II VERA port](https://github.com/anomixer/x16-hero-vera).
-- [Play the Apple II VERA version in your browser]([https://apple2ts.com/?theme=dark&slot2=vera&tab=vera#https://raw.githubusercontent.com/anomixer/x16-hero-vera/main/x16-hero-vera.hdv](https://apple2ts.com/?theme=dark&slot2=vera&tab=vera#https://github.com/anomixer/x16-hero-vera/releases/latest/download/x16-hero-vera.hdv).
+- [Play the Apple II VERA version in your browser](https://apple2ts.com/?theme=dark&slot2=vera&tab=vera#https://github.com/anomixer/x16-hero-vera/releases/latest/download/x16-hero-vera.hdv).
 
 ## Goal
 
