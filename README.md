@@ -2,11 +2,7 @@
 
 A sequel to the classic game H.E.R.O. originally for Commodore 64 and Atari.
 
-This version is for **Commander X16**.
-
-## Download and play
-
-- **Commander X16:** [Try it in a Commander X16 web emulator](https://cx16forum.com/webemu/x16emu.html?manifest=/forum/download/file.php?id=2968).
+This version is for **Commander X16**. [Try it in a Commander X16 web emulator](https://cx16forum.com/webemu/x16emu.html?manifest=/forum/download/file.php?id=2968).
 
 ### Apple II VERA Platform — port by anomixer
 
